@@ -1,13 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "projectType": "general",
+  "projectName": "Erixcel Dev Notes",
+  "projectDescription": "A personal knowledge base covering Docker, Node.js, software architecture, AI skills, and developer command references.",
   "theme": "maple",
-  "name": "Erixcel Dev Notes",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -94,20 +92,14 @@
       }
     ]
   },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "primary": {
-      "type": "button",
-      "label": "GitHub",
-      "href": "https://github.com"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com"
-    }
-  }
+  "keyFeatures": [
+    "Comandos Docker con ejemplos listos para copiar",
+    "Referencia de comandos Node.js y npm",
+    "Guías de arquitectura de software (Clean Architecture, Microservicios)",
+    "Apuntes de IA: prompting, herramientas y modelos",
+    "Comandos Linux y scripts de bash",
+    "Flujos de trabajo con Git",
+    "Skills y recursos de aprendizaje"
+  ],
+  "publicApiSurface": []
 }

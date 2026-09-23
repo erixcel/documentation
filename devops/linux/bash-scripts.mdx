@@ -1,0 +1,854 @@
+---
+title: "Bash Scripting: Practical Patterns and Examples"
+sidebarTitle: "Bash Scripts"
+description: "Practical Bash scripting patterns: variables, conditionals, loops, functions, error handling, and reusable script templates for automation."
+---
+
+Bash scripts are the glue of the Linux world — they automate repetitive tasks, orchestrate deployments, manage backups, and turn a sequence of manual steps into a single reliable command. You don't need to be a shell wizard to write useful scripts; a solid grasp of a handful of patterns covers 90% of real-world automation needs. This guide walks through those patterns with working examples you can adapt immediately.
+
+---
+
+## Estructura Básica de un Script
+
+Every well-written Bash script starts with the same structure. These few lines at the top turn a fragile ad-hoc sequence of commands into a robust, predictable program.
+
+```bash
+#!/usr/bin/env bash
+# ^^^ The shebang line: tells the OS which interpreter to use.
+# Using /usr/bin/env bash is portable across different systems.
+
+# --- Safety options (put these right after the shebang) ---
+set -e            # Exit immediately if any command returns a non-zero status
+set -u            # Treat unset variables as errors (prevents silent bugs)
+set -o pipefail   # A pipeline fails if ANY command in it fails (not just the last)
+
+# Combining all three on one line is common:
+# set -euo pipefail
+
+# --- Script metadata as comments ---
+# Script name: deploy.sh
+# Description: Deploys the application to the staging server
+# Author: Erick Solano
+# Created: 2024-01-15
+# Usage: ./deploy.sh [environment]
+
+# --- Main script logic starts here ---
+echo "Script starting..."
+```
+
+<Note>
+  `set -euo pipefail` is considered best practice for production scripts. Without `-e`, a failing command is silently ignored and the script keeps running — often making things worse. Without `-u`, typos in variable names become empty strings instead of errors. Without `pipefail`, `cat file.txt | grep "pattern"` succeeds even if `file.txt` doesn't exist.
+</Note>
+
+---
+
+## Variables y Parámetros
+
+Variables in Bash are untyped by default. Understanding how to use positional parameters and default values is key to writing flexible, reusable scripts.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- Declaring variables ---
+NAME="Alice"
+AGE=30
+CURRENT_DIR=$(pwd)          # Command substitution: capture command output
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+# Access a variable with $
+echo "Hello, $NAME"
+echo "You are $AGE years old"
+
+# Use ${} for clarity, especially next to other characters
+echo "File: ${NAME}_report.txt"
+
+# --- Positional parameters ---
+# $0 = script name
+# $1, $2, ... = arguments passed to the script
+# $@ = all arguments as separate words
+# $# = number of arguments
+
+SCRIPT_NAME="$0"
+FIRST_ARG="$1"
+ALL_ARGS="$@"
+ARG_COUNT="$#"
+
+echo "Script: $SCRIPT_NAME"
+echo "First argument: $FIRST_ARG"
+echo "Total arguments: $ARG_COUNT"
+
+# Iterate over all arguments
+for arg in "$@"; do
+    echo "  - $arg"
+done
+
+# --- Default values ---
+# ${VAR:-default} → use default if VAR is unset or empty
+# ${VAR:=default} → use default AND assign it to VAR
+# ${VAR:?message} → exit with error message if VAR is unset
+# ${VAR:+value}   → use value only if VAR IS set
+
+ENVIRONMENT="${1:-development}"     # Default to "development" if no arg given
+DB_HOST="${DB_HOST:-localhost}"     # Use env var or fall back to localhost
+LOG_LEVEL="${LOG_LEVEL:-info}"
+
+echo "Environment: $ENVIRONMENT"
+echo "DB Host: $DB_HOST"
+
+# Require a variable to be set (exits with error if not)
+API_KEY="${API_KEY:?Error: API_KEY environment variable is not set}"
+
+# --- String manipulation ---
+FILENAME="backup_20240115.tar.gz"
+
+echo "${FILENAME^^}"          # Uppercase: BACKUP_20240115.TAR.GZ
+echo "${FILENAME,,}"          # Lowercase
+echo "${#FILENAME}"           # Length: 23
+echo "${FILENAME%.tar.gz}"    # Remove suffix: backup_20240115
+echo "${FILENAME#backup_}"    # Remove prefix: 20240115.tar.gz
+echo "${FILENAME/backup/snap}" # Replace first match: snap_20240115.tar.gz
+
+# Substring: ${var:start:length}
+echo "${FILENAME:7:8}"        # 20240115
+```
+
+<Tip>
+  **Always quote your variables**: Use `"$VAR"` instead of `$VAR` to prevent word-splitting and glob expansion. The classic bug: `rm -rf $DIR` explodes if `$DIR` is empty or contains spaces. `rm -rf "$DIR"` is always safe.
+</Tip>
+
+---
+
+## Condicionales
+
+Bash conditionals let you branch logic based on file existence, string values, numbers, or command exit codes.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENVIRONMENT="${1:-}"
+
+# --- Basic if/elif/else ---
+if [[ "$ENVIRONMENT" == "production" ]]; then
+    echo "Deploying to PRODUCTION — be careful!"
+elif [[ "$ENVIRONMENT" == "staging" ]]; then
+    echo "Deploying to staging server..."
+else
+    echo "Deploying to local development..."
+fi
+
+# --- [[ ]] vs [ ] ---
+# Use [[ ]] (double brackets) — it's a Bash keyword, not a program.
+# It supports &&, ||, =~, and doesn't split words.
+# [ ] is POSIX sh compatible but more error-prone.
+
+NAME="Alice"
+
+# String comparisons
+if [[ "$NAME" == "Alice" ]]; then echo "Hi Alice!"; fi
+if [[ "$NAME" != "Bob" ]]; then echo "Not Bob"; fi
+if [[ "$NAME" =~ ^Al ]]; then echo "Name starts with Al (regex)"; fi
+
+# --- File tests ---
+FILE="/etc/nginx/nginx.conf"
+DIR="/var/log"
+
+if [[ -f "$FILE" ]]; then
+    echo "$FILE exists and is a regular file"
+fi
+
+if [[ -d "$DIR" ]]; then
+    echo "$DIR is a directory"
+fi
+
+if [[ -e "$FILE" ]]; then
+    echo "$FILE exists (file or directory)"
+fi
+
+if [[ -r "$FILE" ]]; then
+    echo "$FILE is readable"
+fi
+
+if [[ -w "$FILE" ]]; then
+    echo "$FILE is writable"
+fi
+
+if [[ -x "/usr/bin/node" ]]; then
+    echo "Node.js is installed"
+fi
+
+# --- Empty / non-empty string checks ---
+VALUE=""
+
+if [[ -z "$VALUE" ]]; then
+    echo "VALUE is empty"
+fi
+
+if [[ -n "$NAME" ]]; then
+    echo "NAME is not empty: $NAME"
+fi
+
+# --- Numeric comparisons ---
+CPU_COUNT=$(nproc)
+
+if (( CPU_COUNT >= 4 )); then
+    echo "Multi-core system: $CPU_COUNT CPUs"
+fi
+
+LOAD=85
+if (( LOAD > 90 )); then
+    echo "CRITICAL: High load!"
+elif (( LOAD > 70 )); then
+    echo "WARNING: Elevated load ($LOAD%)"
+else
+    echo "OK: Load is normal ($LOAD%)"
+fi
+
+# Numeric comparisons with [[ ]] use -eq, -ne, -lt, -le, -gt, -ge
+if [[ "$CPU_COUNT" -ge 2 ]]; then
+    echo "At least 2 CPUs available"
+fi
+
+# --- Combining conditions ---
+if [[ -f "$FILE" && -r "$FILE" ]]; then
+    echo "File exists and is readable"
+fi
+
+if [[ "$ENVIRONMENT" == "production" || "$ENVIRONMENT" == "staging" ]]; then
+    echo "Deploying to a real server"
+fi
+```
+
+<Note>
+  Prefer `(( ))` for arithmetic comparisons — it's cleaner and reads like a normal language: `if (( count > 10 ))`. Use `[[ ]]` for string and file tests. Avoid `[ ]` in new scripts unless you need strict POSIX compatibility.
+</Note>
+
+---
+
+## Bucles
+
+Loops let you process collections of files, read data line by line, or repeat actions until a condition is met.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- for loop over a list ---
+for server in web01 web02 web03 db01; do
+    echo "Pinging $server..."
+    ping -c 1 "$server" > /dev/null && echo "  $server is UP" || echo "  $server is DOWN"
+done
+
+# --- for loop with a range ---
+for i in {1..5}; do
+    echo "Attempt $i"
+done
+
+# --- C-style for loop ---
+for (( i = 0; i < 10; i++ )); do
+    echo "Index: $i"
+done
+
+# --- for loop over files matching a glob ---
+echo "Processing log files..."
+for logfile in /var/log/*.log; do
+    if [[ -f "$logfile" ]]; then
+        lines=$(wc -l < "$logfile")
+        echo "  $logfile: $lines lines"
+    fi
+done
+
+# --- for loop over all .log files recursively ---
+while IFS= read -r -d '' file; do
+    echo "Found: $file"
+done < <(find . -name "*.log" -print0)
+
+# --- while loop ---
+COUNT=0
+while (( COUNT < 5 )); do
+    echo "Count: $COUNT"
+    (( COUNT++ ))
+done
+
+# --- while loop with a condition command ---
+# Keep trying until a service is ready
+MAX_RETRIES=30
+RETRIES=0
+while ! curl -sf http://localhost:8080/health > /dev/null; do
+    RETRIES=$(( RETRIES + 1 ))
+    if (( RETRIES >= MAX_RETRIES )); then
+        echo "ERROR: Service did not become ready after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    echo "Waiting for service... ($RETRIES/$MAX_RETRIES)"
+    sleep 2
+done
+echo "Service is ready!"
+
+# --- until loop (runs while condition is FALSE) ---
+until [[ -f "/tmp/done.marker" ]]; do
+    echo "Waiting for done marker..."
+    sleep 1
+done
+echo "Done marker found!"
+
+# --- Reading lines from a file ---
+while IFS= read -r line; do
+    echo "Processing: $line"
+done < /etc/hosts
+
+# --- Reading lines from a command's output ---
+while IFS= read -r user; do
+    echo "User: $user"
+done < <(cut -d: -f1 /etc/passwd)
+
+# --- Loop control: break and continue ---
+for i in {1..10}; do
+    if (( i == 3 )); then
+        continue    # Skip 3
+    fi
+    if (( i == 7 )); then
+        break       # Stop at 7
+    fi
+    echo "$i"
+done
+```
+
+<Tip>
+  **Use `IFS= read -r line` when reading file lines.** Without `IFS=`, leading/trailing whitespace is trimmed. Without `-r`, backslashes are interpreted as escape characters. This combination preserves the line exactly as it appears in the file.
+</Tip>
+
+---
+
+## Funciones
+
+Functions let you organize scripts into reusable, testable units. They're the difference between a script you never want to look at again and one you can actually maintain.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- Declaring a function ---
+greet() {
+    local name="$1"       # 'local' scopes the variable to this function
+    local greeting="${2:-Hello}"   # Default value for second parameter
+    echo "$greeting, $name!"
+}
+
+# Call the function
+greet "Alice"
+greet "Bob" "Good morning"
+
+# --- Function with a return value (via exit code) ---
+# Bash functions can only return integers (0–255) via 'return'
+# For string/data return values, use echo + command substitution
+
+is_installed() {
+    local program="$1"
+    command -v "$program" > /dev/null 2>&1
+    # Returns 0 (true) if found, 1 (false) if not
+}
+
+if is_installed "docker"; then
+    echo "Docker is installed: $(docker --version)"
+else
+    echo "Docker is not installed"
+fi
+
+# --- Returning a string value from a function ---
+get_timestamp() {
+    echo "$(date +%Y%m%d_%H%M%S)"
+}
+
+TIMESTAMP=$(get_timestamp)
+echo "Current timestamp: $TIMESTAMP"
+
+# --- Logging function (reusable pattern) ---
+# Define log levels with color output
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'    # No Color
+
+log_info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
+log_success() { echo -e "${GREEN}[OK]${NC}    $*"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+
+log_info "Starting deployment..."
+log_warn "Low disk space detected"
+log_error "Connection refused on port 5432"
+log_success "Deployment complete"
+
+# --- Function with input validation ---
+create_backup() {
+    local source_dir="$1"
+    local dest_dir="${2:-/tmp/backups}"
+
+    if [[ ! -d "$source_dir" ]]; then
+        log_error "Source directory does not exist: $source_dir"
+        return 1
+    fi
+
+    mkdir -p "$dest_dir"
+    local archive_name="backup_$(basename "$source_dir")_$(get_timestamp).tar.gz"
+
+    if tar czf "$dest_dir/$archive_name" "$source_dir"; then
+        log_success "Backup created: $dest_dir/$archive_name"
+        echo "$dest_dir/$archive_name"    # Return the path
+    else
+        log_error "Failed to create backup"
+        return 1
+    fi
+}
+
+# Use the function
+# BACKUP_PATH=$(create_backup "/var/app")
+```
+
+<Note>
+  **Always use `local` for function variables.** Without it, variables are global and will leak into the rest of your script, causing subtle bugs. The rule of thumb: every variable inside a function should be declared with `local` unless you intentionally want it to be global.
+</Note>
+
+---
+
+## Manejo de Errores
+
+A script that fails silently is worse than one that fails loudly. Good error handling means you know exactly what went wrong, where, and why.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- set -e: Exit on error ---
+# Any command that returns non-zero causes immediate exit.
+# This prevents cascading failures.
+
+# Without set -e, this would continue even after a failure:
+# mkdir /root/secret    # Fails (permission denied)
+# rm -rf /tmp/cache     # Would still run!
+
+# --- trap: Run cleanup on exit or error ---
+TEMP_DIR=$(mktemp -d)
+
+cleanup() {
+    local exit_code=$?
+    echo "Cleaning up temporary directory: $TEMP_DIR"
+    rm -rf "$TEMP_DIR"
+    if (( exit_code != 0 )); then
+        echo "Script failed with exit code: $exit_code"
+    fi
+}
+
+# Register cleanup to run on EXIT (normal or error), INT (Ctrl+C), TERM
+trap cleanup EXIT INT TERM
+
+# Now anything written to $TEMP_DIR is cleaned up automatically
+echo "Working in: $TEMP_DIR"
+cp /etc/hosts "$TEMP_DIR/hosts.bak"
+
+# --- Manual error checking with || ---
+# Use || to handle errors inline without exiting the script
+
+mkdir -p /var/app/logs || { echo "ERROR: Cannot create log directory"; exit 1; }
+
+# Download a file, exit gracefully if it fails
+# curl -sf https://api.example.com/config.json > config.json \
+#   || { log_error "Failed to download config"; exit 1; }
+
+# --- Using && for chained success ---
+# Each command only runs if the previous one succeeded
+mkdir -p /var/app && cp -r ./dist /var/app/ && echo "Deploy files copied successfully"
+
+# --- Custom error handler ---
+error_handler() {
+    local line_number="$1"
+    local command="$2"
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  ERROR on line $line_number"
+    echo "  Failed command: $command"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+# ERR trap fires on any command that returns non-zero
+trap 'error_handler $LINENO "$BASH_COMMAND"' ERR
+
+# --- Exit codes ---
+# 0  = success
+# 1  = general error
+# 2  = misuse of shell built-in
+# 126 = command found but not executable
+# 127 = command not found
+# 128+N = killed by signal N
+
+check_requirements() {
+    local missing=0
+    for cmd in docker git curl jq; do
+        if ! command -v "$cmd" > /dev/null 2>&1; then
+            echo "ERROR: Required command not found: $cmd"
+            missing=$(( missing + 1 ))
+        fi
+    done
+    if (( missing > 0 )); then
+        echo "Install missing requirements and try again."
+        exit 127
+    fi
+}
+
+# --- Suppress expected errors with || true ---
+# When a command might "fail" but that's acceptable:
+EXISTING_USERS=$(grep "alice" /etc/passwd || true)   # Don't fail if user not found
+```
+
+<Tip>
+  **Debugging a script:** Run it with `bash -x script.sh` to print every command before it executes. You'll see exactly where it goes wrong. You can also enable tracing inside the script for a specific section:
+  ```bash
+  set -x    # Start tracing
+  some_complex_function
+  set +x    # Stop tracing
+  ```
+</Tip>
+
+---
+
+## Ejemplos Prácticos
+
+### Script 1: Backup con Timestamp
+
+A robust backup script that archives a directory, optionally rotates old backups, and provides clear feedback.
+
+```bash
+#!/usr/bin/env bash
+# backup.sh — Archive a directory with a timestamped filename
+# Usage: ./backup.sh <source_dir> [destination_dir] [max_backups]
+# Example: ./backup.sh /var/www/html /mnt/backups 7
+
+set -euo pipefail
+
+# ── Colors ────────────────────────────────────────────────
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+BLUE='\033[0;34m'; NC='\033[0m'
+
+log_info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
+log_success() { echo -e "${GREEN}[OK]${NC}    $*"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+
+# ── Configuration ─────────────────────────────────────────
+SOURCE_DIR="${1:?Usage: $0 <source_dir> [dest_dir] [max_backups]}"
+DEST_DIR="${2:-/var/backups}"
+MAX_BACKUPS="${3:-7}"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+SOURCE_NAME=$(basename "$SOURCE_DIR")
+ARCHIVE_NAME="${SOURCE_NAME}_${TIMESTAMP}.tar.gz"
+ARCHIVE_PATH="${DEST_DIR}/${ARCHIVE_NAME}"
+
+# ── Validation ────────────────────────────────────────────
+if [[ ! -d "$SOURCE_DIR" ]]; then
+    log_error "Source directory not found: $SOURCE_DIR"
+    exit 1
+fi
+
+# ── Setup ─────────────────────────────────────────────────
+mkdir -p "$DEST_DIR"
+
+# Check available disk space (in KB)
+REQUIRED_KB=$(du -sk "$SOURCE_DIR" | cut -f1)
+AVAILABLE_KB=$(df -k "$DEST_DIR" | awk 'NR==2 {print $4}')
+
+if (( REQUIRED_KB > AVAILABLE_KB )); then
+    log_error "Not enough disk space. Need ${REQUIRED_KB}K, have ${AVAILABLE_KB}K"
+    exit 1
+fi
+
+# ── Create Backup ─────────────────────────────────────────
+log_info "Backing up: $SOURCE_DIR"
+log_info "Destination: $ARCHIVE_PATH"
+
+if tar czf "$ARCHIVE_PATH" -C "$(dirname "$SOURCE_DIR")" "$SOURCE_NAME"; then
+    ARCHIVE_SIZE=$(du -sh "$ARCHIVE_PATH" | cut -f1)
+    log_success "Backup created: $ARCHIVE_NAME ($ARCHIVE_SIZE)"
+else
+    log_error "Backup failed!"
+    rm -f "$ARCHIVE_PATH"   # Remove partial archive
+    exit 1
+fi
+
+# ── Rotate Old Backups ────────────────────────────────────
+log_info "Keeping last $MAX_BACKUPS backups, removing older ones..."
+
+# List all backups for this source, sorted by date (oldest first)
+BACKUP_COUNT=$(find "$DEST_DIR" -name "${SOURCE_NAME}_*.tar.gz" | wc -l)
+
+if (( BACKUP_COUNT > MAX_BACKUPS )); then
+    DELETE_COUNT=$(( BACKUP_COUNT - MAX_BACKUPS ))
+    log_warn "Removing $DELETE_COUNT old backup(s)..."
+
+    find "$DEST_DIR" -name "${SOURCE_NAME}_*.tar.gz" \
+        | sort \
+        | head -n "$DELETE_COUNT" \
+        | while IFS= read -r old_backup; do
+            rm -f "$old_backup"
+            log_info "  Removed: $(basename "$old_backup")"
+        done
+fi
+
+# ── Summary ───────────────────────────────────────────────
+REMAINING=$(find "$DEST_DIR" -name "${SOURCE_NAME}_*.tar.gz" | wc -l)
+log_success "Backup complete. $REMAINING backup(s) stored in $DEST_DIR"
+```
+
+---
+
+### Script 2: Process Watchdog (Monitor y Reinicio)
+
+A watchdog script that checks whether a process is running and restarts it if not. Suitable for running via `cron`.
+
+```bash
+#!/usr/bin/env bash
+# watchdog.sh — Monitor a process and restart it if it goes down
+# Usage: ./watchdog.sh <process_name> <start_command>
+# Example: ./watchdog.sh "gunicorn" "/var/app/start.sh"
+# Cron:  */5 * * * * /opt/scripts/watchdog.sh gunicorn "/var/app/start.sh" >> /var/log/watchdog.log 2>&1
+
+set -euo pipefail
+
+# ── Configuration ─────────────────────────────────────────
+PROCESS_NAME="${1:?Usage: $0 <process_name> <start_command>}"
+START_COMMAND="${2:?Provide a start command}"
+LOG_FILE="${WATCHDOG_LOG:-/var/log/watchdog.log}"
+MAX_RESTART_ATTEMPTS=3
+RESTART_DELAY=5    # seconds between restart attempts
+
+# ── Logging ───────────────────────────────────────────────
+TIMESTAMP() { date '+%Y-%m-%d %H:%M:%S'; }
+
+log() {
+    local level="$1"; shift
+    echo "[$(TIMESTAMP)] [$level] $*" | tee -a "$LOG_FILE"
+}
+
+# ── State file to track restart attempts ──────────────────
+STATE_FILE="/tmp/watchdog_${PROCESS_NAME//\//_}.state"
+
+get_restart_count() {
+    if [[ -f "$STATE_FILE" ]]; then
+        cat "$STATE_FILE"
+    else
+        echo "0"
+    fi
+}
+
+set_restart_count() {
+    echo "$1" > "$STATE_FILE"
+}
+
+reset_restart_count() {
+    rm -f "$STATE_FILE"
+}
+
+# ── Process check ─────────────────────────────────────────
+is_running() {
+    local process="$1"
+    # pgrep returns 0 if found, 1 if not
+    pgrep -f "$process" > /dev/null 2>&1
+}
+
+# ── Main logic ────────────────────────────────────────────
+if is_running "$PROCESS_NAME"; then
+    PID=$(pgrep -f "$PROCESS_NAME" | head -1)
+    log "INFO" "$PROCESS_NAME is running (PID: $PID)"
+    reset_restart_count
+    exit 0
+fi
+
+# Process is not running
+log "WARN" "$PROCESS_NAME is NOT running!"
+
+ATTEMPTS=$(get_restart_count)
+
+if (( ATTEMPTS >= MAX_RESTART_ATTEMPTS )); then
+    log "ERROR" "Process has failed $ATTEMPTS times. Manual intervention required."
+    # Optionally send an alert here:
+    # curl -s -X POST "$SLACK_WEBHOOK" -d "{\"text\": \"ALERT: $PROCESS_NAME is down!\"}"
+    exit 1
+fi
+
+# Attempt to restart
+ATTEMPTS=$(( ATTEMPTS + 1 ))
+set_restart_count "$ATTEMPTS"
+
+log "INFO" "Attempting restart (attempt $ATTEMPTS of $MAX_RESTART_ATTEMPTS)..."
+
+sleep "$RESTART_DELAY"
+
+# Run the start command
+if $START_COMMAND; then
+    sleep 3   # Give it a moment to initialize
+
+    if is_running "$PROCESS_NAME"; then
+        NEW_PID=$(pgrep -f "$PROCESS_NAME" | head -1)
+        log "INFO" "$PROCESS_NAME restarted successfully (PID: $NEW_PID)"
+        reset_restart_count
+    else
+        log "ERROR" "$PROCESS_NAME started but exited immediately"
+    fi
+else
+    log "ERROR" "Start command failed: $START_COMMAND"
+fi
+```
+
+---
+
+### Script 3: Renombrado Masivo de Archivos
+
+A script that batch-renames files — useful for normalizing filenames, changing extensions, or adding prefixes/suffixes.
+
+```bash
+#!/usr/bin/env bash
+# rename-files.sh — Batch rename files in a directory
+# Usage: ./rename-files.sh [options] <directory>
+#
+# Options:
+#   -e <ext>       Only process files with this extension (e.g. jpg)
+#   -p <prefix>    Add a prefix to all filenames
+#   -s <suffix>    Add a suffix before the extension
+#   -l             Convert filenames to lowercase
+#   -n             Dry run — show what would happen without renaming
+#
+# Examples:
+#   ./rename-files.sh -e jpg -l ./photos        # Lowercase all .jpg files
+#   ./rename-files.sh -p "2024_" -e txt ./docs  # Add date prefix to .txt files
+#   ./rename-files.sh -n -l ./downloads         # Preview lowercase rename
+
+set -euo pipefail
+
+# ── Defaults ──────────────────────────────────────────────
+EXTENSION=""
+PREFIX=""
+SUFFIX=""
+LOWERCASE=false
+DRY_RUN=false
+RENAMED=0
+SKIPPED=0
+
+# ── Logging ───────────────────────────────────────────────
+log()      { echo "  $*"; }
+log_ok()   { echo -e "  \033[32m✔\033[0m  $*"; }
+log_skip() { echo -e "  \033[33m–\033[0m  $*"; }
+log_dry()  { echo -e "  \033[34m[DRY]\033[0m $*"; }
+
+# ── Argument parsing ──────────────────────────────────────
+while getopts ":e:p:s:ln" opt; do
+    case $opt in
+        e) EXTENSION="$OPTARG" ;;
+        p) PREFIX="$OPTARG" ;;
+        s) SUFFIX="$OPTARG" ;;
+        l) LOWERCASE=true ;;
+        n) DRY_RUN=true ;;
+        :) echo "ERROR: Option -$OPTARG requires an argument"; exit 1 ;;
+        \?) echo "ERROR: Unknown option -$OPTARG"; exit 1 ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+
+TARGET_DIR="${1:?Usage: $0 [options] <directory>}"
+
+if [[ ! -d "$TARGET_DIR" ]]; then
+    echo "ERROR: Directory not found: $TARGET_DIR"
+    exit 1
+fi
+
+if [[ "$DRY_RUN" == true ]]; then
+    echo "DRY RUN MODE — no files will be renamed"
+fi
+
+echo "Processing files in: $TARGET_DIR"
+echo "─────────────────────────────────────"
+
+# ── Process each file ─────────────────────────────────────
+while IFS= read -r filepath; do
+    filename=$(basename "$filepath")
+    dir=$(dirname "$filepath")
+
+    # Split filename into name and extension
+    if [[ "$filename" == *.* ]]; then
+        name="${filename%.*}"
+        ext="${filename##*.}"
+    else
+        name="$filename"
+        ext=""
+    fi
+
+    # Build the new filename
+    new_name="$name"
+    new_ext="$ext"
+
+    # Apply lowercase
+    if [[ "$LOWERCASE" == true ]]; then
+        new_name="${new_name,,}"
+        new_ext="${new_ext,,}"
+    fi
+
+    # Replace spaces with underscores
+    new_name="${new_name// /_}"
+
+    # Add prefix and suffix
+    new_name="${PREFIX}${new_name}${SUFFIX}"
+
+    # Reconstruct full filename
+    if [[ -n "$new_ext" ]]; then
+        new_filename="${new_name}.${new_ext}"
+    else
+        new_filename="$new_name"
+    fi
+
+    new_filepath="${dir}/${new_filename}"
+
+    # Skip if the name wouldn't change
+    if [[ "$filename" == "$new_filename" ]]; then
+        log_skip "Unchanged: $filename"
+        (( SKIPPED++ )) || true
+        continue
+    fi
+
+    # Skip if target already exists
+    if [[ -e "$new_filepath" && "$filepath" != "$new_filepath" ]]; then
+        log_skip "CONFLICT — $new_filename already exists, skipping $filename"
+        (( SKIPPED++ )) || true
+        continue
+    fi
+
+    # Rename (or preview)
+    if [[ "$DRY_RUN" == true ]]; then
+        log_dry "$filename  →  $new_filename"
+    else
+        mv "$filepath" "$new_filepath"
+        log_ok "$filename  →  $new_filename"
+    fi
+
+    (( RENAMED++ )) || true
+
+done < <(
+    if [[ -n "$EXTENSION" ]]; then
+        find "$TARGET_DIR" -maxdepth 1 -type f -name "*.${EXTENSION}"
+    else
+        find "$TARGET_DIR" -maxdepth 1 -type f
+    fi | sort
+)
+
+# ── Summary ───────────────────────────────────────────────
+echo "─────────────────────────────────────"
+if [[ "$DRY_RUN" == true ]]; then
+    echo "Dry run complete: $RENAMED file(s) would be renamed, $SKIPPED skipped."
+else
+    echo "Done: $RENAMED file(s) renamed, $SKIPPED skipped."
+fi
+```
+
+<Tip>
+  **Make your scripts easily testable:** Add a `--dry-run` or `-n` flag (as shown above) to preview changes without actually executing them. This single habit prevents most accidental data-loss bugs and makes scripts much safer to hand off to teammates.
+</Tip>

@@ -1,0 +1,282 @@
+---
+title: "AI Language Models: Comparison and Use Cases"
+sidebarTitle: "Models"
+description: "Compare leading AI language models: GPT-4, Claude, Gemini, Llama, Mistral. Context windows, strengths, API access, and choosing the right model."
+---
+
+Language models are the engine underneath every AI tool a developer uses today — from autocomplete to chat assistants to agentic coding tools. Understanding the landscape — who makes what, how they differ, and when to use which — helps you pick the right tool for the job, spend your API budget wisely, and know when a local model is the smarter call. This page is a practical reference, not an exhaustive academic survey.
+
+---
+
+## Modelos Principales
+
+A side-by-side comparison of the frontier models you're most likely to encounter:
+
+| Model | Provider | Context Window | Strengths | API Available |
+|-------|----------|----------------|-----------|---------------|
+| **GPT-4o** | OpenAI | 128K tokens | Speed + quality balance, multimodal (vision, audio), broad tool ecosystem | ✅ OpenAI API |
+| **o3 / o1** | OpenAI | 128K tokens | Deep reasoning, math, science, hard coding problems | ✅ OpenAI API |
+| **Claude 3.5 Sonnet** | Anthropic | 200K tokens | Best at coding, long-context understanding, instruction following, writing | ✅ Anthropic API |
+| **Claude 3 Opus** | Anthropic | 200K tokens | Highest reasoning quality in Claude family, slower/expensive | ✅ Anthropic API |
+| **Gemini 1.5 Pro** | Google | 1M tokens | Largest context window, multimodal, YouTube/Drive integration | ✅ Google AI API |
+| **Gemini 2.0 Flash** | Google | 1M tokens | Fast, cost-efficient, good for high-volume tasks | ✅ Google AI API |
+| **Llama 3.3 70B** | Meta | 128K tokens | Best open-source quality, runs locally, no API key needed | ✅ Via Groq, Together, local |
+| **Mistral Large** | Mistral AI | 128K tokens | Strong instruction following, European data residency, competitive cost | ✅ Mistral API |
+| **Phi-3 / Phi-4** | Microsoft | 128K tokens | Small but punches above its weight, great for edge/local deployment | ✅ Azure AI, local |
+| **Qwen 2.5** | Alibaba | 128K tokens | Strong multilingual (especially Asian languages), good at code | ✅ Via various providers, local |
+
+<Info>
+Context window sizes are listed in **tokens** — roughly 0.75 words per token in English. 128K tokens ≈ ~100,000 words or about 200 pages of text.
+</Info>
+
+---
+
+## Modelos Open Source
+
+Open-source models can be run entirely on your own hardware. No API keys, no data leaving your machine, no per-token costs after setup.
+
+### Llama 3 (Meta)
+
+The best open-source model family as of 2024–2025. Llama 3.3 70B is competitive with GPT-4 on most benchmarks. Available in 8B, 70B, and 405B parameter sizes.
+
+- **8B** — runs on a MacBook with 16GB RAM
+- **70B** — runs on a Mac Studio or high-end GPU workstation
+- **405B** — requires serious multi-GPU hardware or cloud
+
+### Mistral / Mixtral
+
+Mistral 7B punches well above its weight class for its size. Mixtral 8x7B (a mixture-of-experts model) is efficient and very capable. `mistral-nemo` (12B) is a great general-purpose local model.
+
+### Phi-3 / Phi-4 (Microsoft)
+
+Phi models are "small language models" (SLMs) trained on high-quality data. Phi-3 Mini (3.8B) runs on a phone. Phi-4 (14B) is surprisingly strong at reasoning for its size.
+
+### Qwen 2.5 (Alibaba)
+
+Strong multilingual capabilities, particularly for Chinese, Japanese, and Korean. Qwen2.5-Coder is fine-tuned specifically for coding and competitive with larger general models on code tasks.
+
+### DeepSeek Coder
+
+Open-source model trained specifically on code. Excellent for coding tasks if you want a local model specialized for development work.
+
+---
+
+## Ollama — LLMs en Local
+
+[Ollama](https://ollama.com) is the easiest way to run open-source LLMs locally. One command to download and run any supported model.
+
+```bash
+# Install (macOS)
+brew install ollama
+
+# Start the Ollama service
+ollama serve
+
+# Download and run Llama 3
+ollama run llama3
+
+# Run Mistral
+ollama run mistral
+
+# Run a coding-optimized model
+ollama run deepseek-coder:6.7b
+
+# List downloaded models
+ollama list
+
+# Pull a model without running it
+ollama pull phi3
+
+# Remove a model
+ollama rm llama3
+```
+
+### Usar Ollama via API
+
+Ollama exposes a REST API on `localhost:11434` that's compatible with the OpenAI API format:
+
+```bash
+# Direct API call
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3",
+  "prompt": "Explain the difference between async/await and Promises in JavaScript",
+  "stream": false
+}'
+
+# OpenAI-compatible endpoint (works with OpenAI SDK)
+curl http://localhost:11434/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+```javascript
+// Use Ollama with the OpenAI JS SDK
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "http://localhost:11434/v1",
+  apiKey: "ollama", // required but ignored
+});
+
+const response = await client.chat.completions.create({
+  model: "llama3",
+  messages: [{ role: "user", content: "Write a SQL query to find duplicate emails" }],
+});
+
+console.log(response.choices[0].message.content);
+```
+
+<Tip>
+Combine Ollama with [Continue.dev](https://continue.dev) in VS Code for a fully local, fully free coding assistant. No data leaves your machine.
+</Tip>
+
+---
+
+## Elegir el Modelo Correcto
+
+Use this decision guide to pick the right model for your use case:
+
+### Por tipo de tarea
+
+| Task | Recommended Model |
+|------|------------------|
+| Autocomplete / inline suggestions | GPT-4o (Copilot), Claude 3.5 Sonnet (Cursor) |
+| Complex coding / multi-file edits | Claude 3.5 Sonnet |
+| Hard math / algorithms / reasoning | o3 / o1 |
+| Large codebase analysis (>100K tokens) | Claude 3.5 Sonnet or Gemini 1.5 Pro |
+| Fast, cheap, high-volume tasks | GPT-4o-mini, Gemini 2.0 Flash, Mistral 7B |
+| Privacy-sensitive / on-premise | Llama 3 70B via Ollama |
+| Multilingual (especially CJK) | Qwen 2.5 |
+| Edge / mobile / constrained environments | Phi-3 Mini |
+
+### Speed vs Quality vs Cost
+
+```
+High Quality ←————————————→ Low Cost
+     │                           │
+  o3/o1                    GPT-4o-mini
+  Claude Opus              Mistral 7B
+  Claude Sonnet            Gemini Flash
+  GPT-4o                   Llama 3 8B (free)
+     │                           │
+   Slow ←—————————————→ Very Fast
+```
+
+### Cloud vs Local
+
+**Use cloud models when:**
+- You need maximum quality
+- Task requires the latest knowledge cutoff
+- You want tool use, browsing, or code execution
+- Context window needs exceed 32K tokens
+
+**Use local models when:**
+- Code or data is proprietary/sensitive
+- You have high-volume workloads with API cost concerns
+- You're building offline-capable applications
+- You want zero latency for simple completions
+
+---
+
+## APIs de Modelos
+
+### OpenAI API
+
+```bash
+# Get your API key: https://platform.openai.com/api-keys
+export OPENAI_API_KEY="sk-..."
+```
+
+```javascript
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+async function askGPT(question) {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: "You are a senior software engineer. Be concise and precise.",
+      },
+      {
+        role: "user",
+        content: question,
+      },
+    ],
+    temperature: 0.2, // Lower = more deterministic, better for code
+    max_tokens: 2048,
+  });
+
+  return response.choices[0].message.content;
+}
+
+const answer = await askGPT("What's the difference between Map and WeakMap in JavaScript?");
+console.log(answer);
+```
+
+### Anthropic API
+
+```bash
+# Get your API key: https://console.anthropic.com
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+```javascript
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+async function askClaude(userMessage, systemPrompt = "") {
+  const response = await anthropic.messages.create({
+    model: "claude-3-5-sonnet-20241022",
+    max_tokens: 2048,
+    system: systemPrompt || "You are a helpful software engineering assistant.",
+    messages: [
+      {
+        role: "user",
+        content: userMessage,
+      },
+    ],
+  });
+
+  return response.content[0].text;
+}
+
+// Example: code review
+const review = await askClaude(
+  `Review this function for bugs and suggest improvements:\n\n${myCode}`,
+  "You are a senior TypeScript engineer. Focus on correctness and maintainability."
+);
+console.log(review);
+```
+
+### Groq — Inferencia Ultrarrápida
+
+[Groq](https://groq.com) runs open-source models (Llama 3, Mistral, Gemma) on custom LPU hardware — typically 10–20x faster than GPU-based inference. API is OpenAI-compatible.
+
+```javascript
+import OpenAI from "openai";
+
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY, // from console.groq.com
+  baseURL: "https://api.groq.com/openai/v1",
+});
+
+const response = await groq.chat.completions.create({
+  model: "llama-3.3-70b-versatile",
+  messages: [{ role: "user", content: "Explain Docker in one paragraph" }],
+});
+```
+
+<Info>
+Groq has a generous free tier — great for prototyping and side projects that need fast inference without cloud model costs.
+</Info>

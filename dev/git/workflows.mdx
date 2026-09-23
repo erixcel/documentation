@@ -1,0 +1,569 @@
+---
+title: "Git Workflows: Branching Strategies for Teams"
+sidebarTitle: "Workflows"
+description: "Compare Git workflows: Feature Branch, Git Flow, GitHub Flow, and Trunk-Based Development. Includes commit conventions and PR best practices."
+---
+
+Elegir la estrategia de ramificación correcta puede marcar la diferencia entre un equipo que entrega con confianza y uno que sufre cada release. Esta página compara los flujos de trabajo más usados en la industria — desde el sencillo Feature Branch hasta el sofisticado Git Flow — y cubre también las convenciones de commits y buenas prácticas para pull requests que mantienen la base de código sana a largo plazo.
+
+---
+
+## Feature Branch Workflow
+
+El Feature Branch Workflow es el punto de partida para la mayoría de los equipos. La idea central es simple: **la rama `main` siempre contiene código estable y listo para producción**, y todo desarrollo nuevo ocurre en ramas separadas.
+
+### Principios clave
+
+- Cada tarea, funcionalidad o bugfix tiene su propia rama.
+- Nadie hace commit directamente a `main`.
+- Los cambios llegan a `main` exclusivamente a través de Pull Requests (o Merge Requests).
+- Las revisiones de código ocurren en el PR antes de mergear.
+
+### Ciclo de vida típico
+
+```bash
+# 1. Partir siempre desde main actualizado
+git switch main
+git pull origin main
+
+# 2. Crear la rama de feature
+git switch -c feature/user-authentication
+
+# 3. Desarrollar y hacer commits atómicos
+git add src/auth/
+git commit -m "feat: add JWT token generation"
+
+git add src/auth/middleware.js
+git commit -m "feat: add auth middleware for protected routes"
+
+# 4. Publicar la rama en el remoto
+git push -u origin feature/user-authentication
+
+# 5. Abrir un Pull Request en GitHub/GitLab
+# 6. Recibir revisiones y hacer ajustes
+git add .
+git commit -m "fix: handle token expiry edge case per review"
+git push
+
+# 7. Merge aprobado → se integra a main
+# 8. Limpiar la rama local y remota
+git switch main
+git pull origin main
+git branch -d feature/user-authentication
+```
+
+### Convenciones de nombrado de ramas
+
+```
+feature/nombre-descriptivo     → nueva funcionalidad
+fix/descripcion-del-bug        → corrección de bug
+hotfix/descripcion-urgente     → parche urgente sobre producción
+chore/tarea-de-mantenimiento   → tareas técnicas (deps, config)
+docs/seccion-a-documentar      → actualizaciones de documentación
+refactor/componente-afectado   → refactorización sin cambio funcional
+```
+
+---
+
+## Git Flow
+
+Git Flow es una estrategia más estructurada diseñada para proyectos con **ciclos de release planificados** y múltiples versiones en soporte. Fue popularizada por Vincent Driessen en 2010 y sigue siendo relevante para librerías, aplicaciones móviles y software empresarial.
+
+### Diagrama de ramas
+
+```
+main     ────●──────────────────────────────●────────── (producción)
+              \                            /
+develop  ──────●────●────●────●────●──────●────────────
+               |    |         |
+feature        ●────●    ●────●
+                         |
+release                  ●────● (QA, versioning)
+                               \
+hotfix                          ●────● (parche urgente)
+```
+
+### Ramas permanentes
+
+| Rama | Propósito |
+|------|-----------|
+| `main` | Código en producción. Cada commit es una versión lanzada y tiene un tag de versión. |
+| `develop` | Integración de features. Rama base para el siguiente release. |
+
+### Ramas temporales
+
+| Rama | Origen | Destino | Descripción |
+|------|--------|---------|-------------|
+| `feature/*` | `develop` | `develop` | Desarrollo de funcionalidades |
+| `release/*` | `develop` | `main` + `develop` | Preparación del lanzamiento (versioning, últimos fixes) |
+| `hotfix/*` | `main` | `main` + `develop` | Correcciones urgentes en producción |
+
+### Ejemplo de ciclo completo
+
+```bash
+# --- Crear una feature ---
+git switch develop
+git pull origin develop
+git switch -c feature/payment-gateway
+
+# ... desarrollo ...
+git switch develop
+git merge --no-ff feature/payment-gateway
+git branch -d feature/payment-gateway
+git push origin develop
+
+# --- Preparar un release ---
+git switch -c release/2.1.0 develop
+# Actualizar versión en package.json, CHANGELOG.md, etc.
+git commit -am "chore: bump version to 2.1.0"
+
+# Merge a main y develop
+git switch main
+git merge --no-ff release/2.1.0
+git tag -a v2.1.0 -m "Release v2.1.0"
+
+git switch develop
+git merge --no-ff release/2.1.0
+git branch -d release/2.1.0
+
+git push origin main develop --tags
+
+# --- Hotfix urgente en producción ---
+git switch main
+git switch -c hotfix/fix-payment-null-pointer
+
+# ... fix ...
+git switch main
+git merge --no-ff hotfix/fix-payment-null-pointer
+git tag -a v2.1.1 -m "Hotfix v2.1.1"
+
+git switch develop
+git merge --no-ff hotfix/fix-payment-null-pointer
+git branch -d hotfix/fix-payment-null-pointer
+git push origin main develop --tags
+```
+
+<Tip>
+Existe la herramienta `git-flow` que automatiza estos pasos con comandos como `git flow feature start nombre` y `git flow release finish 2.1.0`. Es útil para equipos que adoptan Git Flow formalmente.
+</Tip>
+
+---
+
+## GitHub Flow
+
+GitHub Flow es la alternativa simplificada a Git Flow, diseñada para equipos que practican **entrega continua (CI/CD)**. La premisa es: si `main` siempre está en un estado deployable y tienes buena automatización, no necesitas ramas `develop` ni `release`.
+
+### Principios
+
+1. Todo lo que está en `main` es deployable en cualquier momento.
+2. El trabajo nuevo siempre parte de `main` en una rama descriptiva.
+3. Haz push a tu rama con frecuencia.
+4. Abre un PR cuando necesites feedback o estés listo para mergear.
+5. Una vez revisado y con CI en verde, mergea a `main`.
+6. Deploy inmediato o automatizado tras el merge.
+
+### Ciclo de vida
+
+```bash
+# 1. Actualizar main
+git switch main && git pull origin main
+
+# 2. Crear rama desde main
+git switch -c add-dark-mode
+
+# 3. Commits frecuentes con mensajes descriptivos
+git commit -m "feat: add dark mode toggle to navbar"
+git commit -m "feat: persist dark mode preference in localStorage"
+git commit -m "test: add unit tests for dark mode hook"
+
+# 4. Push y abrir PR
+git push -u origin add-dark-mode
+# → Abrir PR en GitHub
+
+# 5. CI pasa, revisión aprobada → Merge a main
+# 6. Deploy automático se dispara via GitHub Actions / CD pipeline
+```
+
+### Cuándo usar GitHub Flow
+
+<CardGroup cols={2}>
+  <Card title="✅ Ideal para..." icon="check">
+    - Aplicaciones web con deploys frecuentes
+    - Equipos con buena cobertura de tests
+    - Proyectos SaaS con una sola versión activa
+    - Equipos pequeños o medianos con CI/CD maduro
+  </Card>
+  <Card title="❌ No ideal para..." icon="xmark">
+    - Librerías con múltiples versiones en soporte
+    - Software con ciclos de release planificados
+    - Equipos sin automatización de tests
+    - Proyectos móviles con revisión de app stores
+  </Card>
+</CardGroup>
+
+---
+
+## Trunk-Based Development
+
+Trunk-Based Development (TBD) lleva la filosofía de GitHub Flow a su extremo: los desarrolladores hacen **commits directamente a `main`** (el "trunk") o trabajan en ramas de muy corta duración (horas, no días).
+
+### Variantes
+
+<Tabs>
+  <Tab title="Commits Directos a Main">
+    ```bash
+    # Desarrolladores senior con buena disciplina
+    git switch main
+    git pull origin main
+
+    # Cambio pequeño, bien testeado
+    git add src/utils/format.js
+    git commit -m "refactor: simplify date formatting util"
+    git push origin main
+    # → CI/CD despliega automáticamente
+    ```
+
+    Requiere una cultura de TDD sólida, feature flags para cambios grandes y CI muy rápido (< 10 min).
+  </Tab>
+  <Tab title="Ramas de Corta Duración">
+    ```bash
+    # Ramas que viven máximo 1-2 días
+    git switch -c fix/typo-in-welcome-email
+    git commit -m "fix: correct typo in welcome email subject"
+    git push -u origin fix/typo-in-welcome-email
+    # PR → merge rápido → rama eliminada
+    ```
+
+    Es la variante más común en equipos grandes. Las ramas de feature NO sobreviven más de 2 días; si es mayor, se usa feature flags.
+  </Tab>
+</Tabs>
+
+### Feature Flags
+
+Los feature flags son la pieza clave que hace posible TBD para cambios grandes. Permiten integrar código incompleto a `main` sin exponerlo a usuarios:
+
+```javascript
+// config/features.js
+const FEATURES = {
+  NEW_CHECKOUT_FLOW: process.env.FEATURE_NEW_CHECKOUT === 'true',
+  AI_RECOMMENDATIONS: process.env.FEATURE_AI_RECS === 'true',
+};
+
+// En el componente
+function CheckoutPage() {
+  if (FEATURES.NEW_CHECKOUT_FLOW) {
+    return <NewCheckout />;
+  }
+  return <LegacyCheckout />;
+}
+```
+
+---
+
+## Comparativa de Workflows
+
+<Tabs>
+  <Tab title="Feature Branch">
+    **Complejidad:** Baja  
+    **Ciclo de release:** Flexible  
+    **Tamaño de equipo:** Cualquiera  
+    **CI/CD requerido:** No obligatorio  
+
+    **Pros:** Simple de entender, fácil de adoptar, `main` siempre limpia.  
+    **Contras:** Las ramas de larga duración generan merge conflicts frecuentes.
+  </Tab>
+  <Tab title="Git Flow">
+    **Complejidad:** Alta  
+    **Ciclo de release:** Planificado (sprints, versiones)  
+    **Tamaño de equipo:** Medio-grande  
+    **CI/CD requerido:** Recomendado  
+
+    **Pros:** Gestión clara de versiones, soporte para múltiples versiones.  
+    **Contras:** Overhead de gestión, ramas viven mucho tiempo, no apto para CD.
+  </Tab>
+  <Tab title="GitHub Flow">
+    **Complejidad:** Baja-Media  
+    **Ciclo de release:** Continuo  
+    **Tamaño de equipo:** Pequeño-mediano  
+    **CI/CD requerido:** Sí  
+
+    **Pros:** Simple, alineado con CD, baja fricción de proceso.  
+    **Contras:** Difícil gestionar múltiples versiones en producción.
+  </Tab>
+  <Tab title="Trunk-Based">
+    **Complejidad:** Baja (proceso) / Alta (disciplina)  
+    **Ciclo de release:** Continuo  
+    **Tamaño de equipo:** Cualquiera (con buenas prácticas)  
+    **CI/CD requerido:** Sí, maduro  
+
+    **Pros:** Máxima velocidad, elimina merge hell, favorece integración continua real.  
+    **Contras:** Requiere alta disciplina, TDD sólido y feature flags para cambios grandes.
+  </Tab>
+</Tabs>
+
+---
+
+## Conventional Commits
+
+Conventional Commits es una especificación para mensajes de commit que aporta estructura legible por humanos y máquinas. Habilita la **generación automática de changelogs**, el bump de versión semántica y mejora la trazabilidad del historial.
+
+### Formato
+
+```
+<tipo>[alcance opcional]: <descripción corta>
+
+[cuerpo opcional — explicar el QUÉ y el POR QUÉ]
+
+[footer opcional — breaking changes, referencias a issues]
+```
+
+### Tipos principales
+
+| Tipo | Descripción | Impacto en SemVer |
+|------|-------------|-------------------|
+| `feat` | Nueva funcionalidad | MINOR |
+| `fix` | Corrección de bug | PATCH |
+| `chore` | Tareas de mantenimiento, dependencias | — |
+| `docs` | Cambios en documentación | — |
+| `refactor` | Refactorización sin cambio funcional | — |
+| `test` | Añadir o corregir tests | — |
+| `perf` | Mejora de rendimiento | PATCH |
+| `ci` | Cambios en CI/CD | — |
+| `build` | Sistema de build o dependencias externas | — |
+| `style` | Formato, espacios (sin cambio lógico) | — |
+
+### Ejemplos reales
+
+```bash
+# Feature nueva
+git commit -m "feat(auth): add OAuth2 login with Google"
+
+# Bugfix con referencia a issue
+git commit -m "fix(api): handle null response from payment provider
+
+The payment gateway occasionally returns null instead of an error object
+when the connection times out. Added explicit null check with fallback.
+
+Closes #142"
+
+# Chore sin impacto funcional
+git commit -m "chore(deps): upgrade axios from 1.4.0 to 1.6.2"
+
+# Documentación
+git commit -m "docs(readme): add Docker setup instructions"
+
+# Refactor con alcance
+git commit -m "refactor(checkout): extract payment logic into service layer"
+
+# Test añadido
+git commit -m "test(auth): add integration tests for JWT refresh flow"
+```
+
+### Breaking Changes
+
+Para indicar que un cambio rompe compatibilidad con versiones anteriores, usa `!` después del tipo o un footer `BREAKING CHANGE:`:
+
+```bash
+# Con signo de exclamación (más conciso)
+git commit -m "feat(api)!: remove deprecated v1 endpoints"
+
+# Con footer detallado
+git commit -m "feat(config): rename environment variables
+
+BREAKING CHANGE: DB_URL has been renamed to DATABASE_URL and
+DB_PORT to DATABASE_PORT. Update your .env files accordingly.
+
+Migration guide: https://docs.example.com/migration/v3"
+```
+
+<Tip>
+Al seguir Conventional Commits, herramientas como [semantic-release](https://semantic-release.gitbook.io/semantic-release/), [standard-version](https://github.com/conventional-changelog/standard-version) o [changesets](https://github.com/changesets/changesets) pueden **automatizar completamente** el versionado semántico y la generación del `CHANGELOG.md` basándose en los mensajes de commit.
+</Tip>
+
+---
+
+## Pull Request Best Practices
+
+Un buen proceso de PR es la diferencia entre revisiones ágiles y bloqueantes. Estas prácticas están orientadas tanto al autor como al revisor.
+
+### Para el autor del PR
+
+**1. Mantén los PRs pequeños y enfocados**
+
+Un PR ideal modifica entre 200 y 400 líneas de código. Los PRs grandes son difíciles de revisar, acumulan más bugs y tardan más en aprobarse.
+
+```
+❌ "Refactor entire authentication system + add 2FA + update docs"
+✅ "feat(auth): extract auth service from controller"
+✅ "feat(auth): add 2FA via TOTP"
+✅ "docs(auth): document 2FA setup process"
+```
+
+**2. Escribe un título y descripción claros**
+
+```markdown
+## Título del PR
+feat(checkout): add Apple Pay support
+
+## Descripción
+### ¿Qué hace este PR?
+Añade soporte para Apple Pay en el flujo de checkout usando la
+Stripe Payment Request API.
+
+### ¿Por qué?
+Usuarios en iOS reportaron fricción en el pago. Apple Pay reduce
+el checkout a 1 tap para usuarios con Face ID configurado.
+
+### ¿Cómo probarlo?
+1. Entrar con un dispositivo iOS o Safari en macOS
+2. Añadir producto al carrito
+3. En checkout, verificar que aparece el botón de Apple Pay
+4. Completar la compra con Face ID / Touch ID
+
+### Screenshots
+[Adjuntar capturas del antes/después]
+
+### Issues relacionados
+Closes #289
+Ref: #201 (solicitud original del usuario)
+```
+
+**3. Revisa tu propio PR antes de solicitar revisión**
+
+```bash
+# Ver exactamente lo que el revisor verá
+git diff main...feature/mi-rama
+
+# Revisar commits uno por uno
+git log main..HEAD --oneline
+```
+
+**4. Responde a todos los comentarios**
+
+Aunque no implementes la sugerencia, responde explicando tu decisión. Cierra los hilos cuando hayas hecho el cambio solicitado.
+
+### Para el revisor
+
+**1. Revisa con empatía y especificidad**
+
+```
+❌ "Esto está mal"
+✅ "Este caso no maneja valores nulos. Sugiero añadir un guard: `if (!user) return null`"
+
+❌ "No me gusta este enfoque"
+✅ "Preferiría usar un Map aquí en lugar de un objeto para garantizar
+   el orden de iteración. ¿Qué opinas? Referencia: MDN Map vs Object"
+```
+
+**2. Distingue entre bloqueantes y sugerencias**
+
+```
+[BLOCKING] Este cambio introduce una SQL injection vulnerability.
+           Debes sanitizar el input antes del merge.
+
+[SUGGESTION] Podrías extraer esta lógica a un hook separado para
+             reutilizarla en el componente de perfil.
+
+[NIT] Falta un punto final en el mensaje del error (no bloqueante).
+```
+
+**3. Aprueba cuando esté bien, no cuando sea perfecto**
+
+Un PR que resuelve el problema y no introduce bugs nuevos merece aprobación, aunque tú lo hubieras implementado diferente.
+
+---
+
+## Git Aliases Útiles
+
+Los aliases te permiten crear atajos para los comandos que usas a diario. Añade esta sección a tu `~/.gitconfig`:
+
+```ini
+[alias]
+    # === Historial visual ===
+    # Log compacto y gráfico — uno de los alias más útiles
+    lg = log --oneline --graph --decorate --all
+
+    # Log con autor, fecha relativa y colores
+    ll = log --pretty=format:"%C(yellow)%h%Creset %C(blue)%ar%Creset %C(green)%an%Creset %s" --decorate
+
+    # Ver solo los últimos 10 commits
+    last = log -10 --oneline
+
+    # === Shortcuts de uso diario ===
+    # Estado compacto
+    st = status -s
+
+    # Checkout abreviado
+    co = checkout
+
+    # Switch abreviado (Git moderno)
+    sw = switch
+
+    # Branch list con fecha del último commit
+    br = branch -v
+
+    # Diff del staging
+    ds = diff --staged
+
+    # === Deshacer cosas ===
+    # Deshacer el último commit manteniendo los cambios en staging
+    undo = reset --soft HEAD~1
+
+    # Descartar todos los cambios en working directory (¡cuidado!)
+    discard = restore .
+
+    # Sacar todos los archivos del staging
+    unstage = restore --staged .
+
+    # === Flujo de trabajo ===
+    # Añadir todo y hacer commit en un paso
+    ac = "!git add -A && git commit -m"
+
+    # Publicar rama actual al remoto con upstream
+    publish = "!git push -u origin $(git rev-parse --abbrev-ref HEAD)"
+
+    # Eliminar ramas locales que ya fueron mergeadas a main
+    cleanup = "!git branch --merged main | grep -v 'main\\|\\*' | xargs git branch -d"
+
+    # Ver alias configurados
+    aliases = config --get-regexp alias
+```
+
+### Uso en práctica
+
+```bash
+# Ver historial gráfico de todas las ramas
+git lg
+
+# Ver últimos 10 commits
+git last
+
+# Estado compacto
+git st
+
+# Deshacer el último commit (los cambios quedan en staging)
+git undo
+
+# Publicar la rama actual al remoto
+git publish
+
+# Limpiar ramas ya mergeadas
+git cleanup
+
+# Hacer add y commit en un solo comando
+git ac "feat: add user profile page"
+```
+
+<Tip>
+También puedes definir aliases de shell en tu `~/.zshrc` o `~/.bashrc` para los comandos más frecuentes:
+
+```bash
+alias gs="git status"
+alias ga="git add ."
+alias gc="git commit -m"
+alias gp="git push"
+alias gl="git lg"
+alias gco="git checkout"
+alias gsw="git switch"
+```
+</Tip>

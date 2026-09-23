@@ -1,0 +1,373 @@
+---
+title: "Docker Compose: Multi-Container Apps Made Simple"
+sidebarTitle: "Compose"
+description: "Reference for Docker Compose commands and docker-compose.yml structure. Includes service definitions, environment variables, and common patterns."
+---
+
+Docker Compose permite definir y ejecutar aplicaciones multi-contenedor mediante un archivo YAML. En lugar de recordar largas cadenas de flags de `docker run`, describes toda tu stack en `docker-compose.yml` y la levantas con un solo comando. Esta página cubre los comandos principales, la estructura del archivo y patrones comunes para desarrollo y producción.
+
+---
+
+## Comandos Principales
+
+### Levantar servicios
+
+```bash
+# Levantar todos los servicios (en primer plano, con logs)
+docker compose up
+
+# En segundo plano (detached)
+docker compose up -d
+
+# Levantar solo un servicio específico
+docker compose up -d api
+
+# Reconstruir las imágenes antes de levantar
+docker compose up -d --build
+
+# Forzar recreación de contenedores aunque no haya cambios
+docker compose up -d --force-recreate
+```
+
+### Detener y eliminar
+
+```bash
+# Detener los contenedores (sin eliminarlos)
+docker compose stop
+
+# Detener y eliminar contenedores, redes y volúmenes anónimos
+docker compose down
+
+# Eliminar también los volúmenes nombrados
+docker compose down -v
+
+# Eliminar también las imágenes construidas localmente
+docker compose down --rmi local
+```
+
+### Inspección y estado
+
+```bash
+# Ver el estado de los servicios
+docker compose ps
+
+# Ver logs de todos los servicios
+docker compose logs
+
+# Seguir logs en tiempo real
+docker compose logs -f
+
+# Logs de un servicio específico
+docker compose logs -f api
+
+# Últimas 50 líneas de un servicio
+docker compose logs --tail 50 api
+```
+
+### Ejecutar comandos dentro de un servicio
+
+```bash
+# Shell interactiva en el servicio 'api'
+docker compose exec api bash
+
+# Ejecutar un comando único
+docker compose exec api node --version
+
+# Ejecutar como usuario root
+docker compose exec -u root api bash
+
+# En servicios basados en Alpine
+docker compose exec api sh
+```
+
+### Build, pull y restart
+
+```bash
+# Construir (o reconstruir) las imágenes definidas en compose
+docker compose build
+
+# Construir sin caché
+docker compose build --no-cache
+
+# Descargar las imágenes más recientes de los servicios
+docker compose pull
+
+# Reiniciar todos los servicios
+docker compose restart
+
+# Reiniciar un servicio específico
+docker compose restart api
+```
+
+---
+
+## Estructura del docker-compose.yml
+
+A continuación se muestra un ejemplo realista de una aplicación Node.js con PostgreSQL y Redis, que ilustra las configuraciones más frecuentes.
+
+<CodeGroup>
+
+```yaml docker-compose.yml
+version: "3.9"
+
+services:
+  # ─── Aplicación Node.js ───────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    image: myapp/api:latest
+    container_name: myapp_api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/mydb
+      REDIS_URL: redis://cache:6379
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── PostgreSQL ───────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: myapp_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis ────────────────────────────────────────────────────
+  cache:
+    image: redis:7-alpine
+    container_name: myapp_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+  # ─── Nginx reverse proxy ─────────────────────────────────────
+  proxy:
+    image: nginx:alpine
+    container_name: myapp_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - backend
+      - frontend
+
+# ─── Volúmenes nombrados ────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ─── Redes ──────────────────────────────────────────────────────
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+```
+
+```dockerfile Dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+EXPOSE 4000
+CMD ["node", "src/index.js"]
+```
+
+</CodeGroup>
+
+---
+
+## Variables de Entorno
+
+Mantener los secretos y la configuración fuera del código es fundamental. Docker Compose ofrece varias formas de gestionar variables de entorno.
+
+### Archivo .env (automático)
+
+Docker Compose carga automáticamente el archivo `.env` que esté en el mismo directorio que el `docker-compose.yml`. Las variables definidas allí se pueden referenciar con `${VAR_NAME}`.
+
+```bash
+# .env
+POSTGRES_PASSWORD=supersecretpassword
+REDIS_PASSWORD=anotherpassword
+NODE_ENV=production
+JWT_SECRET=my-jwt-signing-key
+```
+
+<Warning>
+**Nunca** subas el archivo `.env` al repositorio si contiene contraseñas, tokens o claves privadas. Añade `.env` a tu `.gitignore` y comparte los valores por canales seguros (un gestor de secretos, un vault, etc.). Puedes mantener un `.env.example` con los nombres de las variables pero sin valores reales.
+</Warning>
+
+### env_file — cargar archivos de entorno por servicio
+
+```yaml
+services:
+  api:
+    image: my-api:latest
+    env_file:
+      - .env              # Variables comunes
+      - .env.api          # Variables específicas del servicio API
+```
+
+### environment — valores inline en el compose
+
+Útil para valores no sensibles o para sobreescribir variables del archivo `.env`:
+
+```yaml
+services:
+  api:
+    image: my-api:latest
+    environment:
+      NODE_ENV: production       # Valor fijo
+      PORT: 4000                 # Valor fijo
+      DATABASE_URL: ${DB_URL}    # Interpolada desde .env
+      DEBUG: "false"
+```
+
+### Verificar qué variables ve un servicio
+
+```bash
+# Ver la configuración completa con variables resueltas
+docker compose config
+
+# Ver solo las variables de entorno de un contenedor en ejecución
+docker compose exec api env
+```
+
+---
+
+## Override Files
+
+El mecanismo de override permite tener una configuración base compartida y personalizaciones para cada entorno sin duplicar el archivo completo.
+
+Docker Compose carga automáticamente `docker-compose.override.yml` si existe, y lo **fusiona** con `docker-compose.yml`.
+
+<CodeGroup>
+
+```yaml docker-compose.yml (base — compartido)
+version: "3.9"
+
+services:
+  api:
+    image: myapp/api:latest
+    environment:
+      NODE_ENV: production
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+```
+
+```yaml docker-compose.override.yml (desarrollo local)
+version: "3.9"
+
+services:
+  api:
+    build: .                        # Construir localmente en dev
+    volumes:
+      - .:/app                      # Hot reload del código fuente
+      - /app/node_modules           # Preservar node_modules del contenedor
+    environment:
+      NODE_ENV: development
+      DEBUG: "app:*"
+    ports:
+      - "4000:4000"                 # Exponer el puerto en dev
+
+  db:
+    ports:
+      - "5432:5432"                 # Exponer DB en dev para herramientas locales
+```
+
+```yaml docker-compose.prod.yml (producción)
+version: "3.9"
+
+services:
+  api:
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+</CodeGroup>
+
+### Usar un override específico en producción
+
+```bash
+# Desarrollo (carga docker-compose.yml + docker-compose.override.yml automáticamente)
+docker compose up -d
+
+# Producción (especificar los archivos manualmente)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Ver la configuración resultante de la fusión
+docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+```
+
+<Note>
+Cuando especificas archivos con `-f`, Docker Compose **no** carga el `override.yml` automáticamente. El orden de los archivos importa: los valores del segundo archivo tienen precedencia sobre el primero.
+</Note>

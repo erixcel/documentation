@@ -1,0 +1,616 @@
+---
+title: "Microservices Architecture: Patterns and Best Practices"
+sidebarTitle: "Microservices"
+description: "Key microservices patterns: service decomposition, communication (REST, gRPC, messaging), API gateway, service discovery, and resilience patterns."
+---
+
+Microservices architecture structures an application as a collection of small, independently deployable services. Each service is focused on a single business capability, runs in its own process, and communicates with others over well-defined APIs. When done right, microservices enable independent scaling, technology flexibility, and faster deployment cycles. When done wrong, they introduce distributed systems complexity that can cripple a team. This guide covers the essential patterns and trade-offs you need to make informed architectural decisions.
+
+---
+
+## Principios Clave
+
+<CardGroup cols={2}>
+  <Card title="Single Responsibility" icon="bullseye">
+    Each service owns exactly one business capability (e.g., `OrderService`, `PaymentService`, `NotificationService`). If it does two things, it should probably be two services.
+  </Card>
+  <Card title="Despliegue Independiente" icon="rocket">
+    Services can be deployed, updated, and rolled back without coordinating with other teams. Each service has its own CI/CD pipeline.
+  </Card>
+  <Card title="Escalado Independiente" icon="arrows-up-down-left-right">
+    The `OrderService` can scale to 20 replicas while `UserService` stays at 2, based on actual load per service.
+  </Card>
+  <Card title="Own Data Store" icon="database">
+    Each service owns its database. No shared database between services. This enforces loose coupling at the data layer.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Microservices are a **distributed systems** problem. Every network call can fail, every service can be unavailable, and data consistency becomes your responsibility. Don't adopt this pattern without understanding the operational cost.
+</Warning>
+
+---
+
+## Comunicación entre Servicios
+
+### Síncrona vs Asíncrona
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  SINCRÓNICA (Request/Response)                           │
+│                                                          │
+│  Client ──── HTTP/REST ────► Service B                   │
+│         ◄─── Response ──────                             │
+│                                                          │
+│  Client ──── gRPC ─────────► Service B                   │
+│         ◄─── Protobuf ──────                             │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  ASÍNCRONA (Fire & Forget / Event-Driven)                │
+│                                                          │
+│  Service A ──► Message Broker ──► Service B              │
+│                (RabbitMQ/Kafka)   Service C              │
+│                                   Service D              │
+└──────────────────────────────────────────────────────────┘
+```
+
+### REST / HTTP
+
+Best for simple CRUD operations and external-facing APIs. Easy to debug, universally supported.
+
+```javascript
+// Service A calling Service B via REST
+const axios = require("axios");
+
+async function getUserOrders(userId) {
+  const [userRes, ordersRes] = await Promise.all([
+    axios.get(`http://user-service/users/${userId}`),
+    axios.get(`http://order-service/orders?userId=${userId}`),
+  ]);
+
+  return {
+    user: userRes.data,
+    orders: ordersRes.data,
+  };
+}
+```
+
+### gRPC
+
+Best for internal service-to-service communication. Strongly typed via Protocol Buffers, binary protocol (faster than JSON), supports streaming.
+
+```protobuf
+// user.proto
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (UserResponse);
+  rpc ListUsers (ListUsersRequest) returns (stream UserResponse);
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+```
+
+```javascript
+// gRPC client example (Node.js)
+const grpc = require("@grpc/grpc-js");
+const protoLoader = require("@grpc/proto-loader");
+
+const packageDef = protoLoader.loadSync("user.proto");
+const { user } = grpc.loadPackageDefinition(packageDef);
+
+const client = new user.UserService(
+  "user-service:50051",
+  grpc.credentials.createInsecure()
+);
+
+client.GetUser({ id: "123" }, (err, response) => {
+  if (err) throw err;
+  console.log("User:", response);
+});
+```
+
+### Message Queues (RabbitMQ / Kafka)
+
+Best for decoupled workflows, event notifications, and workloads that don't need an immediate response.
+
+```javascript
+// Publishing an event with RabbitMQ (amqplib)
+const amqp = require("amqplib");
+
+async function publishOrderCreated(order) {
+  const conn = await amqp.connect("amqp://rabbitmq:5672");
+  const channel = await conn.createChannel();
+
+  const exchange = "orders";
+  await channel.assertExchange(exchange, "topic", { durable: true });
+
+  channel.publish(
+    exchange,
+    "order.created",
+    Buffer.from(JSON.stringify(order)),
+    { persistent: true }
+  );
+
+  console.log(`Published order.created for order ${order.id}`);
+  await channel.close();
+  await conn.close();
+}
+
+// Consumer (Notification Service)
+async function consumeOrderEvents() {
+  const conn = await amqp.connect("amqp://rabbitmq:5672");
+  const channel = await conn.createChannel();
+
+  await channel.assertExchange("orders", "topic", { durable: true });
+  const q = await channel.assertQueue("notifications.order.created", {
+    durable: true,
+  });
+
+  channel.bindQueue(q.queue, "orders", "order.created");
+
+  channel.consume(q.queue, (msg) => {
+    const order = JSON.parse(msg.content.toString());
+    console.log("Sending confirmation email for order:", order.id);
+    channel.ack(msg);
+  });
+}
+```
+
+| Método | Latencia | Acoplamiento | Mejor para |
+|--------|----------|--------------|------------|
+| REST | Baja-Media | Mayor | APIs externas, CRUD simple |
+| gRPC | Muy baja | Medio | Comunicación interna alta frecuencia |
+| RabbitMQ | Media | Bajo | Workflows, notificaciones |
+| Kafka | Media | Muy bajo | Event streaming, auditoría, alta escala |
+
+---
+
+## API Gateway
+
+The API Gateway is the single entry point for all client requests. It handles cross-cutting concerns so individual services don't have to.
+
+```
+                    ┌─────────────────────────────┐
+Client ────────────►│         API Gateway          │
+(browser/mobile)    │  - Routing                  │
+                    │  - Authentication (JWT/OAuth)│
+                    │  - Rate Limiting             │
+                    │  - Load Balancing            │
+                    │  - Request Aggregation       │
+                    └──────────┬──────────────────┘
+                               │
+            ┌──────────────────┼──────────────────┐
+            ▼                  ▼                  ▼
+     [UserService]      [OrderService]    [ProductService]
+```
+
+```javascript
+// Simple API Gateway with Express + http-proxy-middleware
+const express = require("express");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+const rateLimit = require("express-rate-limit");
+const jwt = require("jsonwebtoken");
+
+const app = express();
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+});
+app.use(limiter);
+
+// Auth middleware
+function authenticate(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+// Route to services
+app.use("/api/users", authenticate, createProxyMiddleware({
+  target: "http://user-service:3001",
+  changeOrigin: true,
+  pathRewrite: { "^/api/users": "" },
+}));
+
+app.use("/api/orders", authenticate, createProxyMiddleware({
+  target: "http://order-service:3002",
+  changeOrigin: true,
+  pathRewrite: { "^/api/orders": "" },
+}));
+
+app.listen(3000);
+```
+
+<Tip>
+  **BFF Pattern (Backend for Frontend):** If you have multiple frontends (web, mobile, IoT), consider creating a dedicated gateway per client type. The mobile BFF returns lighter payloads; the web BFF aggregates more data. This avoids over-fetching on mobile and under-fetching on web.
+</Tip>
+
+---
+
+## Patrones de Resiliencia
+
+In distributed systems, failures are not exceptional — they are expected. Design every service call assuming the remote service might be slow, down, or returning errors.
+
+### Circuit Breaker
+
+Prevents cascading failures by "opening the circuit" after a threshold of failures, failing fast instead of waiting for timeouts.
+
+```javascript
+// Simple circuit breaker implementation
+class CircuitBreaker {
+  constructor(fn, options = {}) {
+    this.fn = fn;
+    this.failureThreshold = options.failureThreshold || 5;
+    this.resetTimeout = options.resetTimeout || 60000; // 60s
+    this.state = "CLOSED"; // CLOSED | OPEN | HALF_OPEN
+    this.failureCount = 0;
+    this.nextAttempt = null;
+  }
+
+  async call(...args) {
+    if (this.state === "OPEN") {
+      if (Date.now() < this.nextAttempt) {
+        throw new Error("Circuit is OPEN — request blocked");
+      }
+      this.state = "HALF_OPEN";
+    }
+
+    try {
+      const result = await this.fn(...args);
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  onSuccess() {
+    this.failureCount = 0;
+    this.state = "CLOSED";
+  }
+
+  onFailure() {
+    this.failureCount++;
+    if (this.failureCount >= this.failureThreshold) {
+      this.state = "OPEN";
+      this.nextAttempt = Date.now() + this.resetTimeout;
+      console.warn("Circuit OPENED — too many failures");
+    }
+  }
+}
+
+// Usage
+const breaker = new CircuitBreaker(
+  (userId) => axios.get(`http://user-service/users/${userId}`),
+  { failureThreshold: 3, resetTimeout: 30000 }
+);
+
+try {
+  const user = await breaker.call("user-123");
+} catch (err) {
+  // Return cached data or a graceful fallback
+  return { id: "user-123", name: "Unknown", cached: true };
+}
+```
+
+### Retry with Exponential Backoff
+
+```javascript
+async function withRetry(fn, maxRetries = 3, baseDelay = 200) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      const jitter = Math.random() * 100; // Avoid thundering herd
+      console.warn(`Attempt ${attempt} failed. Retrying in ${delay + jitter}ms`);
+      await new Promise((r) => setTimeout(r, delay + jitter));
+    }
+  }
+}
+
+// Usage
+const user = await withRetry(() =>
+  axios.get(`http://user-service/users/${userId}`)
+);
+```
+
+### Timeout
+
+```javascript
+function withTimeout(promise, ms) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+const user = await withTimeout(
+  axios.get(`http://user-service/users/${userId}`),
+  3000 // 3 second max
+);
+```
+
+### Bulkhead
+
+Isolates resources for different service calls so one slow service doesn't exhaust all connection pool slots.
+
+```javascript
+const Bottleneck = require("bottleneck"); // npm package
+
+// Separate limiters per service — failure in one doesn't starve others
+const userServiceLimiter = new Bottleneck({ maxConcurrent: 10 });
+const orderServiceLimiter = new Bottleneck({ maxConcurrent: 5 });
+
+const user = await userServiceLimiter.schedule(() =>
+  axios.get(`http://user-service/users/${userId}`)
+);
+```
+
+---
+
+## Service Discovery
+
+How do services find each other when IPs and ports are dynamic (containers come and go)?
+
+```
+┌─────────────────────────────────────────────────────┐
+│              Service Registry (Consul)               │
+│                                                      │
+│  UserService  → 10.0.0.5:3001                        │
+│  OrderService → 10.0.0.8:3002, 10.0.0.9:3002        │
+│  PaymentService → 10.0.0.12:3003                     │
+└─────────────────────────────────────────────────────┘
+         ▲ register/deregister             ▲ lookup
+         │                                │
+  [Service Instance]              [Calling Service]
+```
+
+| Tipo | Descripción | Ejemplo |
+|------|-------------|---------|
+| **DNS-based** | Services register a DNS name; resolved by the platform | Kubernetes Services |
+| **Client-side** | Client queries the registry and picks an instance (load balances itself) | Consul + Node client |
+| **Server-side** | A load balancer queries the registry and routes traffic | AWS ALB + ECS |
+
+```javascript
+// Registering a service with Consul
+const Consul = require("consul");
+const consul = new Consul({ host: "consul", port: 8500 });
+
+const serviceId = `order-service-${process.env.HOSTNAME}`;
+
+consul.agent.service.register({
+  id: serviceId,
+  name: "order-service",
+  address: process.env.HOST_IP,
+  port: 3002,
+  check: {
+    http: `http://${process.env.HOST_IP}:3002/health`,
+    interval: "10s",
+    deregisterCriticalServiceAfter: "30s",
+  },
+});
+
+// Graceful deregister on shutdown
+process.on("SIGTERM", () => {
+  consul.agent.service.deregister(serviceId, () => process.exit(0));
+});
+```
+
+---
+
+## Datos en Microservicios
+
+### Database per Service
+
+Each service owns its own database — no shared schema, no cross-service joins.
+
+```
+UserService   → PostgreSQL (users DB)
+OrderService  → PostgreSQL (orders DB)  ← separate instance/schema
+ProductService → MongoDB (products DB)
+NotificationService → Redis (queues) + DynamoDB (logs)
+```
+
+### SAGA Pattern
+
+When a business transaction spans multiple services, use a SAGA to maintain data consistency without distributed transactions.
+
+```
+Choreography-based SAGA (event-driven):
+
+1. OrderService creates order (status: PENDING)
+   └─► publishes "order.created"
+
+2. PaymentService receives "order.created"
+   └─► charges card → publishes "payment.completed" OR "payment.failed"
+
+3a. If "payment.completed":
+    InventoryService reserves stock → publishes "stock.reserved"
+    OrderService updates status to CONFIRMED
+
+3b. If "payment.failed":
+    OrderService receives event → updates status to CANCELLED
+    (compensating transaction)
+```
+
+```javascript
+// Orchestration-based SAGA (OrderSaga orchestrator)
+class PlaceOrderSaga {
+  async execute(order) {
+    try {
+      // Step 1: Reserve inventory
+      await inventoryService.reserve(order.items);
+
+      // Step 2: Charge payment
+      await paymentService.charge(order.userId, order.total);
+
+      // Step 3: Confirm order
+      await orderService.confirm(order.id);
+
+      return { success: true };
+    } catch (error) {
+      // Compensating transactions on failure
+      await inventoryService.release(order.items);
+      await orderService.cancel(order.id, error.message);
+      throw error;
+    }
+  }
+}
+```
+
+<Note>
+  **Eventual Consistency:** In microservices, you trade strong consistency for availability and partition tolerance (CAP theorem). Design your UIs and APIs to handle "data may be slightly stale" states gracefully.
+</Note>
+
+---
+
+## Docker & Kubernetes
+
+### Containerizing a Microservice
+
+```dockerfile
+# Dockerfile for a Node.js microservice
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY . .
+EXPOSE 3002
+USER node
+CMD ["node", "src/main.js"]
+```
+
+```yaml
+# docker-compose.yml for local development
+version: "3.9"
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports: ["3000:3000"]
+    depends_on: [user-service, order-service]
+
+  user-service:
+    build: ./user-service
+    environment:
+      DATABASE_URL: postgres://postgres:password@users-db:5432/users
+    depends_on: [users-db]
+
+  order-service:
+    build: ./order-service
+    environment:
+      DATABASE_URL: postgres://postgres:password@orders-db:5432/orders
+    depends_on: [orders-db, rabbitmq]
+
+  users-db:
+    image: postgres:16
+    environment: { POSTGRES_DB: users, POSTGRES_PASSWORD: password }
+
+  orders-db:
+    image: postgres:16
+    environment: { POSTGRES_DB: orders, POSTGRES_PASSWORD: password }
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports: ["5672:5672", "15672:15672"]
+```
+
+```yaml
+# Kubernetes Deployment for order-service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: myregistry/order-service:1.2.0
+          ports:
+            - containerPort: 3002
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-secrets
+                  key: database-url
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 80
+      targetPort: 3002
+```
+
+---
+
+## Cuándo NO usar Microservices
+
+<Warning>
+  Microservices are not a silver bullet. Many teams have suffered by adopting them too early. Here's when to stay with a monolith.
+</Warning>
+
+| Situación | Recomendación |
+|-----------|---------------|
+| Equipo pequeño (< 5 devs) | ✅ Monolito — menos overhead operacional |
+| Producto en fase MVP / early startup | ✅ Monolito — itera rápido, valida el negocio |
+| Dominio no bien entendido todavía | ✅ Monolito — boundaries incorrectos cuestan mucho |
+| No tienes DevOps/SRE dedicado | ✅ Monolito — microservices requieren infraestructura madura |
+| Alto tráfico + equipos independientes | ✅ Microservicios — escala organizacional + técnico |
+| Servicios con requisitos de escala muy distintos | ✅ Microservicios — escala solo lo que necesita |
+
+<Tip>
+  **Monolith First.** Start with a well-structured monolith using clear module boundaries. When a specific module has independent scaling or deployment requirements, extract it into a service. This is far easier than splitting a poorly designed monolith later.
+</Tip>

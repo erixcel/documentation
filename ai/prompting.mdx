@@ -1,0 +1,327 @@
+---
+title: "Prompt Engineering: Techniques for Better AI Outputs"
+sidebarTitle: "Prompting"
+description: "Practical prompt engineering techniques: zero-shot, few-shot, chain-of-thought, role prompting, and structured output prompts for developers."
+---
+
+Prompt engineering is the practice of crafting inputs to AI language models in a way that reliably produces high-quality, accurate, and useful outputs. For developers, it's less about "magic words" and more about clear communication: the same skills that make you a good technical writer or code reviewer transfer directly to writing effective prompts. As AI tools become central to the dev workflow, knowing how to talk to them well is a core skill — not an optional one.
+
+---
+
+## Principios Básicos
+
+Before diving into advanced techniques, four foundational principles will take you far:
+
+- **Sé específico.** Vague prompts produce vague outputs. Instead of "explain this code", say "explain what this `useEffect` hook does, focusing on its cleanup function and when it fires."
+- **Proporciona contexto.** AI models don't know your project, your stack, or your constraints unless you tell them. Include relevant background: language, framework, version, business requirement.
+- **Define el formato de salida.** If you want a bullet list, say so. If you want JSON, provide a schema. If you want a one-paragraph summary, specify. Don't leave format to chance.
+- **Itera.** Treat prompting like debugging. Your first attempt is a hypothesis. Refine based on what the model returns — add constraints, rephrase, add examples.
+
+---
+
+## Técnicas Principales
+
+### Zero-Shot Prompting
+
+The simplest form: ask the model to perform a task with no examples. Works well for common tasks where the model has strong priors.
+
+```text
+Translate the following English error message to Spanish, keeping technical terms in English:
+
+"TypeError: Cannot read properties of undefined (reading 'map')"
+```
+
+Best for: straightforward transformations, common tasks, quick answers.
+
+---
+
+### Few-Shot Prompting
+
+Provide two to five examples of input/output pairs before your actual request. This dramatically improves consistency for tasks that have a specific format or domain style.
+
+```text
+Convert the following function names from camelCase to snake_case.
+
+Examples:
+getUserData → get_user_data
+fetchApiResponse → fetch_api_response
+parseJsonPayload → parse_json_payload
+
+Now convert:
+handleAuthCallback
+```
+
+Best for: format-sensitive tasks, custom naming conventions, domain-specific transformations.
+
+---
+
+### Chain-of-Thought (CoT)
+
+Ask the model to reason step by step before giving an answer. This is especially powerful for debugging, architecture decisions, or anything that involves multi-step logic.
+
+```text
+A Node.js server is returning a 502 Bad Gateway error only on POST requests to /api/upload when the file size exceeds 2MB. GET requests work fine.
+
+Think through the possible causes step by step, then give me the most likely root cause and fix.
+```
+
+You can also explicitly trigger CoT with: `"Let's think step by step."` or `"Walk me through your reasoning before answering."`
+
+Best for: debugging, architecture questions, complex analysis.
+
+---
+
+### Role Prompting / System Prompts
+
+Assign the model a specific persona or role to anchor its responses in a particular expertise domain.
+
+```text
+You are a senior backend engineer specializing in distributed systems and PostgreSQL performance. 
+You value simplicity, write clean idiomatic code, and always consider failure modes.
+
+Review the following database query for performance issues...
+```
+
+In APIs and tools that support system prompts (like the OpenAI or Anthropic API), set the role in the system message rather than the user message — it's stickier and won't be overridden mid-conversation.
+
+Best for: code reviews, architecture guidance, any expert-domain task.
+
+---
+
+### Self-Consistency
+
+Ask the model to generate multiple solutions or reasoning paths, then pick the most consistent one. Useful when accuracy matters more than speed.
+
+```text
+Give me three different approaches to implement rate limiting in an Express.js API.
+For each approach, list: implementation complexity, performance trade-offs, and best use case.
+Then recommend which one to use for a high-traffic SaaS API with Redis already in the stack.
+```
+
+Best for: architecture decisions, algorithm selection, anything with genuine trade-offs.
+
+---
+
+## Prompts para Código
+
+AI is exceptional at code tasks when you give it the right framing. Here's how to approach the four main code-related prompts:
+
+### Escribir código
+
+```text
+Write a TypeScript function that:
+- Accepts an array of user objects { id: string, email: string, createdAt: Date }
+- Filters out users created more than 30 days ago
+- Returns emails sorted alphabetically
+- Include proper type annotations and a JSDoc comment
+```
+
+### Revisar código
+
+```text
+Review the following JavaScript function for:
+1. Correctness — does it handle edge cases?
+2. Security — any injection or exposure risks?
+3. Performance — any unnecessary operations?
+4. Readability — naming, structure, comments
+
+[paste code here]
+```
+
+### Refactorizar código
+
+```text
+Refactor this function to:
+- Replace the for loop with a functional approach (map/filter/reduce)
+- Eliminate the nested if/else
+- Make it easier to test in isolation
+Keep the same public interface.
+
+[paste code here]
+```
+
+### Explicar código
+
+```text
+Explain what this code does to someone who knows JavaScript but hasn't worked with Promises before.
+Focus on the async/await pattern, error handling, and what happens if the fetch fails.
+
+[paste code here]
+```
+
+---
+
+## Structured Output
+
+When you need output you can parse or plug directly into another tool, specify the exact structure.
+
+### JSON output
+
+```text
+Extract the following information from this job description and return it as JSON:
+
+{
+  "title": string,
+  "company": string,
+  "required_skills": string[],
+  "nice_to_have_skills": string[],
+  "seniority_level": "junior" | "mid" | "senior",
+  "remote": boolean
+}
+
+Job description:
+[paste here]
+```
+
+### Markdown table
+
+```text
+Compare the following three state management libraries for React: Redux Toolkit, Zustand, and Jotai.
+Return the comparison as a markdown table with columns: Library, Bundle Size, Learning Curve, Best For, DevTools Support.
+```
+
+### Step-by-step list
+
+```text
+Give me a numbered step-by-step guide to set up a GitHub Actions CI pipeline for a Node.js project that:
+- Runs on every pull request
+- Installs dependencies, runs lint, then runs tests
+- Caches node_modules between runs
+Format each step as a clear action with the relevant YAML snippet.
+```
+
+---
+
+## Prompt Templates
+
+Reusable templates for the most common developer tasks. Copy, adapt, and save these to your snippets.
+
+<AccordionGroup>
+  <Accordion title="🔍 Code Review Prompt">
+
+```text
+You are a senior software engineer doing a thorough code review.
+
+Review the following [LANGUAGE] code for:
+
+1. **Correctness** — Logic errors, off-by-one errors, unhandled edge cases
+2. **Security** — SQL injection, XSS, insecure deserialization, exposed secrets
+3. **Performance** — Unnecessary loops, missing indexes, N+1 queries, memory leaks
+4. **Maintainability** — Naming clarity, function length, single responsibility
+5. **Error handling** — Are errors caught, logged, and surfaced correctly?
+
+For each issue found:
+- Quote the relevant line(s)
+- Explain why it's a problem
+- Suggest a specific fix with a code example
+
+[PASTE CODE HERE]
+```
+
+  </Accordion>
+
+  <Accordion title="🐛 Bug Explanation Prompt">
+
+```text
+I'm getting the following error in my [LANGUAGE/FRAMEWORK] application:
+
+Error message:
+[PASTE ERROR MESSAGE]
+
+Stack trace:
+[PASTE STACK TRACE]
+
+Context:
+- What I was doing when it happened: [DESCRIBE ACTION]
+- Environment: [e.g., Node 20, macOS, running locally]
+- Relevant code: [PASTE RELEVANT SNIPPET]
+
+Please:
+1. Explain what this error means in plain terms
+2. Identify the most likely root cause
+3. Give me a step-by-step fix
+4. Suggest how to prevent this class of error in the future
+```
+
+  </Accordion>
+
+  <Accordion title="🏗️ Architecture Review Prompt">
+
+```text
+I'm designing the architecture for [BRIEF DESCRIPTION OF SYSTEM].
+
+Requirements:
+- [Requirement 1]
+- [Requirement 2]
+- [Requirement 3]
+
+My proposed approach:
+[DESCRIBE YOUR PLAN]
+
+Tech stack: [LIST STACK]
+
+Please review this architecture and address:
+1. Will it meet the stated requirements?
+2. What are the main risks or failure modes?
+3. What would you change and why?
+4. Are there simpler alternatives I should consider?
+5. What questions should I answer before committing to this design?
+```
+
+  </Accordion>
+
+  <Accordion title="📝 Documentation Generation Prompt">
+
+```text
+Generate comprehensive documentation for the following [LANGUAGE] code.
+
+Include:
+1. A one-paragraph summary of what it does and when to use it
+2. JSDoc/docstring comments for every exported function and type
+3. Parameter descriptions with types and constraints
+4. Return value description
+5. Example usage (2-3 realistic examples)
+6. Any known limitations or edge cases
+
+Output format: markdown with code blocks for examples.
+
+[PASTE CODE HERE]
+```
+
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Errores Comunes
+
+Avoid these patterns — they're the most common reasons prompts underperform:
+
+<Warning>
+**Prompt vago sin contexto**
+
+❌ `"Fix my code"`
+
+✅ `"Fix the TypeScript error on line 42 of this function. The error is: 'Object is possibly undefined'. I want to handle this with optional chaining rather than a null check."
+`
+</Warning>
+
+<Warning>
+**Sin especificar el formato de salida**
+
+❌ `"Summarize this article"`
+
+✅ `"Summarize this article in 5 bullet points, each under 20 words, suitable for a Slack message to my engineering team."`
+</Warning>
+
+<Warning>
+**Preguntas compuestas no estructuradas**
+
+❌ `"How do I use Docker and what's Kubernetes and how do they work together and should I learn both"`
+
+✅ Break it into focused prompts. Ask one thing at a time, or explicitly structure the multi-part request with numbered questions.
+</Warning>
+
+<Tip>
+**El prompt es una conversación.** If the first response isn't quite right, don't start over — follow up. "Make the explanation shorter", "Add error handling to that example", or "Now do the same for the DELETE endpoint" all work great as follow-ups.
+</Tip>

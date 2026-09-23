@@ -1,0 +1,365 @@
+---
+title: "Node.js Environment Setup and Configuration"
+sidebarTitle: "Environment"
+description: "Configure Node.js environments with .env files, dotenv, environment-specific configs, nvm for version management, and best practices for secrets."
+---
+
+Managing your Node.js environment well is the foundation of a reliable development workflow. This covers everything from switching Node versions with nvm, to loading `.env` files with dotenv, to validating required environment variables at startup so your app fails fast with a clear error instead of crashing mysteriously at runtime.
+
+---
+
+## Gestión de Versiones con nvm
+
+[nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) lets you install and switch between multiple Node.js versions on the same machine. This is essential when working on projects that require different Node versions.
+
+### Installing nvm
+
+```bash
+# macOS / Linux
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+# Then reload your shell
+source ~/.bashrc   # or ~/.zshrc
+```
+
+### Core commands
+
+```bash
+# List available LTS versions to install
+nvm ls-remote --lts
+
+# Install a specific version
+nvm install 20        # latest 20.x
+nvm install 18.19.0   # exact version
+
+# Switch to a version
+nvm use 20
+
+# Use a version for the current session only
+nvm use 18
+
+# See all locally installed versions
+nvm ls
+
+# Show the currently active version
+nvm current    # v20.11.0
+
+# Set the default version (used in new shells)
+nvm alias default 20
+
+# Use the version from .nvmrc automatically
+nvm use
+```
+
+### .nvmrc file
+
+Commit a `.nvmrc` file to your project root to declare the required Node version. Any team member (or CI pipeline) can then just run `nvm use` with no arguments.
+
+```bash
+# .nvmrc
+20.11.0
+```
+
+```bash
+# Install and use the version in .nvmrc
+nvm install   # reads .nvmrc, installs if needed
+nvm use       # switches to the version in .nvmrc
+```
+
+<Tip>
+Add `nvm use` to your shell's directory-change hook (`cd`) using tools like [avn](https://github.com/wbyoung/avn) or Oh My Zsh's built-in nvm plugin, so Node versions switch automatically when you `cd` into a project.
+</Tip>
+
+---
+
+## Variables de Entorno
+
+Environment variables let you configure your app differently per environment (development, staging, production) without changing code.
+
+### Reading with `process.env`
+
+```js
+// Access any env variable
+const port       = process.env.PORT;
+const dbUrl      = process.env.DATABASE_URL;
+const nodeEnv    = process.env.NODE_ENV;
+const secretKey  = process.env.JWT_SECRET;
+
+// With defaults (using nullish coalescing or OR)
+const port = process.env.PORT ?? 3000;
+const env  = process.env.NODE_ENV || "development";
+```
+
+### dotenv
+
+[dotenv](https://github.com/motdotla/dotenv) loads variables from a `.env` file into `process.env` at startup.
+
+```bash
+npm install dotenv
+```
+
+```bash
+# .env  (project root)
+PORT=3000
+NODE_ENV=development
+DATABASE_URL=postgresql://user:password@localhost:5432/mydb
+JWT_SECRET=super-secret-key-change-in-production
+API_KEY=abc123xyz
+```
+
+```js
+// src/index.js — load dotenv FIRST, before any other imports
+require("dotenv").config();
+
+// OR with a custom path
+require("dotenv").config({ path: ".env.local" });
+
+// Now process.env is populated
+const app = require("./app");
+app.listen(process.env.PORT);
+```
+
+For ES Modules:
+
+```js
+// src/index.mjs
+import "dotenv/config"; // loads .env automatically
+
+import app from "./app.js";
+app.listen(process.env.PORT);
+```
+
+### .env.example file
+
+Always commit an `.env.example` (or `.env.template`) file that lists all required variables with placeholder values. Never commit the real `.env`.
+
+```bash
+# .env.example  — commit this
+PORT=3000
+NODE_ENV=development
+DATABASE_URL=postgresql://user:password@localhost:5432/mydb
+JWT_SECRET=replace-with-a-strong-secret
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=user@example.com
+SMTP_PASS=your-smtp-password
+```
+
+```bash
+# .gitignore  — make sure this is present
+.env
+.env.local
+.env.production
+.env.*.local
+```
+
+<Warning>
+**Never commit `.env` files or hardcode secrets in your source code.** Exposed credentials in git history are a serious security incident — even if you delete them later, the history is permanent. Use `.gitignore` religiously and consider tools like [git-secrets](https://github.com/awslabs/git-secrets) to prevent accidental commits.
+</Warning>
+
+---
+
+## Configuración por Entorno
+
+### NODE_ENV
+
+`NODE_ENV` is the standard variable to declare the runtime environment. Common values: `development`, `test`, `staging`, `production`.
+
+```js
+const isProduction  = process.env.NODE_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "development";
+const isTest        = process.env.NODE_ENV === "test";
+```
+
+### Environment-specific config file
+
+```js
+// src/config/index.js
+require("dotenv").config();
+
+const config = {
+  env:  process.env.NODE_ENV || "development",
+  port: Number(process.env.PORT) || 3000,
+
+  db: {
+    url:      process.env.DATABASE_URL,
+    poolSize: Number(process.env.DB_POOL_SIZE) || 5,
+  },
+
+  jwt: {
+    secret:    process.env.JWT_SECRET,
+    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+  },
+
+  // Behaviour that differs by environment
+  logging: {
+    level:  process.env.NODE_ENV === "production" ? "warn" : "debug",
+    pretty: process.env.NODE_ENV !== "production",
+  },
+
+  cors: {
+    origin: process.env.NODE_ENV === "production"
+      ? process.env.ALLOWED_ORIGINS?.split(",")
+      : "*",
+  },
+};
+
+module.exports = config;
+```
+
+```js
+// Usage in any file
+const config = require("./config");
+
+app.listen(config.port, () => {
+  console.log(`[${config.env}] Server on port ${config.port}`);
+});
+```
+
+### Multiple .env files
+
+For projects with many environments, you can maintain separate files:
+
+```bash
+.env               # base defaults (committed only if no secrets)
+.env.local         # local overrides (never committed)
+.env.development   # development-specific
+.env.production    # production-specific (use secrets manager instead)
+.env.test          # test runner config
+```
+
+```js
+// Load the right file based on NODE_ENV
+const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+require("dotenv").config({ path: envFile });
+require("dotenv").config(); // fallback to .env
+```
+
+---
+
+## Scripts de package.json
+
+### Setting env vars inline
+
+```json
+{
+  "scripts": {
+    "start":       "node src/index.js",
+    "dev":         "NODE_ENV=development nodemon src/index.js",
+    "test":        "NODE_ENV=test jest",
+    "build":       "NODE_ENV=production tsc"
+  }
+}
+```
+
+### cross-env for cross-platform compatibility
+
+The inline `NODE_ENV=value` syntax works on macOS and Linux but **fails on Windows**. Use [cross-env](https://github.com/kentcdodds/cross-env) to make it work everywhere.
+
+```bash
+npm install --save-dev cross-env
+```
+
+```json
+{
+  "scripts": {
+    "start":   "cross-env NODE_ENV=production node src/index.js",
+    "dev":     "cross-env NODE_ENV=development nodemon src/index.js",
+    "test":    "cross-env NODE_ENV=test jest --coverage",
+    "build":   "cross-env NODE_ENV=production tsc --project tsconfig.json"
+  }
+}
+```
+
+<Tip>
+Use `cross-env` in all team projects, even if your team is currently Mac/Linux-only. It's a tiny dev dependency and avoids breaking the workflow if anyone switches to Windows or WSL later.
+</Tip>
+
+---
+
+## Buenas Prácticas
+
+### Validate env vars at startup with Zod
+
+Fail immediately with a clear error if required variables are missing or malformed — don't let the app start in a broken state.
+
+```bash
+npm install zod
+```
+
+```js
+// src/config/env.js
+const { z } = require("zod");
+
+const envSchema = z.object({
+  NODE_ENV:     z.enum(["development", "test", "staging", "production"]),
+  PORT:         z.string().regex(/^\d+$/).transform(Number).default("3000"),
+  DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
+  JWT_SECRET:   z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  SMTP_HOST:    z.string().optional(),
+  SMTP_PORT:    z.string().regex(/^\d+$/).transform(Number).optional(),
+});
+
+const parsed = envSchema.safeParse(process.env);
+
+if (!parsed.success) {
+  console.error("Invalid environment variables:\n");
+  parsed.error.issues.forEach((issue) => {
+    console.error(`  ${issue.path.join(".")}: ${issue.message}`);
+  });
+  process.exit(1);
+}
+
+module.exports = parsed.data;
+```
+
+```js
+// src/index.js
+require("dotenv").config();
+
+const env = require("./config/env"); // validates at startup
+
+// env.PORT is already a Number, env.NODE_ENV is narrowed to the union type
+console.log(`Starting in ${env.NODE_ENV} on port ${env.PORT}`);
+```
+
+### Validate with Joi (alternative)
+
+```bash
+npm install joi
+```
+
+```js
+const Joi = require("joi");
+
+const schema = Joi.object({
+  NODE_ENV:     Joi.string().valid("development", "test", "production").default("development"),
+  PORT:         Joi.number().default(3000),
+  DATABASE_URL: Joi.string().uri().required(),
+  JWT_SECRET:   Joi.string().min(32).required(),
+}).unknown(true); // allow other vars to pass through
+
+const { error, value: env } = schema.validate(process.env);
+
+if (error) {
+  throw new Error(`Config validation error: ${error.message}`);
+}
+
+module.exports = env;
+```
+
+### Summary of best practices
+
+| Practice | Why |
+|---|---|
+| Commit `.env.example`, never `.env` | Prevents secret leaks |
+| Validate env vars at startup | Fail fast with clear errors |
+| Use `cross-env` in npm scripts | Windows compatibility |
+| Use `.nvmrc` in every project | Consistent Node versions across team |
+| Never hardcode secrets in source | Audit trail, rotation, security |
+| Use a secrets manager in production | AWS Secrets Manager, Vault, etc. |
+| Set `NODE_ENV=production` in prod | Enables framework-level optimizations |
+
+<Warning>
+In production, don't rely on `.env` files at all. Use your cloud provider's native secrets management: AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, or Kubernetes Secrets. Inject them as environment variables at runtime instead of deploying files to disk.
+</Warning>

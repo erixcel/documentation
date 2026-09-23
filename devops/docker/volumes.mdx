@@ -1,0 +1,341 @@
+---
+title: "Docker Volumes: Persistent Data Storage Guide"
+sidebarTitle: "Volumes"
+description: "Manage persistent data in Docker with named volumes, bind mounts, and tmpfs. Includes backup strategies and docker-compose volume patterns."
+---
+
+Por defecto, el sistema de archivos de un contenedor Docker es efímero: cuando el contenedor se elimina, todos los datos que escribió desaparecen. Los volúmenes son el mecanismo de Docker para persistir datos más allá del ciclo de vida de un contenedor, compartir datos entre contenedores y separar el código de los datos. Esta página explica los tres tipos de almacenamiento, sus comandos, patrones en Compose y cómo hacer backup y restore.
+
+---
+
+## Tipos de Almacenamiento
+
+Docker ofrece tres formas de montar datos en un contenedor:
+
+| Tipo | Gestionado por | Almacenado en | Caso de uso principal |
+|---|---|---|---|
+| **Named Volume** | Docker | `/var/lib/docker/volumes/` | Datos persistentes en producción (DB, archivos de usuario) |
+| **Bind Mount** | El usuario | Cualquier ruta del host | Desarrollo local, hot reload, config files |
+| **tmpfs** | Kernel del host | Memoria RAM | Datos temporales sensibles, caché efímera |
+
+### Named Volumes
+
+Docker gestiona completamente el ciclo de vida del volumen. El contenido sobrevive a la eliminación del contenedor. Son la opción recomendada para producción.
+
+```bash
+# Crear y usar un named volume
+docker run -d \
+  --name postgres \
+  -v postgres_data:/var/lib/postgresql/data \
+  postgres:15
+```
+
+### Bind Mounts
+
+Montan un directorio o archivo del sistema de archivos del host directamente en el contenedor. Ideales para desarrollo: los cambios en el host se reflejan al instante dentro del contenedor.
+
+```bash
+# Montar el directorio de código fuente
+docker run -d \
+  --name my-app \
+  -v $(pwd)/src:/app/src \
+  -p 3000:3000 \
+  my-node-app:dev
+```
+
+### tmpfs
+
+El contenido se almacena en la memoria RAM del host y **nunca se escribe en disco**. Se elimina cuando el contenedor se detiene.
+
+```bash
+# Montar un directorio en memoria
+docker run -d \
+  --name secure-app \
+  --tmpfs /app/tmp:rw,size=64m,mode=1777 \
+  my-secure-app
+```
+
+<Tip>
+Usa named volumes en producción en lugar de bind mounts. Los named volumes son portables, gestionados por Docker, no dependen de la estructura de directorios del host y tienen mejor rendimiento en entornos como Docker Desktop en macOS/Windows.
+</Tip>
+
+---
+
+## Comandos de Volúmenes
+
+### Listar volúmenes
+
+```bash
+# Ver todos los volúmenes
+docker volume ls
+
+# Filtrar por driver
+docker volume ls --filter driver=local
+
+# Ver solo volúmenes sin usar (dangling)
+docker volume ls --filter dangling=true
+```
+
+### Crear volúmenes
+
+```bash
+# Crear un volumen simple
+docker volume create my-data
+
+# Con opciones específicas de driver
+docker volume create \
+  --driver local \
+  --opt type=nfs \
+  --opt o=addr=192.168.1.100,rw \
+  --opt device=:/path/to/nfs/share \
+  nfs-volume
+```
+
+### Inspeccionar un volumen
+
+```bash
+# Ver detalles completos
+docker volume inspect my-data
+
+# Obtener la ruta del mountpoint en el host
+docker volume inspect -f '{{.Mountpoint}}' my-data
+# /var/lib/docker/volumes/my-data/_data
+```
+
+### Eliminar volúmenes
+
+```bash
+# Eliminar un volumen específico (debe estar sin uso)
+docker volume rm my-data
+
+# Eliminar múltiples volúmenes
+docker volume rm vol1 vol2 vol3
+
+# Eliminar todos los volúmenes no usados
+docker volume prune
+
+# Sin confirmación interactiva
+docker volume prune -f
+```
+
+<Note>
+`docker volume rm` y `docker volume prune` **eliminan los datos de forma permanente e irreversible**. Verifica siempre que el volumen no esté en uso y que tienes un backup antes de ejecutar estos comandos.
+</Note>
+
+---
+
+## Bind Mounts
+
+Los bind mounts son la herramienta principal para el flujo de trabajo en desarrollo: permiten editar código en el host y ver los cambios reflejados inmediatamente dentro del contenedor.
+
+### Montaje básico
+
+```bash
+# Montar el directorio actual como /app en el contenedor
+docker run -it --rm \
+  -v $(pwd):/app \
+  -w /app \
+  node:20-alpine \
+  npm run dev
+
+# Montar un archivo de configuración (solo lectura)
+docker run -d \
+  --name nginx \
+  -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro \
+  -p 80:80 \
+  nginx:alpine
+```
+
+### Patrones comunes en desarrollo con Node.js
+
+```bash
+docker run -d \
+  --name node-dev \
+  -v $(pwd):/app \               # Código fuente
+  -v /app/node_modules \         # Preservar node_modules del contenedor
+  -p 3000:3000 \
+  -e NODE_ENV=development \
+  node:20-alpine \
+  npm run dev
+```
+
+El truco de `-v /app/node_modules` (sin path de host) crea un volumen anónimo que tapa el directorio `node_modules` del host, evitando conflictos entre dependencias nativas del host y del contenedor (especialmente en macOS/Windows vs Linux).
+
+### Montar con permisos específicos
+
+```bash
+# Solo lectura (:ro)
+docker run -d \
+  -v $(pwd)/config:/app/config:ro \
+  my-app
+
+# Con propagación de bind mount (para sistemas de archivos compartidos)
+docker run -d \
+  -v $(pwd)/data:/app/data:shared \
+  my-app
+```
+
+---
+
+## Volúmenes en docker-compose.yml
+
+### Definir y usar volúmenes nombrados
+
+```yaml
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data    # Named volume
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # Bind mount
+
+  api:
+    image: my-api:latest
+    volumes:
+      - uploads:/app/uploads                      # Named volume compartido
+      - ./src:/app/src                            # Bind mount para dev
+
+  backup:
+    image: my-backup-tool:latest
+    volumes:
+      - uploads:/data/uploads:ro                  # Acceso de lectura al mismo volumen
+
+# Declaración de volúmenes a nivel de proyecto
+volumes:
+  postgres_data:
+    driver: local
+  uploads:
+    driver: local
+```
+
+### Compartir volúmenes entre servicios
+
+Los named volumes declarados en la sección `volumes:` pueden ser montados por múltiples servicios simultáneamente:
+
+```yaml
+version: "3.9"
+
+services:
+  app:
+    image: my-app:latest
+    volumes:
+      - shared_assets:/app/public/assets
+
+  cdn-sync:
+    image: rclone/rclone:latest
+    volumes:
+      - shared_assets:/data:ro    # Lee los assets y los sube al CDN
+    command: sync /data remote:my-bucket
+
+volumes:
+  shared_assets:
+```
+
+### Usar un volumen externo (creado fuera de Compose)
+
+```yaml
+volumes:
+  legacy-data:
+    external: true          # No crea el volumen, usa uno ya existente
+    name: my-existing-volume
+```
+
+### Configuración de driver con opciones avanzadas
+
+```yaml
+volumes:
+  nfs-data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=192.168.1.10,rw,nfsvers=4"
+      device: ":/exports/data"
+```
+
+---
+
+## Backup y Restore
+
+Las estrategias de backup para volúmenes Docker se basan en ejecutar un contenedor auxiliar que accede al volumen y empaqueta su contenido.
+
+### Backup de un named volume
+
+```bash
+# Crear backup como archivo tar.gz en el directorio actual
+docker run --rm \
+  -v myvolume:/data \
+  -v $(pwd):/backup \
+  alpine \
+  tar czf /backup/backup.tar.gz /data
+
+# Con timestamp en el nombre del archivo
+docker run --rm \
+  -v postgres_data:/data \
+  -v $(pwd):/backup \
+  alpine \
+  tar czf /backup/postgres_data_$(date +%Y%m%d_%H%M%S).tar.gz /data
+```
+
+### Restore de un backup
+
+```bash
+# Restaurar el contenido de backup.tar.gz en un volumen (puede ser nuevo o existente)
+docker run --rm \
+  -v myvolume:/data \
+  -v $(pwd):/backup \
+  alpine \
+  sh -c "cd /data && tar xzf /backup/backup.tar.gz --strip 1"
+```
+
+### Backup de una base de datos PostgreSQL
+
+```bash
+# pg_dump directamente a un archivo en el host
+docker exec my-postgres \
+  pg_dump -U postgres mydb > backup_$(date +%Y%m%d).sql
+
+# Restore desde un archivo SQL
+docker exec -i my-postgres \
+  psql -U postgres mydb < backup_20240115.sql
+```
+
+### Script de backup automático
+
+```bash
+#!/bin/bash
+# backup-volumes.sh
+
+BACKUP_DIR="/var/backups/docker"
+DATE=$(date +%Y%m%d_%H%M%S)
+VOLUMES=("postgres_data" "redis_data" "uploads")
+
+mkdir -p "$BACKUP_DIR"
+
+for VOLUME in "${VOLUMES[@]}"; do
+  echo "Haciendo backup de: $VOLUME"
+  docker run --rm \
+    -v "$VOLUME":/data \
+    -v "$BACKUP_DIR":/backup \
+    alpine \
+    tar czf "/backup/${VOLUME}_${DATE}.tar.gz" /data
+  echo "✓ Backup completado: ${VOLUME}_${DATE}.tar.gz"
+done
+
+# Eliminar backups de más de 7 días
+find "$BACKUP_DIR" -name "*.tar.gz" -mtime +7 -delete
+echo "Limpieza de backups antiguos completada."
+```
+
+```bash
+# Hacer el script ejecutable y programarlo con cron
+chmod +x backup-volumes.sh
+
+# Cron job: backup diario a las 2:00 AM
+echo "0 2 * * * /opt/scripts/backup-volumes.sh >> /var/log/docker-backup.log 2>&1" | crontab -
+```
+
+<Tip>
+Para bases de datos en producción, combina el backup del volumen de datos con el dump lógico de la base (`pg_dump`, `mysqldump`, `mongodump`). El dump lógico es más portable y facilita la recuperación de tablas o colecciones individuales. El backup del volumen es más rápido para restaurar todo el sistema.
+</Tip>

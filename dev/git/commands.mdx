@@ -1,0 +1,657 @@
+---
+title: "Git Commands: Complete Developer Cheat Sheet"
+sidebarTitle: "Commands"
+description: "Comprehensive Git command reference: init, clone, staging, commits, branches, merging, rebasing, stashing, tagging, remotes, and undoing changes."
+---
+
+Git es el sistema de control de versiones distribuido más utilizado en el mundo. Esta página reúne todos los comandos esenciales organizados por categoría, con ejemplos reales y notas sobre operaciones destructivas. Tanto si estás comenzando como si necesitas refrescar un comando específico, aquí encontrarás lo que buscas.
+
+---
+
+## Configuración
+
+Antes de empezar a usar Git, es necesario configurar tu identidad. Esta información se incrusta en cada commit que realizas.
+
+### Identidad global
+
+```bash
+# Configurar nombre de usuario
+git config --global user.name "Tu Nombre"
+
+# Configurar email (debe coincidir con el de tu cuenta en GitHub/GitLab)
+git config --global user.email "tu@email.com"
+```
+
+### Editor por defecto
+
+```bash
+# Usar VS Code como editor de commits
+git config --global core.editor "code --wait"
+
+# Usar Vim
+git config --global core.editor "vim"
+
+# Usar nano
+git config --global core.editor "nano"
+```
+
+### Ver configuración actual
+
+```bash
+# Listar toda la configuración activa
+git config --list
+
+# Ver un valor específico
+git config user.name
+
+# Ver configuración global
+git config --global --list
+```
+
+<Tip>
+Tu configuración global se guarda en `~/.gitconfig`. Puedes editarla directamente con `git config --global --edit` para añadir alias, colores o cualquier opción avanzada.
+</Tip>
+
+### Ejemplo de `.gitconfig`
+
+```ini
+[user]
+    name = Tu Nombre
+    email = tu@email.com
+
+[core]
+    editor = code --wait
+    autocrlf = input
+
+[color]
+    ui = auto
+
+[pull]
+    rebase = false
+```
+
+---
+
+## Repositorio
+
+### Inicializar un repositorio local
+
+```bash
+# Crear un nuevo repositorio en el directorio actual
+git init
+
+# Crear un repositorio en un directorio nuevo
+git init mi-proyecto
+
+# Inicializar con rama principal llamada 'main'
+git init -b main
+```
+
+### Clonar un repositorio
+
+```bash
+# Clonar un repositorio remoto (HTTPS)
+git clone https://github.com/usuario/repositorio.git
+
+# Clonar en una carpeta con nombre personalizado
+git clone https://github.com/usuario/repositorio.git mi-carpeta
+
+# Clonar vía SSH (requiere clave SSH configurada)
+git clone git@github.com:usuario/repositorio.git
+```
+
+### Clonar con historial reducido
+
+```bash
+# Clonar solo el último commit (útil en CI/CD o repositorios grandes)
+git clone --depth 1 https://github.com/usuario/repositorio.git
+
+# Clonar una rama específica con profundidad limitada
+git clone --depth 1 --branch main https://github.com/usuario/repositorio.git
+```
+
+<Tip>
+`--depth 1` es especialmente útil en pipelines de integración continua donde no necesitas el historial completo, reduciendo significativamente el tiempo de clonado.
+</Tip>
+
+---
+
+## Staging y Commits
+
+El área de staging (índice) es una zona intermedia donde preparas exactamente qué cambios entrarán en el próximo commit.
+
+### Ver estado del repositorio
+
+```bash
+# Ver archivos modificados, en staging y sin seguimiento
+git status
+
+# Versión compacta
+git status -s
+```
+
+### Añadir archivos al staging
+
+```bash
+# Añadir un archivo específico
+git add archivo.js
+
+# Añadir todos los archivos del directorio actual
+git add .
+
+# Añadir todos los archivos con extensión .ts
+git add *.ts
+
+# Añadir todos los cambios del repositorio (incluye eliminaciones)
+git add -A
+```
+
+### Staging interactivo por hunks
+
+```bash
+# Seleccionar qué partes de un archivo añadir al staging
+git add -p archivo.js
+
+# Seleccionar interactivamente de todos los archivos modificados
+git add -p
+```
+
+<Tip>
+`git add -p` (patch mode) es uno de los comandos más poderosos del día a día. Te permite añadir solo las partes relevantes de un archivo, manteniendo commits atómicos y enfocados.
+</Tip>
+
+### Crear un commit
+
+```bash
+# Commit con mensaje en línea
+git commit -m "feat: add user authentication module"
+
+# Commit abriendo el editor configurado para el mensaje
+git commit
+
+# Añadir todos los archivos rastreados y hacer commit en un paso
+git commit -am "fix: correct null pointer in user service"
+```
+
+### Modificar el último commit
+
+```bash
+# Corregir el mensaje del último commit
+git commit --amend -m "feat: add user authentication module"
+
+# Añadir archivos olvidados al último commit sin cambiar el mensaje
+git add archivo-olvidado.js
+git commit --amend --no-edit
+```
+
+<Warning>
+`git commit --amend` reescribe el historial. Si ya has hecho push de ese commit a un repositorio remoto compartido, **no uses amend** — otros colaboradores tendrán conflictos. Úsalo solo en commits que aún no han sido publicados.
+</Warning>
+
+### Ver diferencias
+
+```bash
+# Ver cambios en archivos modificados (no en staging)
+git diff
+
+# Ver cambios entre dos commits
+git diff abc1234 def5678
+
+# Ver cambios entre rama actual y otra rama
+git diff main feature/login
+
+# Ver qué hay en el staging (lo que entraría en el próximo commit)
+git diff --staged
+
+# Ver diferencia de un archivo específico
+git diff --staged src/auth.js
+```
+
+---
+
+## Branches
+
+Las ramas permiten trabajar en paralelo sobre el mismo repositorio sin interferir con el código estable.
+
+### Listar y crear ramas
+
+```bash
+# Listar ramas locales
+git branch
+
+# Listar ramas remotas
+git branch -r
+
+# Listar todas las ramas (locales y remotas)
+git branch -a
+
+# Crear una nueva rama (sin cambiar a ella)
+git branch feature/nueva-funcionalidad
+```
+
+### Cambiar de rama
+
+```bash
+# Cambiar a una rama existente (forma clásica)
+git checkout feature/login
+
+# Crear y cambiar a una nueva rama (forma clásica)
+git checkout -b feature/registro
+
+# Cambiar a una rama existente (forma moderna, Git 2.23+)
+git switch feature/login
+
+# Crear y cambiar a una nueva rama (forma moderna)
+git switch -c feature/registro
+
+# Volver a la rama anterior
+git switch -
+```
+
+### Eliminar ramas
+
+```bash
+# Eliminar una rama local que ya fue mergeada
+git branch -d feature/login
+
+# Forzar eliminación aunque no esté mergeada
+git branch -D feature/experimento
+
+# Eliminar una rama remota
+git push origin --delete feature/login
+```
+
+<Warning>
+`git branch -D` elimina la rama localmente sin importar si sus cambios fueron integrados. Asegúrate de no necesitar esos commits antes de ejecutarlo.
+</Warning>
+
+---
+
+## Merge y Rebase
+
+### Merge básico
+
+```bash
+# Estando en 'main', integrar una rama de feature
+git switch main
+git merge feature/login
+
+# Merge con mensaje de commit explícito
+git merge feature/login -m "Merge feature/login into main"
+```
+
+### Merge sin fast-forward
+
+```bash
+# Forzar la creación de un commit de merge aunque sea posible hacer fast-forward
+git merge --no-ff feature/login
+```
+
+<Tip>
+`--no-ff` preserva la historia de que ese trabajo se hizo en una rama separada, lo que facilita entender el historial del proyecto. Es la práctica recomendada en muchos equipos.
+</Tip>
+
+### Rebase
+
+```bash
+# Rebase de la rama actual sobre 'main'
+git rebase main
+
+# Rebase de una rama específica sobre otra
+git rebase main feature/login
+```
+
+### Rebase interactivo
+
+```bash
+# Editar los últimos 3 commits (squash, reorder, edit messages)
+git rebase -i HEAD~3
+
+# Rebase interactivo sobre main
+git rebase -i main
+```
+
+El rebase interactivo abre el editor con una lista de commits donde puedes usar estas acciones:
+
+| Acción | Alias | Descripción |
+|--------|-------|-------------|
+| `pick` | `p` | Mantener el commit tal cual |
+| `reword` | `r` | Cambiar el mensaje del commit |
+| `edit` | `e` | Pausar para modificar el commit |
+| `squash` | `s` | Fusionar con el commit anterior |
+| `fixup` | `f` | Como squash pero descarta el mensaje |
+| `drop` | `d` | Eliminar el commit |
+
+### Resolver conflictos
+
+```bash
+# Ver archivos con conflictos
+git status
+
+# Después de editar manualmente los conflictos:
+git add archivo-con-conflicto.js
+
+# Continuar el merge o rebase
+git merge --continue
+git rebase --continue
+
+# Abortar si decides no continuar
+git merge --abort
+git rebase --abort
+```
+
+<Warning>
+`git rebase` reescribe el historial de commits. Nunca hagas rebase de ramas que ya están publicadas y sobre las que otros colaboradores trabajan, a menos que el equipo lo acuerde explícitamente.
+</Warning>
+
+---
+
+## Remotos
+
+### Gestionar remotos
+
+```bash
+# Añadir un remoto con nombre 'origin'
+git remote add origin https://github.com/usuario/repo.git
+
+# Ver remotos configurados
+git remote -v
+
+# Renombrar un remoto
+git remote rename origin upstream
+
+# Eliminar un remoto
+git remote remove upstream
+
+# Cambiar la URL de un remoto
+git remote set-url origin git@github.com:usuario/repo.git
+```
+
+### Fetch y Pull
+
+```bash
+# Descargar cambios del remoto sin integrarlos
+git fetch origin
+
+# Descargar todas las ramas de todos los remotos
+git fetch --all
+
+# Integrar cambios del remoto en la rama actual (fetch + merge)
+git pull
+
+# Pull usando rebase en lugar de merge
+git pull --rebase
+
+# Pull de una rama específica
+git pull origin main
+```
+
+<Tip>
+`git pull --rebase` produce un historial más limpio que el pull por defecto (que crea un commit de merge). Muchos equipos lo configuran como comportamiento por defecto: `git config --global pull.rebase true`.
+</Tip>
+
+### Push
+
+```bash
+# Enviar commits de la rama actual al remoto
+git push
+
+# Enviar y configurar el upstream en un solo paso
+git push -u origin main
+
+# Enviar una rama local al remoto
+git push origin feature/login
+
+# Enviar todas las ramas locales
+git push --all origin
+```
+
+<Warning>
+`git push --force` (`-f`) sobreescribe el historial remoto. Puede causar pérdida permanente de commits para otros colaboradores. Prefiere siempre `git push --force-with-lease`, que falla si alguien más ha hecho push desde tu último fetch.
+</Warning>
+
+```bash
+# Forma segura de forzar push
+git push --force-with-lease origin feature/mi-rama
+```
+
+---
+
+## Stash
+
+El stash te permite guardar cambios temporalmente sin hacer commit, ideal para interrupciones o cambios de contexto rápidos.
+
+```bash
+# Guardar todos los cambios en el stash
+git stash
+
+# Guardar con un mensaje descriptivo
+git stash push -m "WIP: formulario de registro a mitad"
+
+# Guardar incluyendo archivos sin seguimiento
+git stash push -u -m "incluye archivos nuevos sin seguimiento"
+
+# Ver todos los stashes guardados
+git stash list
+
+# Aplicar el stash más reciente y eliminarlo del listado
+git stash pop
+
+# Aplicar el stash más reciente sin eliminarlo
+git stash apply
+
+# Aplicar un stash específico por índice
+git stash apply stash@{2}
+
+# Eliminar un stash específico
+git stash drop stash@{1}
+
+# Eliminar todos los stashes
+git stash clear
+
+# Ver el contenido de un stash sin aplicarlo
+git stash show -p stash@{0}
+```
+
+<Tip>
+Si trabajas en varias tareas en paralelo, nombra siempre tus stashes con `-m` para poder identificarlos fácilmente al listarlos con `git stash list`.
+</Tip>
+
+---
+
+## Tags
+
+Los tags marcan puntos específicos del historial, generalmente versiones de lanzamiento.
+
+```bash
+# Crear un tag ligero (apunta a un commit, sin metadata adicional)
+git tag v1.0
+
+# Crear un tag anotado (con autor, fecha y mensaje — recomendado para releases)
+git tag -a v1.0.0 -m "Release v1.0.0: primera versión estable"
+
+# Crear un tag sobre un commit específico
+git tag -a v0.9.0 abc1234 -m "Beta release"
+
+# Listar todos los tags
+git tag
+
+# Listar tags con filtro
+git tag -l "v1.*"
+
+# Ver información de un tag anotado
+git show v1.0.0
+
+# Publicar un tag en el remoto
+git push origin v1.0.0
+
+# Publicar todos los tags locales al remoto
+git push --tags
+
+# Eliminar un tag local
+git tag -d v0.9.0
+
+# Eliminar un tag del remoto
+git push origin --delete v0.9.0
+```
+
+<Tip>
+Usa **tags anotados** (`-a`) para releases oficiales: incluyen metadatos completos (autor, fecha, mensaje) y son objetos completos en el repositorio de Git, a diferencia de los tags ligeros.
+</Tip>
+
+---
+
+## Deshacer Cambios
+
+### Restaurar archivos (Git 2.23+)
+
+```bash
+# Descartar cambios en el working directory (restaura desde el staging o HEAD)
+git restore archivo.js
+
+# Descartar cambios en todos los archivos
+git restore .
+
+# Sacar un archivo del staging (lo mueve de vuelta al working directory)
+git restore --staged archivo.js
+
+# Sacar todos los archivos del staging
+git restore --staged .
+```
+
+### Reset
+
+```bash
+# Mover HEAD N commits hacia atrás, manteniendo los cambios en staging
+git reset --soft HEAD~1
+
+# Mover HEAD N commits hacia atrás, manteniendo los cambios en working directory
+git reset HEAD~2
+
+# Mover HEAD a un commit específico manteniendo cambios en staging
+git reset --soft abc1234
+```
+
+<Warning>
+`git reset --hard` es **destructivo e irreversible** (salvo via `git reflog`). Descarta permanentemente todos los cambios en staging y working directory.
+
+```bash
+# PELIGROSO: elimina todos los cambios no commiteados y mueve HEAD
+git reset --hard HEAD~1
+
+# PELIGROSO: resetea todo al estado del remoto
+git reset --hard origin/main
+```
+</Warning>
+
+### Revert (seguro para historial público)
+
+```bash
+# Crear un nuevo commit que deshace los cambios de un commit específico
+git revert abc1234
+
+# Revert sin abrir el editor (usa mensaje por defecto)
+git revert abc1234 --no-edit
+
+# Revert de un rango de commits
+git revert HEAD~3..HEAD
+```
+
+<Tip>
+A diferencia de `reset`, `git revert` no reescribe el historial. Es la forma correcta de deshacer cambios en ramas que ya han sido publicadas en un remoto compartido.
+</Tip>
+
+### Limpiar archivos sin seguimiento
+
+```bash
+# Ver qué archivos serían eliminados (simulación)
+git clean -n
+
+# Eliminar archivos sin seguimiento del working directory
+git clean -f
+
+# Eliminar archivos y directorios sin seguimiento
+git clean -fd
+
+# Eliminar también archivos ignorados por .gitignore
+git clean -fdx
+```
+
+<Warning>
+`git clean -fd` elimina archivos y directorios no rastreados de forma **permanente**. Usa siempre `-n` primero para ver qué se eliminaría antes de ejecutar el comando real.
+</Warning>
+
+---
+
+## Logs e Historial
+
+### Ver el historial de commits
+
+```bash
+# Historial completo con toda la información
+git log
+
+# Vista compacta: un commit por línea
+git log --oneline
+
+# Vista gráfica del historial con todas las ramas
+git log --graph --all --oneline
+
+# Historial con decoradores (muestra ramas y tags)
+git log --oneline --decorate
+
+# Ver el historial de un archivo específico
+git log --oneline -- src/auth.js
+
+# Ver los cambios introducidos por cada commit
+git log -p
+
+# Limitar la salida a los últimos N commits
+git log -10 --oneline
+
+# Buscar commits por mensaje
+git log --grep="fix:"
+
+# Buscar commits por autor
+git log --author="Tu Nombre"
+
+# Commits entre dos fechas
+git log --after="2024-01-01" --before="2024-06-30" --oneline
+```
+
+### Blame y Show
+
+```bash
+# Ver quién modificó cada línea de un archivo
+git blame src/auth.js
+
+# Blame con información de fecha compacta
+git blame -s src/auth.js
+
+# Ver los cambios introducidos por un commit específico
+git show abc1234
+
+# Ver solo el mensaje y las estadísticas (sin el diff)
+git show abc1234 --stat
+
+# Ver el contenido de un archivo en un commit específico
+git show abc1234:src/auth.js
+```
+
+### Reflog: el historial de movimientos de HEAD
+
+```bash
+# Ver todos los movimientos recientes de HEAD (incluyendo resets y rebases)
+git reflog
+
+# Ver el reflog de una rama específica
+git reflog show feature/login
+
+# Recuperar un commit "perdido" tras un reset --hard
+git checkout abc1234        # Commit que aparece en reflog
+git switch -c rama-recuperada
+```
+
+<Tip>
+`git reflog` es tu red de seguridad. Git conserva el reflog durante 90 días por defecto, lo que significa que puedes recuperar commits aparentemente perdidos tras un `reset --hard`, un `rebase` fallido o incluso una rama eliminada accidentalmente.
+</Tip>

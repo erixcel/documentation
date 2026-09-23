@@ -1,0 +1,1021 @@
+---
+title: "Design Patterns: Essential GoF Patterns with JS Examples"
+sidebarTitle: "Design Patterns"
+description: "Practical guide to essential Gang of Four design patterns in JavaScript/TypeScript: Singleton, Factory, Observer, Strategy, Repository, and more."
+---
+
+Design patterns are proven, reusable solutions to commonly occurring problems in software design. Introduced by the "Gang of Four" (Gamma, Helm, Johnson, Vlissides) in their 1994 book *Design Patterns: Elements of Reusable Object-Oriented Software*, these 23 patterns remain fundamental vocabulary for software engineers. They are not code you copy-paste — they are templates for thinking about structure and communication between objects. Knowing them makes you faster at recognizing familiar problems and communicating solutions with your team.
+
+---
+
+## Creacionales
+
+Creational patterns deal with object creation mechanisms. They abstract the instantiation process, making systems independent of how objects are created, composed, and represented.
+
+<AccordionGroup>
+  <Accordion title="Singleton — Una sola instancia global">
+    Ensures a class has only one instance and provides a global point of access to it. Commonly used for database connections, configuration managers, and loggers.
+
+    ```typescript
+    // TypeScript Singleton — thread-safe with lazy initialization
+    class DatabaseConnection {
+      private static instance: DatabaseConnection | null = null;
+      private connectionCount = 0;
+
+      private constructor(private readonly url: string) {
+        // Private constructor prevents direct instantiation
+        console.log("DatabaseConnection created");
+      }
+
+      static getInstance(url: string): DatabaseConnection {
+        if (!DatabaseConnection.instance) {
+          DatabaseConnection.instance = new DatabaseConnection(url);
+        }
+        return DatabaseConnection.instance;
+      }
+
+      query(sql: string): string {
+        this.connectionCount++;
+        return `Result for: ${sql} (query #${this.connectionCount})`;
+      }
+
+      getStats() {
+        return { url: this.url, queries: this.connectionCount };
+      }
+    }
+
+    // Both calls return the same instance
+    const db1 = DatabaseConnection.getInstance("postgres://localhost/app");
+    const db2 = DatabaseConnection.getInstance("postgres://localhost/app");
+
+    console.log(db1 === db2); // true
+    db1.query("SELECT * FROM users");
+    console.log(db2.getStats()); // { url: '...', queries: 1 }
+    ```
+
+    <Note>
+      In Node.js, the module system already provides a natural singleton via `require`/`import` caching. A module-level exported object is effectively a singleton without the pattern boilerplate.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Factory Method — Delegar la creación a subclases">
+    Defines an interface for creating an object but lets subclasses decide which class to instantiate. Useful when the exact type of object to create is determined at runtime.
+
+    ```typescript
+    // Abstract creator
+    abstract class NotificationFactory {
+      // Factory method — subclasses implement this
+      abstract createNotification(message: string): Notification;
+
+      // Template method that uses the factory method
+      send(message: string): void {
+        const notification = this.createNotification(message);
+        notification.deliver();
+      }
+    }
+
+    interface Notification {
+      deliver(): void;
+    }
+
+    class EmailNotification implements Notification {
+      constructor(private message: string, private email: string) {}
+      deliver() {
+        console.log(`Sending email to ${this.email}: ${this.message}`);
+      }
+    }
+
+    class SMSNotification implements Notification {
+      constructor(private message: string, private phone: string) {}
+      deliver() {
+        console.log(`Sending SMS to ${this.phone}: ${this.message}`);
+      }
+    }
+
+    class PushNotification implements Notification {
+      constructor(private message: string, private deviceToken: string) {}
+      deliver() {
+        console.log(`Push to device ${this.deviceToken}: ${this.message}`);
+      }
+    }
+
+    // Concrete factories
+    class EmailNotificationFactory extends NotificationFactory {
+      constructor(private email: string) { super(); }
+      createNotification(message: string): Notification {
+        return new EmailNotification(message, this.email);
+      }
+    }
+
+    class SMSNotificationFactory extends NotificationFactory {
+      constructor(private phone: string) { super(); }
+      createNotification(message: string): Notification {
+        return new SMSNotification(message, this.phone);
+      }
+    }
+
+    // Usage — client code doesn't know which class is instantiated
+    function notifyUser(
+      factory: NotificationFactory,
+      message: string
+    ): void {
+      factory.send(message);
+    }
+
+    notifyUser(new EmailNotificationFactory("user@example.com"), "Welcome!");
+    notifyUser(new SMSNotificationFactory("+1-555-0100"), "Your OTP is 4821");
+    ```
+  </Accordion>
+
+  <Accordion title="Abstract Factory — Familias de objetos relacionados">
+    Creates families of related objects without specifying their concrete classes. Think of it as a factory of factories.
+
+    ```typescript
+    // Product interfaces
+    interface Button { render(): string; }
+    interface Input { render(): string; }
+
+    // Concrete products — Light theme
+    class LightButton implements Button {
+      render() { return `<button class="btn-light">Click</button>`; }
+    }
+    class LightInput implements Input {
+      render() { return `<input class="input-light" />`; }
+    }
+
+    // Concrete products — Dark theme
+    class DarkButton implements Button {
+      render() { return `<button class="btn-dark">Click</button>`; }
+    }
+    class DarkInput implements Input {
+      render() { return `<input class="input-dark" />`; }
+    }
+
+    // Abstract Factory interface
+    interface UIFactory {
+      createButton(): Button;
+      createInput(): Input;
+    }
+
+    // Concrete factories
+    class LightThemeFactory implements UIFactory {
+      createButton() { return new LightButton(); }
+      createInput() { return new LightInput(); }
+    }
+
+    class DarkThemeFactory implements UIFactory {
+      createButton() { return new DarkButton(); }
+      createInput() { return new DarkInput(); }
+    }
+
+    // Client — only knows about the abstract factory
+    function renderForm(factory: UIFactory): void {
+      const button = factory.createButton();
+      const input = factory.createInput();
+      console.log(input.render());
+      console.log(button.render());
+    }
+
+    const theme = process.env.THEME === "dark"
+      ? new DarkThemeFactory()
+      : new LightThemeFactory();
+
+    renderForm(theme);
+    ```
+  </Accordion>
+
+  <Accordion title="Builder — Construir objetos complejos paso a paso">
+    Separates the construction of a complex object from its representation, allowing the same construction process to create different representations. Ideal for objects with many optional parameters.
+
+    ```typescript
+    // Without Builder: constructor hell
+    // new HttpRequest("GET", "/api/users", headers, body, timeout, retries, ...)
+
+    // With Builder: fluent, readable, validated
+    class HttpRequest {
+      private constructor(
+        public readonly method: string,
+        public readonly url: string,
+        public readonly headers: Record<string, string>,
+        public readonly body: unknown,
+        public readonly timeout: number,
+        public readonly retries: number
+      ) {}
+
+      static builder(method: string, url: string): HttpRequestBuilder {
+        return new HttpRequestBuilder(method, url);
+      }
+    }
+
+    class HttpRequestBuilder {
+      private _headers: Record<string, string> = {};
+      private _body: unknown = null;
+      private _timeout = 5000;
+      private _retries = 0;
+
+      constructor(
+        private readonly method: string,
+        private readonly url: string
+      ) {}
+
+      header(key: string, value: string): this {
+        this._headers[key] = value;
+        return this;
+      }
+
+      body(data: unknown): this {
+        this._body = data;
+        return this;
+      }
+
+      timeout(ms: number): this {
+        if (ms <= 0) throw new Error("Timeout must be positive");
+        this._timeout = ms;
+        return this;
+      }
+
+      retries(count: number): this {
+        this._retries = count;
+        return this;
+      }
+
+      build(): HttpRequest {
+        return new (HttpRequest as any)(
+          this.method,
+          this.url,
+          this._headers,
+          this._body,
+          this._timeout,
+          this._retries
+        );
+      }
+    }
+
+    // Clean, readable construction
+    const request = HttpRequest.builder("POST", "/api/users")
+      .header("Content-Type", "application/json")
+      .header("Authorization", "Bearer token123")
+      .body({ name: "Alice", email: "alice@example.com" })
+      .timeout(10000)
+      .retries(3)
+      .build();
+
+    console.log(request);
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Estructurales
+
+Structural patterns deal with object composition — how classes and objects are assembled to form larger structures.
+
+<AccordionGroup>
+  <Accordion title="Adapter — Compatibilizar interfaces incompatibles">
+    Converts the interface of a class into another interface that clients expect. Useful when integrating third-party libraries that don't match your expected interface.
+
+    ```typescript
+    // Your application expects this interface
+    interface Logger {
+      info(message: string, meta?: object): void;
+      error(message: string, error?: Error): void;
+      warn(message: string): void;
+    }
+
+    // Third-party library has a different API (e.g., a legacy logger)
+    class LegacyLogger {
+      log(level: string, msg: string, data?: object): void {
+        console.log(`[${level.toUpperCase()}] ${msg}`, data || "");
+      }
+    }
+
+    // Adapter bridges the gap
+    class LegacyLoggerAdapter implements Logger {
+      constructor(private readonly legacy: LegacyLogger) {}
+
+      info(message: string, meta?: object): void {
+        this.legacy.log("info", message, meta);
+      }
+
+      error(message: string, error?: Error): void {
+        this.legacy.log("error", message, { stack: error?.stack });
+      }
+
+      warn(message: string): void {
+        this.legacy.log("warn", message);
+      }
+    }
+
+    // Application code — uses the expected interface
+    function processOrder(logger: Logger, orderId: string) {
+      logger.info("Processing order", { orderId });
+      try {
+        // ... order logic
+        logger.info("Order processed", { orderId });
+      } catch (err) {
+        logger.error("Failed to process order", err as Error);
+      }
+    }
+
+    // Wire up with the adapter
+    const legacyLogger = new LegacyLogger();
+    const logger = new LegacyLoggerAdapter(legacyLogger);
+    processOrder(logger, "ORD-001");
+    ```
+  </Accordion>
+
+  <Accordion title="Decorator — Añadir comportamiento dinámicamente">
+    Attaches additional responsibilities to an object dynamically, as a flexible alternative to subclassing. Used extensively in TypeScript decorators and middleware chains.
+
+    ```typescript
+    // Base interface
+    interface DataSource {
+      writeData(data: string): void;
+      readData(): string;
+    }
+
+    // Concrete component
+    class FileDataSource implements DataSource {
+      private data = "";
+
+      writeData(data: string): void {
+        this.data = data;
+        console.log(`Writing to file: ${data}`);
+      }
+
+      readData(): string {
+        return this.data;
+      }
+    }
+
+    // Base decorator
+    abstract class DataSourceDecorator implements DataSource {
+      constructor(protected wrappee: DataSource) {}
+
+      writeData(data: string): void {
+        this.wrappee.writeData(data);
+      }
+
+      readData(): string {
+        return this.wrappee.readData();
+      }
+    }
+
+    // Concrete decorators — add behaviour
+    class EncryptionDecorator extends DataSourceDecorator {
+      writeData(data: string): void {
+        const encrypted = Buffer.from(data).toString("base64");
+        console.log("Encrypting data...");
+        super.writeData(encrypted);
+      }
+
+      readData(): string {
+        const data = super.readData();
+        return Buffer.from(data, "base64").toString("utf8");
+      }
+    }
+
+    class CompressionDecorator extends DataSourceDecorator {
+      writeData(data: string): void {
+        const compressed = `COMPRESSED(${data})`; // Simplified
+        console.log("Compressing data...");
+        super.writeData(compressed);
+      }
+
+      readData(): string {
+        const data = super.readData();
+        return data.replace(/^COMPRESSED\(/, "").replace(/\)$/, "");
+      }
+    }
+
+    // Stack decorators — compress then encrypt
+    const source = new CompressionDecorator(
+      new EncryptionDecorator(
+        new FileDataSource()
+      )
+    );
+
+    source.writeData("Hello, World!");
+    console.log("Read back:", source.readData()); // Hello, World!
+    ```
+  </Accordion>
+
+  <Accordion title="Facade — Interfaz simplificada para subsistemas complejos">
+    Provides a simplified interface to a complex subsystem. Reduces the learning curve and dependencies for client code.
+
+    ```typescript
+    // Complex subsystems
+    class VideoDecoder {
+      decode(file: string): Buffer {
+        console.log(`Decoding video: ${file}`);
+        return Buffer.from("decoded-video-data");
+      }
+    }
+
+    class AudioDecoder {
+      decode(file: string): Buffer {
+        console.log(`Decoding audio: ${file}`);
+        return Buffer.from("decoded-audio-data");
+      }
+    }
+
+    class VideoEncoder {
+      encode(video: Buffer, audio: Buffer, format: string): string {
+        console.log(`Encoding to ${format}...`);
+        return `output.${format}`;
+      }
+    }
+
+    class FileSystem {
+      save(path: string, data: string): void {
+        console.log(`Saving file: ${path}`);
+      }
+    }
+
+    // Facade — hides all the complexity
+    class VideoConversionFacade {
+      private videoDecoder = new VideoDecoder();
+      private audioDecoder = new AudioDecoder();
+      private videoEncoder = new VideoEncoder();
+      private fs = new FileSystem();
+
+      convert(filename: string, format: string): string {
+        console.log(`\nStarting conversion of ${filename} to ${format}`);
+        const video = this.videoDecoder.decode(filename);
+        const audio = this.audioDecoder.decode(filename);
+        const outputPath = this.videoEncoder.encode(video, audio, format);
+        this.fs.save(outputPath, "");
+        console.log(`Conversion complete: ${outputPath}\n`);
+        return outputPath;
+      }
+    }
+
+    // Client — uses the simple facade
+    const converter = new VideoConversionFacade();
+    const output = converter.convert("movie.mkv", "mp4");
+    ```
+  </Accordion>
+
+  <Accordion title="Proxy — Controlar el acceso a un objeto">
+    Provides a substitute or placeholder for another object to control access to it. Common uses: lazy initialization, caching, access control, logging.
+
+    ```typescript
+    interface UserService {
+      getUser(id: string): Promise<{ id: string; name: string }>;
+    }
+
+    // Real service — expensive operations
+    class RealUserService implements UserService {
+      async getUser(id: string) {
+        console.log(`[DB] Fetching user ${id}...`);
+        // Simulate database query
+        await new Promise((r) => setTimeout(r, 100));
+        return { id, name: `User ${id}` };
+      }
+    }
+
+    // Caching Proxy
+    class CachingUserServiceProxy implements UserService {
+      private cache = new Map<string, { id: string; name: string }>();
+
+      constructor(
+        private readonly real: UserService,
+        private readonly ttlMs = 60000
+      ) {}
+
+      async getUser(id: string) {
+        if (this.cache.has(id)) {
+          console.log(`[Cache] Hit for user ${id}`);
+          return this.cache.get(id)!;
+        }
+
+        console.log(`[Cache] Miss for user ${id} — fetching from service`);
+        const user = await this.real.getUser(id);
+        this.cache.set(id, user);
+
+        // Auto-expire from cache
+        setTimeout(() => this.cache.delete(id), this.ttlMs);
+
+        return user;
+      }
+    }
+
+    // Usage — client doesn't know about the cache
+    const userService: UserService = new CachingUserServiceProxy(
+      new RealUserService(),
+      30000
+    );
+
+    await userService.getUser("123"); // [DB] Fetching user 123...
+    await userService.getUser("123"); // [Cache] Hit for user 123
+    await userService.getUser("456"); // [DB] Fetching user 456...
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## De Comportamiento
+
+Behavioral patterns are concerned with algorithms and the assignment of responsibilities between objects — how they communicate and cooperate.
+
+<AccordionGroup>
+  <Accordion title="Observer / EventEmitter — Notificar a múltiples suscriptores">
+    Defines a one-to-many dependency so when one object changes state, all dependents are notified automatically. This is the foundation of Node.js's `EventEmitter`.
+
+    ```typescript
+    // Custom typed EventEmitter
+    type EventMap = {
+      "user:created": { id: string; email: string };
+      "order:placed": { orderId: string; total: number };
+      "payment:failed": { orderId: string; reason: string };
+    };
+
+    class TypedEventEmitter<T extends Record<string, unknown>> {
+      private listeners = new Map<keyof T, Set<Function>>();
+
+      on<K extends keyof T>(event: K, listener: (data: T[K]) => void): this {
+        if (!this.listeners.has(event)) {
+          this.listeners.set(event, new Set());
+        }
+        this.listeners.get(event)!.add(listener);
+        return this;
+      }
+
+      off<K extends keyof T>(event: K, listener: (data: T[K]) => void): this {
+        this.listeners.get(event)?.delete(listener);
+        return this;
+      }
+
+      emit<K extends keyof T>(event: K, data: T[K]): void {
+        this.listeners.get(event)?.forEach((listener) => listener(data));
+      }
+    }
+
+    // Usage
+    const emitter = new TypedEventEmitter<EventMap>();
+
+    emitter.on("user:created", ({ id, email }) => {
+      console.log(`Send welcome email to ${email}`);
+    });
+
+    emitter.on("user:created", ({ id }) => {
+      console.log(`Create default settings for user ${id}`);
+    });
+
+    emitter.on("order:placed", ({ orderId, total }) => {
+      console.log(`Process payment of $${total} for order ${orderId}`);
+    });
+
+    // Trigger the event
+    emitter.emit("user:created", { id: "u1", email: "alice@example.com" });
+    emitter.emit("order:placed", { orderId: "ord-1", total: 99.99 });
+    ```
+  </Accordion>
+
+  <Accordion title="Strategy — Intercambiar algoritmos en tiempo de ejecución">
+    Defines a family of algorithms, encapsulates each one, and makes them interchangeable. The client selects which algorithm to use at runtime without changing the context class.
+
+    ```typescript
+    // Strategy interface
+    interface SortStrategy {
+      sort(data: number[]): number[];
+    }
+
+    // Concrete strategies
+    class BubbleSortStrategy implements SortStrategy {
+      sort(data: number[]): number[] {
+        const arr = [...data];
+        for (let i = 0; i < arr.length - 1; i++) {
+          for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+              [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+          }
+        }
+        return arr;
+      }
+    }
+
+    class QuickSortStrategy implements SortStrategy {
+      sort(data: number[]): number[] {
+        if (data.length <= 1) return data;
+        const pivot = data[Math.floor(data.length / 2)];
+        const left = data.filter((x) => x < pivot);
+        const mid = data.filter((x) => x === pivot);
+        const right = data.filter((x) => x > pivot);
+        return [...this.sort(left), ...mid, ...this.sort(right)];
+      }
+    }
+
+    class NativeSortStrategy implements SortStrategy {
+      sort(data: number[]): number[] {
+        return [...data].sort((a, b) => a - b);
+      }
+    }
+
+    // Context — uses a strategy
+    class DataProcessor {
+      constructor(private strategy: SortStrategy) {}
+
+      setStrategy(strategy: SortStrategy): void {
+        this.strategy = strategy;
+      }
+
+      process(data: number[]): number[] {
+        console.log(`Sorting ${data.length} items with ${this.strategy.constructor.name}`);
+        return this.strategy.sort(data);
+      }
+    }
+
+    const processor = new DataProcessor(new NativeSortStrategy());
+    console.log(processor.process([5, 2, 8, 1, 9])); // [1, 2, 5, 8, 9]
+
+    // Switch strategy at runtime
+    processor.setStrategy(new QuickSortStrategy());
+    console.log(processor.process([5, 2, 8, 1, 9])); // [1, 2, 5, 8, 9]
+    ```
+
+    **Real-world use:** Payment processors (Stripe / PayPal / Bank Transfer), authentication strategies (JWT / Session / OAuth), discount calculation strategies.
+  </Accordion>
+
+  <Accordion title="Command — Encapsular operaciones como objetos">
+    Encapsulates a request as an object, allowing parameterization of clients, queuing operations, logging, and supporting undoable operations.
+
+    ```typescript
+    // Command interface
+    interface Command {
+      execute(): void;
+      undo(): void;
+    }
+
+    // Receiver
+    class TextEditor {
+      private content = "";
+
+      insert(text: string, position: number): void {
+        this.content =
+          this.content.slice(0, position) +
+          text +
+          this.content.slice(position);
+      }
+
+      delete(position: number, length: number): void {
+        this.content =
+          this.content.slice(0, position) +
+          this.content.slice(position + length);
+      }
+
+      getContent(): string {
+        return this.content;
+      }
+    }
+
+    // Concrete commands
+    class InsertCommand implements Command {
+      constructor(
+        private editor: TextEditor,
+        private text: string,
+        private position: number
+      ) {}
+
+      execute(): void {
+        this.editor.insert(this.text, this.position);
+      }
+
+      undo(): void {
+        this.editor.delete(this.position, this.text.length);
+      }
+    }
+
+    // Invoker — maintains history for undo/redo
+    class CommandHistory {
+      private history: Command[] = [];
+      private redoStack: Command[] = [];
+
+      execute(command: Command): void {
+        command.execute();
+        this.history.push(command);
+        this.redoStack = []; // Clear redo stack on new action
+      }
+
+      undo(): void {
+        const command = this.history.pop();
+        if (command) {
+          command.undo();
+          this.redoStack.push(command);
+        }
+      }
+
+      redo(): void {
+        const command = this.redoStack.pop();
+        if (command) {
+          command.execute();
+          this.history.push(command);
+        }
+      }
+    }
+
+    // Usage
+    const editor = new TextEditor();
+    const history = new CommandHistory();
+
+    history.execute(new InsertCommand(editor, "Hello", 0));
+    history.execute(new InsertCommand(editor, " World", 5));
+    console.log(editor.getContent()); // "Hello World"
+
+    history.undo();
+    console.log(editor.getContent()); // "Hello"
+
+    history.redo();
+    console.log(editor.getContent()); // "Hello World"
+    ```
+  </Accordion>
+
+  <Accordion title="Iterator — Recorrer colecciones sin exponer su estructura">
+    Provides a way to access elements of a collection sequentially without exposing its underlying representation. JavaScript has this built-in via the `Symbol.iterator` protocol.
+
+    ```typescript
+    // Custom iterable collection
+    class Range {
+      constructor(
+        private readonly start: number,
+        private readonly end: number,
+        private readonly step = 1
+      ) {}
+
+      // Implement iterator protocol
+      [Symbol.iterator](): Iterator<number> {
+        let current = this.start;
+        const end = this.end;
+        const step = this.step;
+
+        return {
+          next(): IteratorResult<number> {
+            if (current <= end) {
+              const value = current;
+              current += step;
+              return { value, done: false };
+            }
+            return { value: undefined as any, done: true };
+          },
+        };
+      }
+    }
+
+    // Works with all JS iteration constructs
+    const range = new Range(1, 10, 2);
+
+    for (const n of range) {
+      process.stdout.write(n + " "); // 1 3 5 7 9
+    }
+
+    console.log([...range]); // [1, 3, 5, 7, 9]
+    console.log(Array.from(range)); // [1, 3, 5, 7, 9]
+
+    // Async iterator — great for paginated APIs
+    async function* paginatedUsers(pageSize = 10) {
+      let page = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await fetch(
+          `/api/users?page=${page}&limit=${pageSize}`
+        );
+        const { users, total } = await response.json();
+        yield* users;
+        hasMore = page * pageSize < total;
+        page++;
+      }
+    }
+
+    // Usage — transparently handles pagination
+    for await (const user of paginatedUsers(20)) {
+      console.log(user.name);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Patrones en Node.js
+
+Beyond the GoF classics, the Node.js ecosystem has its own prevalent patterns worth knowing.
+
+<AccordionGroup>
+  <Accordion title="Middleware Pattern — Cadena de responsabilidades para HTTP">
+    The backbone of Express, Koa, and Fastify. Each middleware function receives the request, can transform it or short-circuit the chain, and passes control to the next handler.
+
+    ```javascript
+    // Custom middleware pipeline (Express-like)
+    class Pipeline {
+      constructor() {
+        this.middlewares = [];
+      }
+
+      use(middleware) {
+        this.middlewares.push(middleware);
+        return this;
+      }
+
+      async execute(context) {
+        let index = 0;
+
+        const next = async () => {
+          if (index < this.middlewares.length) {
+            await this.middlewares[index++](context, next);
+          }
+        };
+
+        await next();
+        return context;
+      }
+    }
+
+    // Middleware functions
+    async function requestLogger(ctx, next) {
+      console.log(`→ ${ctx.method} ${ctx.path}`);
+      const start = Date.now();
+      await next();
+      console.log(`← ${ctx.status} (${Date.now() - start}ms)`);
+    }
+
+    async function authenticate(ctx, next) {
+      if (!ctx.headers?.authorization) {
+        ctx.status = 401;
+        ctx.body = { error: "Unauthorized" };
+        return; // Short-circuit — don't call next()
+      }
+      ctx.user = { id: "user-1" }; // Attach to context
+      await next();
+    }
+
+    async function routeHandler(ctx, next) {
+      ctx.status = 200;
+      ctx.body = { message: "Hello!", user: ctx.user };
+    }
+
+    // Compose the pipeline
+    const pipeline = new Pipeline()
+      .use(requestLogger)
+      .use(authenticate)
+      .use(routeHandler);
+
+    const ctx = { method: "GET", path: "/api/users", headers: { authorization: "Bearer token" } };
+    const result = await pipeline.execute(ctx);
+    console.log(result.body); // { message: 'Hello!', user: { id: 'user-1' } }
+    ```
+  </Accordion>
+
+  <Accordion title="Repository Pattern — Abstraer la capa de persistencia">
+    Mediates between the domain and data mapping layers. Provides a collection-like interface for accessing domain objects, hiding database specifics.
+
+    ```typescript
+    // Generic repository interface
+    interface Repository<T, ID> {
+      findById(id: ID): Promise<T | null>;
+      findAll(filters?: Partial<T>): Promise<T[]>;
+      save(entity: T): Promise<T>;
+      delete(id: ID): Promise<void>;
+      exists(id: ID): Promise<boolean>;
+    }
+
+    interface Product {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
+
+    // In-memory implementation (great for testing)
+    class InMemoryProductRepository implements Repository<Product, string> {
+      private store = new Map<string, Product>();
+
+      async findById(id: string): Promise<Product | null> {
+        return this.store.get(id) ?? null;
+      }
+
+      async findAll(filters?: Partial<Product>): Promise<Product[]> {
+        const all = Array.from(this.store.values());
+        if (!filters) return all;
+
+        return all.filter((p) =>
+          Object.entries(filters).every(
+            ([key, value]) => p[key as keyof Product] === value
+          )
+        );
+      }
+
+      async save(product: Product): Promise<Product> {
+        this.store.set(product.id, { ...product });
+        return product;
+      }
+
+      async delete(id: string): Promise<void> {
+        this.store.delete(id);
+      }
+
+      async exists(id: string): Promise<boolean> {
+        return this.store.has(id);
+      }
+    }
+
+    // Application service — depends on the interface, not the implementation
+    class ProductService {
+      constructor(private readonly repo: Repository<Product, string>) {}
+
+      async applyDiscount(productId: string, percent: number): Promise<Product> {
+        const product = await this.repo.findById(productId);
+        if (!product) throw new Error("Product not found");
+
+        const updated = {
+          ...product,
+          price: product.price * (1 - percent / 100),
+        };
+        return this.repo.save(updated);
+      }
+    }
+
+    // Test — uses in-memory repo (no DB needed)
+    const repo = new InMemoryProductRepository();
+    await repo.save({ id: "p1", name: "Widget", price: 100, stock: 50 });
+
+    const service = new ProductService(repo);
+    const discounted = await service.applyDiscount("p1", 20);
+    console.log(discounted.price); // 80
+    ```
+  </Accordion>
+
+  <Accordion title="Dependency Injection — Invertir el control de dependencias">
+    Instead of a class creating its own dependencies, they are passed in (injected) from outside. This makes code more testable, flexible, and follows the Dependency Inversion Principle.
+
+    ```typescript
+    // WITHOUT DI — hard to test, tightly coupled
+    class OrderService {
+      private db = new PostgresDatabase(); // Creates its own dependency ❌
+      private mailer = new SendGridMailer(); // Impossible to mock ❌
+
+      async createOrder(data: any) {
+        const order = await this.db.save(data);
+        await this.mailer.send(data.userEmail, "Order confirmed");
+        return order;
+      }
+    }
+
+    // WITH DI — fully testable, loosely coupled ✅
+    interface Database {
+      save(data: any): Promise<any>;
+      find(id: string): Promise<any>;
+    }
+
+    interface Mailer {
+      send(to: string, subject: string, body?: string): Promise<void>;
+    }
+
+    class OrderService {
+      constructor(
+        private readonly db: Database,     // Injected
+        private readonly mailer: Mailer    // Injected
+      ) {}
+
+      async createOrder(data: any) {
+        const order = await this.db.save(data);
+        await this.mailer.send(data.userEmail, "Order confirmed");
+        return order;
+      }
+    }
+
+    // Production wiring
+    const orderService = new OrderService(
+      new PostgresDatabase(process.env.DATABASE_URL),
+      new SendGridMailer(process.env.SENDGRID_API_KEY)
+    );
+
+    // Test wiring — zero infrastructure needed
+    const mockDb: Database = {
+      save: jest.fn().mockResolvedValue({ id: "order-1" }),
+      find: jest.fn(),
+    };
+    const mockMailer: Mailer = {
+      send: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const testOrderService = new OrderService(mockDb, mockMailer);
+    await testOrderService.createOrder({ userEmail: "test@example.com" });
+
+    expect(mockDb.save).toHaveBeenCalledTimes(1);
+    expect(mockMailer.send).toHaveBeenCalledWith(
+      "test@example.com",
+      "Order confirmed"
+    );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+<Tip>
+  **No sobre-ingenierices.** Design patterns are tools, not goals. Before applying a pattern, ask: *"What problem am I solving?"* The best code is often the simplest code that gets the job done. Introducing a pattern where it's not needed adds indirection and cognitive overhead for your team. Learn the patterns deeply — then use them sparingly and intentionally.
+</Tip>

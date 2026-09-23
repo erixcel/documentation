@@ -1,0 +1,265 @@
+---
+title: "AI Tools for Developers: The Essential Toolkit"
+sidebarTitle: "Tools"
+description: "Overview of AI tools for developers: coding assistants, image generation, productivity tools, CLI tools, and how to integrate them into your workflow."
+---
+
+The AI tooling ecosystem for developers has exploded. In the span of two years, the question shifted from "should I use AI tools?" to "which ones are worth my time?" This page is an opinionated, practical overview of the tools that actually belong in a developer's workflow — what each one does best, where it falls short, and how to fit them together into a coherent setup rather than a scattered pile of browser tabs.
+
+---
+
+## Asistentes de Código
+
+These are the tools you interact with while writing code — in your editor, in your terminal, or in a chat interface alongside your codebase.
+
+<CardGroup cols={2}>
+  <Card title="GitHub Copilot" icon="github">
+    **Best for:** Inline autocomplete, boilerplate generation, working within VS Code or JetBrains IDEs.
+
+    The original mass-market coding assistant. Copilot excels at completing what you've started — it reads your current file, open tabs, and cursor position to suggest the next line or block. Copilot Chat (the chat panel) is solid for quick questions about the current file. The new Copilot Workspace feature is pushing toward multi-file editing.
+
+    **Strengths:** Deep IDE integration, fast autocomplete, good for common patterns.  
+    **Weaknesses:** Less capable at multi-file reasoning, expensive at $19/month for individuals.
+  </Card>
+
+  <Card title="Cursor" icon="arrow-pointer">
+    **Best for:** AI-native editing, multi-file edits, codebase Q&A.
+
+    Cursor is a fork of VS Code with AI baked into the core experience rather than bolted on. Its standout features are `⌘K` for inline edits, `⌘L` for chat with full codebase context, and `Composer` for multi-file agent-style changes. It uses frontier models (GPT-4o, Claude 3.5 Sonnet) under the hood with a subscription that includes generous usage.
+
+    **Strengths:** Best-in-class multi-file editing, codebase indexing, model choice.  
+    **Weaknesses:** Requires switching from your current editor setup.
+  </Card>
+
+  <Card title="Windsurf" icon="wind">
+    **Best for:** Agentic coding workflows, autonomous multi-step tasks.
+
+    Windsurf (by Codeium) takes the agentic angle further than Cursor — its "Cascade" feature can plan and execute multi-step coding tasks with less hand-holding. It's free to start with and has been gaining ground quickly. If you want an AI that can handle "add authentication to this Express app" as a single task, Windsurf is worth trying.
+
+    **Strengths:** Strong agentic capabilities, generous free tier.  
+    **Weaknesses:** Newer, smaller ecosystem than Cursor.
+  </Card>
+
+  <Card title="Claude Code" icon="terminal">
+    **Best for:** CLI-first workflows, complex reasoning tasks, agentic coding from the terminal.
+
+    Claude Code is Anthropic's terminal-based coding agent. It reads your local files, runs commands, edits code, and iterates — all from a `claude` command in your shell. It's particularly strong at understanding large codebases and explaining non-obvious code paths. Best used for longer-horizon tasks where you describe a goal and let it work.
+
+    **Strengths:** Deep reasoning, codebase understanding, terminal-native.  
+    **Weaknesses:** Slower than inline tools, usage costs add up.
+  </Card>
+
+  <Card title="Codeium" icon="bolt">
+    **Best for:** Free Copilot alternative, supporting many editors.
+
+    Codeium offers autocomplete and chat similar to Copilot, with a genuinely free tier and support for 70+ editors and 70+ languages. For developers not ready to pay for Copilot, Codeium is the best starting point. It's also the underlying engine behind Windsurf.
+
+    **Strengths:** Free, broad editor support, solid autocomplete.  
+    **Weaknesses:** Less powerful than paid alternatives at complex tasks.
+  </Card>
+
+  <Card title="Continue.dev" icon="code">
+    **Best for:** Open-source, bring-your-own-model coding assistant.
+
+    Continue is an open-source VS Code/JetBrains extension that lets you connect any LLM — local Ollama models, OpenAI, Anthropic, or custom endpoints. Ideal if you need privacy (local models), want to avoid vendor lock-in, or are building in an enterprise context.
+
+    **Strengths:** Open source, model-agnostic, local model support.  
+    **Weaknesses:** Requires more setup than turnkey tools.
+  </Card>
+</CardGroup>
+
+---
+
+## Modelos de Chat
+
+Sometimes you need a conversation, not an autocomplete. These are the chat interfaces worth knowing.
+
+<CardGroup cols={2}>
+  <Card title="ChatGPT (OpenAI)" icon="message">
+    **Strengths:** Best general-purpose assistant, strongest plugin/tool ecosystem, GPT-4o is fast and capable. Code Interpreter is great for data analysis with Python execution. Widely used, so tutorials and prompts are abundant.
+
+    **Best for:** General coding questions, data analysis, broad reasoning, image understanding.
+  </Card>
+
+  <Card title="Claude (Anthropic)" icon="sparkles">
+    **Strengths:** Best at long-context understanding (200K token window), following nuanced instructions, writing quality, and code that's clean and well-reasoned. Claude 3.5 Sonnet is the current best model for most developer tasks.
+
+    **Best for:** Code review, large codebases, writing documentation, complex reasoning chains.
+  </Card>
+
+  <Card title="Gemini (Google)" icon="google">
+    **Strengths:** Gemini 1.5 Pro has a 1M token context window (largest available), native multimodal understanding, and tight Google Workspace integration. Best for tasks involving very long documents or mixed media.
+
+    **Best for:** Massive context tasks, YouTube transcripts, Google Workspace automation.
+  </Card>
+
+  <Card title="Mistral / Le Chat" icon="robot">
+    **Strengths:** Strong open-source roots, fast inference, very good at following precise instructions. Mistral Large is competitive with GPT-4 on many benchmarks at lower cost. Great if you need API access on a budget.
+
+    **Best for:** API usage on a budget, European data residency needs, precise instruction following.
+  </Card>
+</CardGroup>
+
+---
+
+## Herramientas CLI
+
+Run AI from your terminal — useful for scripting, quick lookups, and integrating AI into shell pipelines.
+
+### `llm` — by Simon Willison
+
+The most flexible CLI for LLMs. Supports OpenAI, Anthropic, Gemini, and local Ollama models via plugins.
+
+```bash
+# Install
+pip install llm
+
+# Set API key
+llm keys set openai
+
+# Basic usage
+llm "Explain what this Makefile does" < Makefile
+
+# Use a specific model
+llm -m claude-3-5-sonnet-20241022 "Review this function" < app.js
+
+# Pipe output
+cat error.log | llm "What's the root cause of these errors?"
+
+# Install plugins for more models
+llm install llm-ollama
+llm install llm-claude-3
+```
+
+### `aichat`
+
+A Rust-based CLI AI chat tool with session support, syntax highlighting, and REPL mode.
+
+```bash
+# Install (macOS)
+brew install aichat
+
+# Interactive REPL
+aichat
+
+# One-shot prompt
+aichat "Write a git alias for pretty log output"
+
+# With file context
+aichat -f src/api.ts "Add input validation to all route handlers"
+```
+
+### `fabric`
+
+An open-source framework by Daniel Miessler that packages hundreds of battle-tested prompts ("patterns") into CLI commands.
+
+```bash
+# Install
+pip install fabric-ai
+
+# Summarize a YouTube video
+yt --transcript "https://youtube.com/watch?v=..." | fabric --pattern summarize
+
+# Extract wisdom from an article
+pbpaste | fabric --pattern extract_wisdom
+
+# Improve your writing
+cat draft.md | fabric --pattern improve_writing
+
+# List all available patterns
+fabric --list
+```
+
+<Tip>
+`fabric` patterns are just markdown files in `~/.config/fabric/patterns/`. You can create your own custom patterns for recurring dev tasks — like "review PR", "generate changelog", or "explain architecture".
+</Tip>
+
+---
+
+## Generación de Imágenes
+
+Less central to dev work, but worth knowing for documentation, mockups, and product work.
+
+| Tool | Best For | Access |
+|------|----------|--------|
+| **Midjourney** | Highest quality artistic images, UI inspiration | Discord bot, web app |
+| **DALL-E 3** | Integrated in ChatGPT, good for quick mockups | Via ChatGPT Plus or API |
+| **Stable Diffusion** | Local generation, full control, fine-tuning | Self-hosted, Automatic1111 |
+| **Ideogram** | Typography in images, logo concepts | Web app, free tier |
+| **Flux** | New SOTA open model, photo-realistic | Replicate API, local |
+
+For dev documentation specifically, DALL-E 3 via ChatGPT is often the fastest path — describe your diagram or illustration concept and iterate in the same chat window.
+
+---
+
+## Flujo de Trabajo con IA
+
+The biggest productivity gains come not from any single tool, but from weaving AI into your existing workflow consistently.
+
+### Code review con IA
+
+Before requesting a human review, run your diff through an AI review:
+
+```bash
+# Get AI review of your staged changes
+git diff --staged | llm "Review this code diff. Focus on bugs, edge cases, and anything that looks non-obvious."
+```
+
+### Generación de tests
+
+```text
+Prompt pattern:
+"Here is a [function/module]. Generate a complete test file using [Jest/Vitest/pytest].
+Cover: happy path, empty input, null/undefined, boundary values, and error cases.
+Mock any external dependencies."
+```
+
+### Generación de docs
+
+```bash
+# Generate JSDoc for a file
+cat src/utils/auth.ts | llm "Add JSDoc comments to every exported function and type in this TypeScript file. Return the full file with comments added."
+```
+
+### Automatización de tareas repetitivas
+
+```text
+Prompt: "Write a bash script that watches the /logs directory, and when a new .log file appears,
+extracts lines containing 'ERROR', appends them to errors-summary.txt with a timestamp, 
+and sends a desktop notification on macOS."
+```
+
+---
+
+## MCP (Model Context Protocol)
+
+MCP (Model Context Protocol) is an open standard developed by Anthropic that gives AI models a structured way to interact with external tools, data sources, and services. Think of it as a USB-C port for AI — a universal interface that lets any AI client talk to any tool that exposes an MCP server.
+
+**How it works:**
+
+```
+AI Client (Claude, Cursor, etc.)
+        ↕  MCP Protocol
+MCP Server (filesystem, GitHub, database, browser, etc.)
+```
+
+An MCP server exposes **resources** (data the model can read), **tools** (actions the model can invoke), and **prompts** (reusable prompt templates). The AI client discovers what's available and decides when to use each capability.
+
+**Why it matters for developers:**
+
+- Connect Claude or Cursor to your **local filesystem** — ask questions about your whole project
+- Give AI access to your **GitHub repos** — list PRs, read issues, create branches
+- Connect to a **database** — ask natural language questions about your data
+- Hook in **browser automation** — let AI control a Playwright browser
+
+```bash
+# Example: running a filesystem MCP server for Claude Desktop
+npx @modelcontextprotocol/server-filesystem /Users/you/projects
+
+# Example: GitHub MCP server
+npx @modelcontextprotocol/server-github
+```
+
+<Tip>
+The MCP ecosystem is growing fast. Check [modelcontextprotocol.io](https://modelcontextprotocol.io) for the official server registry — there are community MCP servers for Postgres, Slack, Linear, Notion, and dozens of other tools.
+</Tip>

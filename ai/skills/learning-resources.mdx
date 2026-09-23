@@ -1,0 +1,323 @@
+---
+title: "AI & Developer Learning Resources"
+sidebarTitle: "Learning Resources"
+description: "Curated learning resources for AI, machine learning, and software development: courses, books, papers, YouTube channels, newsletters, and communities."
+---
+
+The landscape of dev and AI learning resources is vast, noisy, and changes fast. This page is a curated shortlist — not a comprehensive index, but a starting point of resources that consistently deliver signal over noise. Whether you're building foundational ML knowledge from scratch, leveling up your systems design, or staying current with the AI field, these are the places worth spending time.
+
+---
+
+## IA y Machine Learning
+
+<CardGroup cols={2}>
+  <Card title="fast.ai — Practical Deep Learning" icon="graduation-cap" href="https://fast.ai">
+    **What it is:** A free course by Jeremy Howard that teaches deep learning top-down — you build working models in week one, then learn the theory underneath.
+
+    **Why it's great:** The opposite of most ML courses. You get intuition from practice before drowning in math. Covers PyTorch, computer vision, NLP, and tabular data.
+
+    **Best for:** Developers who learn by doing and want practical ML skills fast.
+
+    **Format:** Free online course + Jupyter notebooks.
+  </Card>
+
+  <Card title="DeepLearning.AI" icon="brain" href="https://deeplearning.ai">
+    **What it is:** Andrew Ng's learning platform with the original Machine Learning Specialization and Deep Learning Specialization on Coursera, plus newer short courses on LLMs, LangChain, and MLOps.
+
+    **Why it's great:** Best structured, rigorous curriculum for ML fundamentals. Andrew Ng's explanations are legendarily clear.
+
+    **Best for:** Building solid theoretical foundations alongside practical skills.
+
+    **Format:** Coursera (paid with audit option) + free short courses on deeplearning.ai.
+  </Card>
+
+  <Card title="Andrej Karpathy's YouTube" icon="youtube" href="https://youtube.com/@AndrejKarpathy">
+    **What it is:** The former Tesla AI Director and OpenAI co-founder building neural networks from scratch on camera — GPT, backprop, tokenizers.
+
+    **Why it's great:** Watching an expert build a mini-GPT from a blank file demystifies the entire transformer architecture. "Neural Networks: Zero to Hero" series is essential viewing.
+
+    **Best for:** Developers who want to understand LLMs at the implementation level, not just use them.
+
+    **Format:** Free YouTube videos (2–4 hours each).
+  </Card>
+
+  <Card title="Papers With Code" icon="file-code" href="https://paperswithcode.com">
+    **What it is:** A free resource that links ML research papers with their open-source implementations and benchmark leaderboards.
+
+    **Why it's great:** Every major model and technique has a paper here, linked to the code. Great for going from "I heard about X" to "here's the paper and here's how to run it."
+
+    **Best for:** Staying current with the research frontier; finding implementations to experiment with.
+
+    **Format:** Website with searchable papers, code repos, and state-of-the-art benchmarks.
+  </Card>
+</CardGroup>
+
+<Accordion title="Más recursos de ML y AI">
+
+**Hugging Face Course** — Free course on transformers, fine-tuning, and the Hugging Face ecosystem. Best hands-on introduction to working with open-source models. [huggingface.co/learn](https://huggingface.co/learn)
+
+**Full Stack Deep Learning** — Course focused on the production side of ML: data pipelines, training infrastructure, deployment, monitoring. [fullstackdeeplearning.com](https://fullstackdeeplearning.com)
+
+**Anthropic's Courses** — Short, focused courses on prompt engineering and Claude-specific features. Free. [anthropic.com/education](https://www.anthropic.com/education)
+
+**The Illustrated Transformer (Jay Alammar)** — The best visual explanation of the transformer architecture. A single blog post that's referenced more than most textbooks. [jalammar.github.io](https://jalammar.github.io/illustrated-transformer/)
+
+**CS231n (Stanford)** — Convolutional Neural Networks for Visual Recognition. Free lecture videos and notes from Stanford. Still one of the best deep learning courses for computer vision.
+
+</Accordion>
+
+---
+
+## Prompt Engineering
+
+<CardGroup cols={2}>
+  <Card title="DAIR.AI Prompt Engineering Guide" icon="book" href="https://promptingguide.ai">
+    **What it is:** An open-source, community-maintained guide covering all major prompting techniques: zero-shot, few-shot, CoT, RAG, agents, and more.
+
+    **Why it's great:** Dense, well-organized, and updated regularly as new techniques emerge. Includes research citations for each technique and code examples.
+
+    **Best for:** Getting a solid theoretical grounding in prompting techniques.
+  </Card>
+
+  <Card title="LearnPrompting.org" icon="lightbulb" href="https://learnprompting.org">
+    **What it is:** A free, open-source course on prompt engineering with a focus on practical application for developers and non-developers alike.
+
+    **Why it's great:** More accessible and example-heavy than the DAIR guide. Good for beginners and for teams you're trying to bring up to speed on AI tools.
+
+    **Best for:** Beginners; training non-technical teammates on effective AI use.
+  </Card>
+</CardGroup>
+
+<Accordion title="Papers y recursos avanzados de prompting">
+
+**Chain-of-Thought Prompting Elicits Reasoning in Large Language Models** — The original Google Research paper that introduced CoT. [arxiv.org/abs/2201.11903](https://arxiv.org/abs/2201.11903)
+
+**ReAct: Synergizing Reasoning and Acting in Language Models** — Foundational paper for AI agents that reason before acting. Behind most modern agent frameworks. [arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
+
+**Anthropic Prompt Library** — A curated collection of production-ready Claude prompts for common tasks. Useful for seeing how to structure complex prompts. [console.anthropic.com/library](https://console.anthropic.com/library)
+
+</Accordion>
+
+---
+
+## Desarrollo de Software
+
+<CardGroup cols={2}>
+  <Card title="Refactoring Guru" icon="recycle" href="https://refactoring.guru">
+    **What it is:** The best visual reference for design patterns and refactoring techniques. Covers all 23 GoF patterns with clear diagrams, code examples in multiple languages, and real-world analogies.
+
+    **Why it's great:** Patterns are explained with visuals and concrete code, not abstract UML-heavy theory. When you see a pattern name in a PR review or architecture doc, this is where you look it up.
+
+    **Best for:** Design patterns, refactoring techniques, code structure.
+  </Card>
+
+  <Card title="roadmap.sh" icon="map" href="https://roadmap.sh">
+    **What it is:** Community-maintained visual learning roadmaps for Frontend, Backend, DevOps, System Design, and more.
+
+    **Why it's great:** Answers the perennial question "what should I learn next?" with a structured, community-vetted map. Also links to recommended resources for each topic.
+
+    **Best for:** Planning your learning path, identifying skill gaps.
+  </Card>
+
+  <Card title="The Pragmatic Programmer" icon="wrench">
+    **What it is:** The classic software craftsmanship book by David Thomas and Andrew Hunt. Covers career advice, thinking tools, and coding practices that age well.
+
+    **Why it's great:** Still the best single book on becoming a better developer in the broad sense — not any specific language or framework. Covers DRY, orthogonality, debugging mindset, and dozens of other fundamentals.
+
+    **Best for:** Junior to mid-level developers; career mindset.
+  </Card>
+
+  <Card title="Clean Code" icon="sparkles">
+    **What it is:** Robert C. Martin's guide to writing readable, maintainable code. Covers naming, functions, comments, formatting, error handling.
+
+    **Why it's great:** Gives you a shared vocabulary for code quality discussions. Even if you disagree with some of its prescriptions, it forces you to think deliberately about code structure.
+
+    **Best for:** Improving daily coding habits; code review culture.
+  </Card>
+</CardGroup>
+
+---
+
+## YouTube Channels
+
+<CardGroup cols={2}>
+  <Card title="Fireship" icon="fire" href="https://youtube.com/@Fireship">
+    Fast-paced, high-quality videos on web dev, cloud, and new tech. The "100 seconds of X" and "X in 100 seconds" formats are legendary for quick introductions. Posts consistently on new releases and trends.
+
+    **Subscribe for:** Web dev trends, quick tech overviews, entertaining takes on the industry.
+  </Card>
+
+  <Card title="Theo — t3.gg" icon="triangle" href="https://youtube.com/@t3dotgg">
+    Deep dives on TypeScript, React, Next.js, and full-stack web development. Long-form, opinionated, and unfiltered takes on the JS/TS ecosystem. Creator of the T3 Stack.
+
+    **Subscribe for:** TypeScript, Next.js, full-stack JS opinions, architecture discussions.
+  </Card>
+
+  <Card title="ThePrimeagen" icon="keyboard" href="https://youtube.com/@ThePrimeagen">
+    Former Netflix engineer with a focus on Vim, Rust, algorithms, and performance. High-energy live coding, CS fundamentals, and strong opinions on developer culture.
+
+    **Subscribe for:** Vim/Neovim, Rust, performance, CS fundamentals, dev culture.
+  </Card>
+
+  <Card title="TechWorld with Nana" icon="server" href="https://youtube.com/@TechWorldwithNana">
+    Best DevOps content on YouTube. Comprehensive, well-produced tutorials on Docker, Kubernetes, CI/CD, Terraform, and cloud infrastructure.
+
+    **Subscribe for:** DevOps, Kubernetes, Docker, CI/CD, cloud infrastructure.
+  </Card>
+
+  <Card title="NetworkChuck" icon="network-wired" href="https://youtube.com/@NetworkChuck">
+    Networking, cybersecurity, Linux, and cloud fundamentals explained with high energy and great production value. Good for filling gaps in infrastructure knowledge.
+
+    **Subscribe for:** Networking fundamentals, Linux, ethical hacking, cloud basics.
+  </Card>
+
+  <Card title="Traversy Media" icon="code" href="https://youtube.com/@TraversyMedia">
+    Brad Traversy's channel has been a reliable source of practical web dev tutorials for years. Covers frameworks, languages, and project-based courses.
+
+    **Subscribe for:** Project-based tutorials, framework introductions, full-stack web dev.
+  </Card>
+</CardGroup>
+
+---
+
+## Newsletters
+
+<CardGroup cols={2}>
+  <Card title="TLDR" icon="newspaper" href="https://tldr.tech">
+    **Cadence:** Daily  
+    **Focus:** Tech news across software, AI, and startups — curated to 5-minute reads.
+
+    The best daily tech digest. Short summaries with links. The AI edition (`tldr.tech/ai`) is particularly good for staying current with model releases and research highlights.
+  </Card>
+
+  <Card title="The Pragmatic Engineer" icon="wrench" href="https://newsletter.pragmaticengineer.com">
+    **Cadence:** Weekly  
+    **Focus:** In-depth analysis of software engineering at top tech companies.
+
+    Gergely Orosz's newsletter is consistently the best long-form analysis of engineering culture, compensation, team structures, and technical decision-making at scale. Not AI-specific, but essential for senior dev career thinking.
+  </Card>
+
+  <Card title="AI Breakfast" icon="coffee" href="https://aibreakfast.beehiiv.com">
+    **Cadence:** Weekly  
+    **Focus:** AI news and research for practitioners.
+
+    Curated weekly roundup of what's happening in AI — model releases, research papers, product launches, and industry moves. Good signal-to-noise ratio without going too deep into any single topic.
+  </Card>
+
+  <Card title="Pointer" icon="arrow-pointer" href="https://pointer.io">
+    **Cadence:** Weekly  
+    **Focus:** Curated reading for software developers.
+
+    Curates the best long-form articles about software engineering, architecture, and developer culture from across the web. One of the best newsletters for going deep on technical topics.
+  </Card>
+</CardGroup>
+
+<Accordion title="Más newsletters recomendadas">
+
+**Bytes.dev** — Weekly JavaScript and React news with a sense of humor. Better signal than just following Twitter for JS ecosystem updates.
+
+**Changelog Weekly** — News from the open-source world. Good for discovering interesting projects and tools.
+
+**Exploding Topics** — Trends analysis across tech, AI, and startups before they go mainstream. Useful for career and technology horizon planning.
+
+**Last Week in AI** — Weekly roundup of AI research papers, product releases, and news from the previous week. Good for keeping a pulse on the research side.
+
+**MLOps Community Newsletter** — Focus on putting ML into production: deployment, monitoring, data pipelines, and infrastructure.
+
+</Accordion>
+
+---
+
+## Comunidades
+
+<Accordion title="Discord Servers">
+
+**Reactiflux** — The largest React/JavaScript community Discord. Great for frontend questions and ecosystem news. [discord.gg/reactiflux](https://discord.gg/reactiflux)
+
+**Hugging Face Discord** — Active community around open-source AI, model fine-tuning, and the HF ecosystem. [discord.gg/huggingface](https://discord.gg/huggingface)
+
+**LangChain Discord** — Community around LangChain, LangGraph, and AI application development. High traffic, lots of practical Q&A. [discord.gg/langchain](https://discord.gg/langchain)
+
+**Cursor Discord** — Active community for the Cursor editor. Best place for tips, feature requests, and seeing how power users are working with the tool.
+
+**t3.gg Discord** — Full-stack TypeScript community around Theo's T3 Stack. Active, opinionated, and helpful.
+
+**Primagen's Discord** — Community around ThePrimeagen's content. Focus on Vim, performance, and developer culture.
+
+</Accordion>
+
+<Accordion title="Reddit Communities">
+
+**r/MachineLearning** — The most active ML research community on Reddit. Good for paper discussions and industry news. High quality, high signal.
+
+**r/LocalLLaMA** — Everything about running LLMs locally. Model releases, benchmarks, hardware recommendations, Ollama tips. Very active.
+
+**r/ExperiencedDevs** — Career advice, technical opinions, and culture discussions from experienced engineers. More nuanced than general programming subs.
+
+**r/webdev** — Broad web development community for news, questions, and project sharing.
+
+**r/devops** — Infrastructure, CI/CD, Kubernetes, and cloud operations discussions.
+
+**r/learnprogramming** — Beginner-friendly community for learning programming fundamentals.
+
+</Accordion>
+
+<Accordion title="GitHub Discussions y otros foros">
+
+**Hacker News (news.ycombinator.com)** — The gold standard for tech news discussion. Comments on AI papers and launches often contain significant expert insight. The "Show HN" section surfaces interesting open-source projects.
+
+**Dev.to** — Blogging platform and community for developers. Useful for practical tutorials and career content. Less noise than Medium.
+
+**Lobste.rs** — Invite-only link aggregator like Hacker News but with stricter focus on computing topics and higher quality discussions.
+
+**Stack Overflow** — Still the canonical Q&A for specific coding questions, especially for well-established languages and frameworks. AI answers on generic questions; SO for precise technical problems.
+
+</Accordion>
+
+---
+
+## Libros Recomendados
+
+<CardGroup cols={2}>
+  <Card title="Clean Code" icon="sparkles">
+    **Author:** Robert C. Martin  
+    **Level:** Junior–Mid
+
+    The definitive guide to writing readable, maintainable code. Covers naming conventions, function design, comments, formatting, and error handling. Required reading for anyone who cares about code quality. Read it once, then keep it as a reference when doing code reviews.
+  </Card>
+
+  <Card title="The Pragmatic Programmer" icon="wrench">
+    **Author:** David Thomas & Andrew Hunt  
+    **Level:** All levels
+
+    The most timeless book in software engineering — doesn't teach a specific language or framework, but teaches you how to think about your craft. DRY, orthogonality, tracer bullets, programming by coincidence. Read the 20th anniversary edition for updated examples.
+  </Card>
+
+  <Card title="Designing Data-Intensive Applications" icon="database">
+    **Author:** Martin Kleppmann  
+    **Level:** Mid–Senior
+
+    The best book on databases, distributed systems, and backend architecture. Covers replication, sharding, consistency, consensus, stream processing, and more — explained clearly with real-world context. Known as "DDIA". Essential for backend/infra engineers.
+  </Card>
+
+  <Card title="System Design Interview" icon="sitemap">
+    **Author:** Alex Xu  
+    **Level:** Mid–Senior
+
+    Practical introduction to system design concepts through worked examples: URL shorteners, social feeds, notification systems, distributed caches. Volumes 1 and 2 together cover most interview scenarios and also serve as a practical reference for real architectural decisions.
+  </Card>
+
+  <Card title="A Philosophy of Software Design" icon="compass">
+    **Author:** John Ousterhout  
+    **Level:** Mid–Senior
+
+    A more nuanced counterpoint to Clean Code. Focuses on managing complexity through deep modules, strategic vs tactical programming, and when comments are actually valuable. Shorter and more thought-provoking than most design books.
+  </Card>
+
+  <Card title="The Staff Engineer's Path" icon="road">
+    **Author:** Tanya Reilly  
+    **Level:** Senior+
+
+    The definitive guide to the Staff Engineer role and beyond. Covers technical strategy, organizational influence, project leadership without authority, and navigating the IC track. Essential reading if you're approaching or working at the senior/staff level.
+  </Card>
+</CardGroup>

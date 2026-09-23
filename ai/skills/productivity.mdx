@@ -1,0 +1,339 @@
+---
+title: "AI-Powered Productivity for Developers"
+sidebarTitle: "Productivity"
+description: "Use AI to supercharge developer productivity: automate repetitive tasks, generate boilerplate, write tests, create documentation, and debug faster."
+---
+
+The developers getting the most out of AI aren't using it to replace their thinking — they're using it to eliminate the parts of coding that were always just mechanical labor. Writing CRUD endpoints for the fifteenth time. Scaffolding a test file. Digging through a stack trace. Drafting a README. These are the tasks where AI provides immediate, measurable returns with minimal risk. This page is a practical guide to applying AI specifically to the parts of your day that eat time without adding proportional value.
+
+---
+
+## Generación de Código Boilerplate
+
+Boilerplate is the perfect AI use case: repetitive structure, well-understood patterns, low risk if slightly wrong (easy to review).
+
+### Scaffolding CRUD endpoints
+
+```text
+Generate a complete Express.js CRUD API for a "Product" resource with these fields:
+- id (UUID, auto-generated)
+- name (string, required, max 100 chars)
+- price (number, positive)
+- category (string, enum: electronics | clothing | food)
+- createdAt (timestamp)
+
+Include:
+- Route definitions (GET /products, GET /products/:id, POST, PUT, DELETE)
+- Input validation using Zod
+- Proper HTTP status codes
+- Try/catch error handling with next(err)
+- TypeScript types for the Product model
+```
+
+### Data models and schemas
+
+```text
+Create a Prisma schema for an e-commerce app with these entities:
+User, Product, Order, OrderItem, and Category.
+
+Rules:
+- Users can have many orders
+- Orders have many OrderItems
+- Each OrderItem links to a Product with quantity and price snapshot
+- Products belong to one Category
+- Include sensible indexes and cascade delete rules
+```
+
+### Config files
+
+```text
+Generate a complete tsconfig.json for a Node.js 20 backend project that:
+- Targets ES2022
+- Uses CommonJS modules
+- Strict mode enabled
+- Excludes node_modules and dist
+- Output goes to ./dist
+- Include path aliases: @/ maps to src/
+```
+
+<Tip>
+After generating boilerplate, paste it back and ask: "Is there anything here that could cause issues in production? Anything I should customize before committing?" It's a fast sanity check that catches things like hardcoded credentials, missing error handling, or bad defaults.
+</Tip>
+
+---
+
+## Escribir Tests con IA
+
+Tests are time-consuming to write well. AI can generate a solid first pass that you review and refine — often faster than writing from scratch.
+
+### Estrategia de prompt para tests
+
+<Steps>
+  <Step title="Paste the function under test">
+    Give the model the exact code it will be testing. Don't describe it — paste it. Include imports if they matter.
+  </Step>
+  <Step title="Specify the testing framework">
+    Jest, Vitest, Pytest, Go testing, etc. Also specify any mocking library (jest.mock, sinon, unittest.mock).
+  </Step>
+  <Step title="Request specific coverage dimensions">
+    Explicitly ask for: happy path, empty/null input, boundary values, async errors, and integration edge cases.
+  </Step>
+  <Step title="Ask for mocks where needed">
+    Mention any external dependencies that should be mocked: databases, HTTP clients, file system calls, timers.
+  </Step>
+  <Step title="Review and fill gaps">
+    AI-generated tests often miss business logic edge cases that require domain knowledge. Review each test case and add what it missed.
+  </Step>
+</Steps>
+
+### Ejemplo de prompt para tests
+
+```text
+Write a complete Vitest test suite for this TypeScript function:
+
+[PASTE FUNCTION]
+
+Requirements:
+- Test framework: Vitest with @testing-library/jest-dom matchers
+- Cover: success case, empty array input, null input, all values equal, already sorted input
+- Mock the `logger.info()` calls — don't assert on them, just prevent console output
+- Use descriptive `it("should...")` descriptions
+- Group tests in a `describe` block named after the function
+- Return the full test file including imports
+```
+
+### Tests de integración
+
+```text
+Write integration tests for the POST /api/users endpoint using Supertest.
+
+The endpoint:
+- Creates a user in PostgreSQL via Prisma
+- Sends a welcome email via Nodemailer
+- Returns 201 with the created user (no password field)
+- Returns 409 if email already exists
+
+Mock: the email sending function (import path: src/services/email.ts)
+Use: an in-memory SQLite database with Prisma for test isolation
+```
+
+---
+
+## Revisión de Código
+
+AI code review is fast, consistent, and doesn't get tired. Use it as a first pass before human review.
+
+### En tu flujo de trabajo diario
+
+```bash
+# Review your staged changes before committing
+git diff --staged | llm "Review this diff for: bugs, edge cases, security issues, and anything non-obvious. Be specific about line numbers or snippets."
+
+# Review a specific file
+cat src/auth/middleware.ts | llm "Review this Express middleware for security vulnerabilities. Focus on auth bypass, input validation, and timing attacks."
+
+# Review a whole PR (if you have gh CLI)
+gh pr diff 42 | llm "Summarize this PR and flag any concerns I should raise in review."
+```
+
+### Qué revisar con IA vs con humanos
+
+| Review Type | AI | Human |
+|-------------|-----|-------|
+| Syntax and obvious bugs | ✅ Excellent | Overkill |
+| Security vulnerabilities | ✅ Good first pass | Needed for critical paths |
+| Performance issues | ✅ Good for obvious cases | Needed for profiling |
+| Business logic correctness | ⚠️ Limited without context | Essential |
+| Architecture decisions | ⚠️ Surface-level | Essential |
+| Team conventions / style | ✅ If given a style guide | Good sanity check |
+
+<Tip>
+Give the AI your team's style guide or a representative file as context before asking for a review. "Review this file. Our code style reference is: [paste a well-written file from the project]" dramatically improves alignment with your conventions.
+</Tip>
+
+---
+
+## Documentación Automática
+
+Documentation rot is universal — code changes faster than docs. AI makes it cheap enough to keep up.
+
+### JSDoc desde código
+
+```text
+Add JSDoc comments to every exported function and type in this TypeScript file.
+
+For each function include:
+- @description — one sentence summary
+- @param — each parameter with type and description
+- @returns — return type and description
+- @throws — any errors that can be thrown
+- @example — one realistic usage example
+
+Return the full file with comments added. Don't change any logic.
+
+[PASTE FILE]
+```
+
+### README desde código
+
+```text
+Generate a README.md for this project based on the following files.
+
+Include:
+- Project name and one-paragraph description
+- Prerequisites (Node version, dependencies)
+- Installation steps
+- Environment variables (describe each one)
+- Running locally (dev, test, build commands)
+- API endpoints summary table (method, path, description)
+- Contributing guidelines (basic)
+
+Files:
+package.json: [paste]
+src/index.ts: [paste]
+.env.example: [paste]
+```
+
+### Changelogs desde commits
+
+```bash
+# Generate a changelog section from recent commits
+git log --oneline v1.2.0..HEAD | llm "Convert these git commits into a user-facing changelog section in markdown. Group by: Features, Bug Fixes, and Breaking Changes. Use present tense. Skip 'fix typo' and similar noise commits."
+```
+
+---
+
+## Debugging con IA
+
+Error messages are information-dense but hard to parse when you're deep in a problem. AI is excellent at translating error noise into actionable steps.
+
+### El prompt de debugging definitivo
+
+```text
+I'm getting this error in my [Node.js 20 / Python 3.11 / etc.] application:
+
+ERROR:
+[paste exact error message]
+
+STACK TRACE:
+[paste full stack trace]
+
+CONTEXT:
+- What I was doing: [describe the action that triggered it]
+- It happens: [always / only when X / intermittently]
+- Environment: [local dev / staging / production]
+- Recent changes: [anything you changed recently]
+
+RELEVANT CODE:
+[paste the function or file mentioned in the stack trace]
+
+Please:
+1. Explain the error in plain terms
+2. Identify the exact root cause
+3. Give me step-by-step fix instructions
+4. Explain how to prevent this in the future
+```
+
+### Debugging intermitente
+
+```text
+I have an intermittent bug that's hard to reproduce:
+
+Symptoms: [describe what users report]
+Frequency: [how often]
+Pattern: [only under load? specific users? time of day?]
+
+My hypothesis: [your current theory]
+
+Relevant code:
+[paste suspected code]
+
+Logs from when it occurs:
+[paste log snippets]
+
+Help me: identify other possible causes I haven't considered, and design a logging strategy to catch it next time.
+```
+
+<Steps>
+  <Step title="Paste the full error, not a summary">
+    Partial error messages lead to generic answers. Include the complete stack trace and error text.
+  </Step>
+  <Step title="Add context about what changed">
+    "This worked yesterday" plus a description of what you changed narrows the search space dramatically.
+  </Step>
+  <Step title="Include the relevant code">
+    Don't ask AI to guess your implementation. Paste the function(s) involved.
+  </Step>
+  <Step title="Try the fix, then follow up">
+    If the suggested fix doesn't work, reply with "That didn't work. Here's what happened: [result]." Follow-up prompts in context outperform fresh prompts.
+  </Step>
+</Steps>
+
+---
+
+## Automatizar con Scripts
+
+AI is exceptional at writing one-off automation scripts. Describe what you want; it writes the boilerplate you'd have to look up.
+
+### Bash
+
+```text
+Write a bash script that:
+- Scans all .ts files in the src/ directory recursively
+- Finds any TODO or FIXME comments
+- Outputs them as: [filename:line] TODO: [comment text]
+- Sorts results by filename
+- Saves output to todo-report.txt
+- Prints a count at the end
+```
+
+### Python
+
+```text
+Write a Python script using the requests library that:
+- Reads a list of GitHub repo URLs from repos.txt (one per line)
+- For each repo, calls the GitHub API to get: stars, last commit date, open issues count
+- Writes the results to a CSV file: repo_url, stars, last_commit, open_issues
+- Handles rate limiting with exponential backoff
+- Skips repos that return 404 and logs them to skipped.txt
+```
+
+### Scripts de base de datos
+
+```text
+Write a PostgreSQL migration script that:
+- Adds a soft-delete pattern to the users table (deleted_at TIMESTAMP NULL)
+- Creates a partial index so queries on active users are fast
+- Updates the existing SELECT queries in [paste queries] to filter out deleted users
+- Is wrapped in a transaction and includes a rollback section
+```
+
+---
+
+## Tips de Flujo de Trabajo
+
+<Tip>
+**VS Code + Copilot shortcuts to memorize:**
+- `Tab` — accept suggestion
+- `Alt+]` / `Alt+[` — cycle through suggestions
+- `Ctrl+Enter` — open Copilot completions panel (multiple options)
+- `Ctrl+Shift+I` — open Copilot Chat inline
+- `Ctrl+Alt+I` — open Copilot Chat sidebar
+</Tip>
+
+<Tip>
+**Cursor power moves:**
+- `⌘K` on selected code — inline edit with instruction
+- `⌘L` — open chat with current file in context
+- `⌘Shift+L` — add current selection to chat
+- `@codebase` in Cursor chat — search your whole indexed project
+- `@docs` — reference official docs (React, Next.js, etc.)
+</Tip>
+
+<Tip>
+**Contexto es poder.** The more context you give, the better the output. Open the files that are relevant before asking Copilot/Cursor a question. In chat interfaces, paste the relevant code rather than describing it. Keep your AI tool's context window warm with the code you're actively working on.
+</Tip>
+
+<Tip>
+**Mantén un snippet file.** Keep a `prompts.md` file in your project root (gitignored) with your go-to prompt templates customized for the project's stack and conventions. Paste and adapt rather than writing from scratch each time.
+</Tip>

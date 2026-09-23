@@ -1,0 +1,468 @@
+---
+title: "Node.js Fundamentals: Core Concepts and Patterns"
+sidebarTitle: "Basics"
+description: "Key Node.js concepts: event loop, async/await, modules (CommonJS vs ESM), streams, buffers, and built-in modules with practical examples."
+---
+
+Node.js is a JavaScript runtime built on Chrome's V8 engine that lets you run JavaScript on the server side. Unlike browser JavaScript, Node.js is designed for I/O-heavy, non-blocking workloads — web servers, CLIs, build tools, and APIs. Understanding its core architecture is essential to writing efficient, reliable Node.js code.
+
+---
+
+## Event Loop
+
+The event loop is the heart of Node.js. It allows Node to perform non-blocking I/O operations despite JavaScript being single-threaded. When Node starts, it initializes the event loop, processes your script, and then begins cycling through phases.
+
+**Event loop phases (simplified):**
+
+| Phase | What happens |
+|---|---|
+| **timers** | Executes `setTimeout` and `setInterval` callbacks |
+| **pending callbacks** | I/O callbacks deferred from the previous loop |
+| **idle / prepare** | Internal use only |
+| **poll** | Retrieves new I/O events; executes I/O callbacks |
+| **check** | `setImmediate()` callbacks execute here |
+| **close callbacks** | Cleanup callbacks like `socket.on('close', ...)` |
+
+```js
+// Order of execution demonstration
+console.log("1 - synchronous");
+
+setTimeout(() => console.log("2 - setTimeout (timers phase)"), 0);
+
+setImmediate(() => console.log("3 - setImmediate (check phase)"));
+
+Promise.resolve().then(() => console.log("4 - microtask (Promise)"));
+
+process.nextTick(() => console.log("5 - nextTick (highest priority microtask)"));
+
+console.log("6 - synchronous");
+
+// Output order: 1, 6, 5, 4, 2, 3
+```
+
+<Tip>
+`process.nextTick` runs before any I/O event or timer — it's the highest-priority async callback. Use it sparingly; abusing it can starve the event loop.
+</Tip>
+
+---
+
+## Módulos
+
+Node.js has two module systems. Understanding both is critical since many codebases mix them.
+
+### CommonJS (CJS)
+
+The original Node.js module system. Files use `.js` extension and `require()` for imports.
+
+```js
+// math.js — exporting
+function add(a, b) {
+  return a + b;
+}
+
+function subtract(a, b) {
+  return a - b;
+}
+
+module.exports = { add, subtract };
+
+// Alternatively, export a single value:
+// module.exports = add;
+```
+
+```js
+// main.js — importing
+const { add, subtract } = require("./math");
+
+console.log(add(5, 3));      // 8
+console.log(subtract(5, 3)); // 2
+```
+
+### ES Modules (ESM)
+
+The modern standard. Uses `import`/`export` syntax. Requires either `.mjs` extension **or** setting `"type": "module"` in `package.json`.
+
+```json
+// package.json
+{
+  "name": "my-app",
+  "type": "module"
+}
+```
+
+```js
+// math.js — named exports
+export function add(a, b) {
+  return a + b;
+}
+
+export function subtract(a, b) {
+  return a - b;
+}
+
+// Default export
+export default function multiply(a, b) {
+  return a * b;
+}
+```
+
+```js
+// main.js — importing
+import multiply, { add, subtract } from "./math.js"; // .js extension required in ESM
+
+console.log(add(5, 3));       // 8
+console.log(subtract(5, 3));  // 2
+console.log(multiply(5, 3));  // 15
+```
+
+### CJS vs ESM Quick Reference
+
+| Feature | CommonJS | ES Modules |
+|---|---|---|
+| Syntax | `require` / `module.exports` | `import` / `export` |
+| Loading | Synchronous | Asynchronous |
+| Top-level `await` | ❌ | ✅ |
+| `__dirname` / `__filename` | ✅ built-in | ❌ (use `import.meta.url`) |
+| Tree-shaking friendly | ❌ | ✅ |
+
+```js
+// ESM equivalent of __dirname
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+```
+
+---
+
+## Async Patterns
+
+### Callbacks (legacy)
+
+```js
+const fs = require("fs");
+
+fs.readFile("./data.txt", "utf8", (err, data) => {
+  if (err) {
+    console.error("Error reading file:", err.message);
+    return;
+  }
+  console.log(data);
+});
+```
+
+### Promises
+
+```js
+const { readFile } = require("fs/promises");
+
+readFile("./data.txt", "utf8")
+  .then((data) => console.log(data))
+  .catch((err) => console.error("Error:", err.message));
+```
+
+### async/await
+
+```js
+const { readFile, writeFile } = require("fs/promises");
+
+async function processFile() {
+  try {
+    const data = await readFile("./input.txt", "utf8");
+    const processed = data.toUpperCase();
+    await writeFile("./output.txt", processed);
+    console.log("File processed successfully.");
+  } catch (err) {
+    console.error("Failed to process file:", err.message);
+  }
+}
+
+processFile();
+```
+
+### Promise.all — Parallel execution
+
+```js
+async function fetchAll() {
+  const [users, posts, comments] = await Promise.all([
+    fetchUsers(),
+    fetchPosts(),
+    fetchComments(),
+  ]);
+
+  return { users, posts, comments };
+}
+```
+
+### Promise.allSettled — Handle mixed results
+
+```js
+async function tryAll() {
+  const results = await Promise.allSettled([
+    fetchUsers(),
+    fetchPosts(),
+    Promise.reject(new Error("Service unavailable")),
+  ]);
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      console.log("Success:", result.value);
+    } else {
+      console.warn("Failed:", result.reason.message);
+    }
+  });
+}
+```
+
+<Tip>
+Use `Promise.all` when all operations must succeed. Use `Promise.allSettled` when you want to handle partial failures gracefully.
+</Tip>
+
+---
+
+## Built-in Modules
+
+Node.js ships with a rich standard library. No installation needed.
+
+### `fs` — File System
+
+```js
+const fs = require("fs");
+const { readFile, writeFile, mkdir, unlink } = require("fs/promises");
+
+// Async read
+const content = await readFile("./config.json", "utf8");
+const config = JSON.parse(content);
+
+// Write file (creates or overwrites)
+await writeFile("./output.json", JSON.stringify(config, null, 2));
+
+// Create directory (recursive)
+await mkdir("./logs/archive", { recursive: true });
+
+// Delete file
+await unlink("./temp.txt");
+```
+
+### `path` — Path Utilities
+
+```js
+const path = require("path");
+
+path.join("/home", "user", "docs", "file.txt");  // /home/user/docs/file.txt
+path.resolve("src", "index.js");                  // absolute path
+path.basename("/home/user/file.txt");             // "file.txt"
+path.extname("script.js");                        // ".js"
+path.dirname("/home/user/file.txt");              // "/home/user"
+
+// Safely build paths across OS
+const configPath = path.join(__dirname, "config", "settings.json");
+```
+
+### `os` — Operating System Info
+
+```js
+const os = require("os");
+
+console.log(os.platform());    // "linux", "darwin", "win32"
+console.log(os.arch());        // "x64", "arm64"
+console.log(os.cpus().length); // number of CPU cores
+console.log(os.totalmem());    // total RAM in bytes
+console.log(os.freemem());     // free RAM in bytes
+console.log(os.homedir());     // "/home/username"
+console.log(os.tmpdir());      // "/tmp"
+```
+
+### `http` — HTTP Server
+
+```js
+const http = require("http");
+
+const server = http.createServer((req, res) => {
+  if (req.method === "GET" && req.url === "/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok" }));
+  } else {
+    res.writeHead(404);
+    res.end("Not Found");
+  }
+});
+
+server.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+```
+
+### `crypto` — Cryptography
+
+```js
+const crypto = require("crypto");
+
+// Hash a password (use bcrypt in production, but for data integrity:)
+const hash = crypto.createHash("sha256").update("my-data").digest("hex");
+
+// Generate a secure random token
+const token = crypto.randomBytes(32).toString("hex");
+
+// HMAC signature
+const hmac = crypto
+  .createHmac("sha256", process.env.SECRET_KEY)
+  .update("payload")
+  .digest("hex");
+```
+
+### `events` — EventEmitter
+
+```js
+const { EventEmitter } = require("events");
+
+class TaskQueue extends EventEmitter {
+  constructor() {
+    super();
+    this.tasks = [];
+  }
+
+  add(task) {
+    this.tasks.push(task);
+    this.emit("taskAdded", task);
+  }
+
+  process() {
+    const task = this.tasks.shift();
+    if (task) {
+      this.emit("taskProcessed", task);
+    }
+  }
+}
+
+const queue = new TaskQueue();
+queue.on("taskAdded", (task) => console.log("Added:", task));
+queue.on("taskProcessed", (task) => console.log("Processed:", task));
+
+queue.add("Send email");
+queue.process();
+```
+
+### `child_process` — Spawn Subprocesses
+
+```js
+const { exec, spawn, execSync } = require("child_process");
+const { promisify } = require("util");
+
+const execAsync = promisify(exec);
+
+// Run a shell command
+const { stdout } = await execAsync("ls -la");
+console.log(stdout);
+
+// Stream output with spawn (good for long-running processes)
+const ls = spawn("ls", ["-la", "/tmp"]);
+ls.stdout.on("data", (data) => process.stdout.write(data));
+ls.stderr.on("data", (data) => process.stderr.write(data));
+ls.on("close", (code) => console.log(`Exited with code ${code}`));
+```
+
+---
+
+## Global Objects
+
+These are available in every Node.js file without `require`.
+
+```js
+// __dirname — absolute path of the current file's directory (CJS only)
+console.log(__dirname);  // /home/user/projects/app/src
+
+// __filename — absolute path of the current file (CJS only)
+console.log(__filename); // /home/user/projects/app/src/index.js
+
+// process.env — environment variables
+const port = process.env.PORT || 3000;
+const env  = process.env.NODE_ENV || "development";
+
+// process.argv — command-line arguments
+// node script.js arg1 arg2
+const [_node, _script, ...args] = process.argv;
+console.log(args); // ["arg1", "arg2"]
+
+// process.exit — terminate the process
+if (!process.env.DATABASE_URL) {
+  console.error("DATABASE_URL is required");
+  process.exit(1); // exit code 1 signals error
+}
+
+// global — global scope object (like window in browsers)
+global.myAppConfig = { version: "1.0.0" };
+console.log(myAppConfig.version); // accessible everywhere, but avoid this pattern
+```
+
+---
+
+## Manejo de Errores
+
+### try/catch in async functions
+
+```js
+async function getUserData(userId) {
+  try {
+    const response = await fetch(`https://api.example.com/users/${userId}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error — status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    if (err.name === "TypeError") {
+      console.error("Network error:", err.message);
+    } else {
+      console.error("Unexpected error:", err.message);
+    }
+    throw err; // re-throw so the caller can handle it too
+  }
+}
+```
+
+### Custom Error Classes
+
+```js
+class AppError extends Error {
+  constructor(message, statusCode = 500) {
+    super(message);
+    this.name = "AppError";
+    this.statusCode = statusCode;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+class NotFoundError extends AppError {
+  constructor(resource) {
+    super(`${resource} not found`, 404);
+    this.name = "NotFoundError";
+  }
+}
+
+// Usage
+throw new NotFoundError("User");
+```
+
+### Process-level Error Handlers
+
+```js
+// Catch uncaught synchronous exceptions
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION — shutting down:", err.message);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+// Catch unhandled Promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("UNHANDLED REJECTION at:", promise, "reason:", reason);
+  process.exit(1);
+});
+```
+
+<Warning>
+`uncaughtException` and `unhandledRejection` should be used for **graceful shutdown and logging only** — not for catching expected errors. The process is in an undefined state after an uncaught exception; always exit.
+</Warning>

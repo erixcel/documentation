@@ -1,0 +1,527 @@
+---
+title: "Express.js Patterns: Build REST APIs Fast"
+sidebarTitle: "Express"
+description: "Express.js reference for routing, middleware, error handling, and REST API patterns. Includes request validation, CORS, and authentication middleware examples."
+---
+
+Express.js is the most widely used Node.js web framework — minimal, unopinionated, and fast. It wraps Node's `http` module with a clean API for routing, middleware chaining, and response helpers. Whether you're building a simple REST API or a full-featured backend, Express gives you the primitives you need without getting in your way.
+
+---
+
+## Setup Básico
+
+```bash
+npm install express
+npm install -D @types/express  # if using TypeScript
+```
+
+```js
+// src/index.js
+const express = require("express");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Parse incoming JSON bodies
+app.use(express.json());
+
+// Parse URL-encoded form data
+app.use(express.urlencoded({ extended: true }));
+
+// Basic route
+app.get("/", (req, res) => {
+  res.json({ message: "API is running", version: "1.0.0" });
+});
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
+});
+```
+
+---
+
+## Routing
+
+### HTTP method handlers
+
+```js
+// GET — retrieve data
+app.get("/users", (req, res) => {
+  res.json({ users: [] });
+});
+
+// POST — create a resource
+app.post("/users", (req, res) => {
+  const { name, email } = req.body;
+  res.status(201).json({ id: 1, name, email });
+});
+
+// PUT — replace a resource entirely
+app.put("/users/:id", (req, res) => {
+  res.json({ id: req.params.id, ...req.body });
+});
+
+// PATCH — partial update
+app.patch("/users/:id", (req, res) => {
+  res.json({ updated: true, id: req.params.id });
+});
+
+// DELETE — remove a resource
+app.delete("/users/:id", (req, res) => {
+  res.status(204).send();
+});
+```
+
+### Route parameters
+
+```js
+// :id is a named parameter — accessible via req.params.id
+app.get("/users/:id", (req, res) => {
+  const { id } = req.params;
+  res.json({ userId: id });
+});
+
+// Multiple parameters
+app.get("/posts/:postId/comments/:commentId", (req, res) => {
+  const { postId, commentId } = req.params;
+  res.json({ postId, commentId });
+});
+```
+
+### Query strings
+
+```js
+// GET /search?q=nodejs&page=2&limit=10
+app.get("/search", (req, res) => {
+  const { q = "", page = 1, limit = 20 } = req.query;
+  res.json({
+    query: q,
+    page: Number(page),
+    limit: Number(limit),
+  });
+});
+```
+
+### Router modules
+
+Break large route files into modules using `express.Router()`.
+
+```js
+// src/routes/users.js
+const router = require("express").Router();
+
+router.get("/",        getUsers);
+router.post("/",       createUser);
+router.get("/:id",     getUserById);
+router.put("/:id",     updateUser);
+router.delete("/:id",  deleteUser);
+
+module.exports = router;
+```
+
+```js
+// src/index.js
+const usersRouter  = require("./routes/users");
+const postsRouter  = require("./routes/posts");
+
+app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/posts", postsRouter);
+```
+
+---
+
+## Middleware
+
+Middleware functions are the backbone of Express. Each middleware receives `(req, res, next)` and either sends a response or calls `next()` to pass control to the next middleware.
+
+```
+Request → [middleware 1] → [middleware 2] → [route handler] → Response
+```
+
+### app.use() — Apply middleware globally
+
+```js
+// Runs for EVERY request
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url} — ${new Date().toISOString()}`);
+  next(); // must call next() or the request hangs
+});
+```
+
+### Built-in middleware
+
+```js
+// Parse JSON request bodies
+app.use(express.json({ limit: "10mb" }));
+
+// Parse URL-encoded bodies (HTML forms)
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the "public" directory
+app.use(express.static("public"));
+
+// Serve at a specific path prefix
+app.use("/assets", express.static("static"));
+```
+
+### Third-party middleware
+
+```bash
+npm install cors morgan helmet compression
+```
+
+```js
+const cors        = require("cors");
+const morgan      = require("morgan");
+const helmet      = require("helmet");
+const compression = require("compression");
+
+// CORS — allow cross-origin requests
+app.use(cors({
+  origin:      ["https://myapp.com", "http://localhost:5173"],
+  methods:     ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  credentials: true,
+}));
+
+// Morgan — HTTP request logger
+app.use(morgan("dev"));        // colorized output for development
+// app.use(morgan("combined")); // Apache-style logs for production
+
+// Helmet — sets security-related HTTP headers
+app.use(helmet());
+
+// Compression — gzip responses
+app.use(compression());
+```
+
+### Custom middleware examples
+
+```js
+// Authentication middleware
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Missing or invalid token" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    req.user = verifyToken(token); // attach user to request
+    next();
+  } catch {
+    res.status(401).json({ error: "Token expired or invalid" });
+  }
+};
+
+// Apply to specific routes
+app.use("/api/v1/profile", authenticate);
+
+// Or to individual route handlers
+app.get("/api/v1/dashboard", authenticate, (req, res) => {
+  res.json({ user: req.user });
+});
+```
+
+---
+
+## Request & Response
+
+### Request object (`req`)
+
+```js
+app.post("/example", (req, res) => {
+  // Body (requires express.json() middleware)
+  console.log(req.body);        // { name: "Alice", email: "a@b.com" }
+
+  // URL parameters (/example/:id)
+  console.log(req.params);      // { id: "42" }
+
+  // Query string (?page=2&limit=10)
+  console.log(req.query);       // { page: "2", limit: "10" }
+
+  // Headers
+  console.log(req.headers);                         // all headers
+  console.log(req.headers["content-type"]);         // "application/json"
+  console.log(req.headers.authorization);           // "Bearer eyJ..."
+  console.log(req.get("User-Agent"));               // header helper
+
+  // Method, path, IP
+  console.log(req.method);      // "POST"
+  console.log(req.path);        // "/example"
+  console.log(req.ip);          // "::1" (or real IP behind proxy)
+
+  // Cookies (requires cookie-parser middleware)
+  console.log(req.cookies);     // { session: "abc123" }
+});
+```
+
+### Response object (`res`)
+
+```js
+app.get("/demo", (req, res) => {
+  // Send JSON (sets Content-Type: application/json)
+  res.json({ message: "Hello" });
+
+  // Set status code then send JSON
+  res.status(201).json({ id: 1, created: true });
+
+  // Send plain text or HTML
+  res.send("<h1>Hello World</h1>");
+
+  // Set status only
+  res.status(204).send();
+
+  // Redirect
+  res.redirect(301, "https://newdomain.com/path");
+  res.redirect("/login");
+
+  // Set a header
+  res.set("X-Custom-Header", "value");
+  res.set({
+    "Content-Type":  "text/plain",
+    "Cache-Control": "no-store",
+  });
+
+  // Send a file
+  res.sendFile("/absolute/path/to/file.pdf");
+
+  // Download a file
+  res.download("/absolute/path/to/report.csv", "report.csv");
+});
+```
+
+---
+
+## Manejo de Errores
+
+Express has a special middleware signature for error handling: **four parameters** — `(err, req, res, next)`. It must be registered **after** all routes.
+
+### Centralized error handler
+
+```js
+// src/middleware/errorHandler.js
+function errorHandler(err, req, res, next) {
+  // Log the error (use a proper logger in production)
+  console.error(`[ERROR] ${err.name}: ${err.message}`);
+  console.error(err.stack);
+
+  // Use the error's statusCode if it has one, else default to 500
+  const status  = err.statusCode || err.status || 500;
+  const message = err.isOperational ? err.message : "Internal Server Error";
+
+  res.status(status).json({
+    error: {
+      message,
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    },
+  });
+}
+
+module.exports = errorHandler;
+```
+
+```js
+// src/index.js — register AFTER all routes
+const errorHandler = require("./middleware/errorHandler");
+
+app.use(errorHandler);
+```
+
+### Passing errors from route handlers
+
+```js
+// Async wrapper to avoid try/catch in every handler
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// Usage — errors are forwarded to errorHandler automatically
+app.get(
+  "/users/:id",
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+    res.json(user);
+  })
+);
+```
+
+### 404 handler
+
+```js
+// Place this after all routes but before the error handler
+app.use((req, res, next) => {
+  const err = new Error(`Route not found: ${req.method} ${req.url}`);
+  err.statusCode = 404;
+  next(err);
+});
+```
+
+---
+
+## Estructura de Proyecto
+
+A recommended layout for a REST API built with Express:
+
+```
+my-api/
+├── src/
+│   ├── index.js              # Entry point — starts the server
+│   ├── app.js                # Express app setup (no listen call)
+│   ├── routes/
+│   │   ├── index.js          # Aggregates all routers
+│   │   ├── users.js          # /api/v1/users
+│   │   └── posts.js          # /api/v1/posts
+│   ├── controllers/
+│   │   ├── users.controller.js
+│   │   └── posts.controller.js
+│   ├── services/
+│   │   ├── users.service.js  # Business logic
+│   │   └── posts.service.js
+│   ├── models/
+│   │   ├── user.model.js     # DB schema / ORM model
+│   │   └── post.model.js
+│   ├── middleware/
+│   │   ├── authenticate.js   # JWT / session auth
+│   │   ├── validate.js       # Request validation
+│   │   └── errorHandler.js   # Centralized error handler
+│   ├── config/
+│   │   └── index.js          # Env vars, DB config
+│   └── utils/
+│       ├── asyncHandler.js
+│       └── ApiError.js
+├── tests/
+│   └── users.test.js
+├── .env
+├── .env.example
+├── package.json
+└── README.md
+```
+
+The key separation: **routes** declare paths, **controllers** handle HTTP logic, **services** contain business logic, **models** talk to the database.
+
+---
+
+## Ejemplos Comunes
+
+### Full CRUD API for a resource
+
+```js
+// src/controllers/users.controller.js
+const db = require("../services/users.service");
+
+// GET /api/v1/users?page=1&limit=20
+async function getUsers(req, res, next) {
+  try {
+    const { page = 1, limit = 20, search = "" } = req.query;
+    const users = await db.findAll({
+      skip: (page - 1) * limit,
+      take: Number(limit),
+      search,
+    });
+    res.json({ data: users, page: Number(page), limit: Number(limit) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/v1/users/:id
+async function getUserById(req, res, next) {
+  try {
+    const user = await db.findById(req.params.id);
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/v1/users
+async function createUser(req, res, next) {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      const err = new Error("name, email, and password are required");
+      err.statusCode = 400;
+      return next(err);
+    }
+
+    const existing = await db.findByEmail(email);
+    if (existing) {
+      const err = new Error("Email already in use");
+      err.statusCode = 409;
+      return next(err);
+    }
+
+    const user = await db.create({ name, email, password });
+    res.status(201).json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/v1/users/:id
+async function updateUser(req, res, next) {
+  try {
+    const user = await db.update(req.params.id, req.body);
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// DELETE /api/v1/users/:id
+async function deleteUser(req, res, next) {
+  try {
+    const deleted = await db.remove(req.params.id);
+    if (!deleted) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { getUsers, getUserById, createUser, updateUser, deleteUser };
+```
+
+```js
+// src/routes/users.js
+const router = require("express").Router();
+const {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} = require("../controllers/users.controller");
+const authenticate = require("../middleware/authenticate");
+
+router.get("/",     authenticate, getUsers);
+router.get("/:id",  authenticate, getUserById);
+router.post("/",    authenticate, createUser);
+router.patch("/:id", authenticate, updateUser);
+router.delete("/:id", authenticate, deleteUser);
+
+module.exports = router;
+```

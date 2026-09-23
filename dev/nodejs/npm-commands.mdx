@@ -1,0 +1,435 @@
+---
+title: "npm & npx Commands: Complete Developer Reference"
+sidebarTitle: "npm Commands"
+description: "Essential npm and npx commands for package management, scripts, versioning, publishing, and workspace management. Includes pnpm and yarn equivalents."
+---
+
+npm (Node Package Manager) is the default package manager for Node.js, giving you access to over 2 million packages in the registry. This reference covers the commands you'll use daily — from installing dependencies to publishing your own packages — along with pnpm and yarn equivalents for projects that use those tools.
+
+---
+
+## Instalar Paquetes
+
+### Basic installation
+
+```bash
+# Install all dependencies listed in package.json
+npm install
+
+# Install a specific package and save to dependencies
+npm install express
+
+# Install multiple packages at once
+npm install express cors dotenv
+```
+
+### Development dependencies
+
+```bash
+# Save to devDependencies (not installed in production)
+npm install --save-dev jest eslint prettier
+
+# Shorthand
+npm install -D typescript ts-node @types/node
+```
+
+### Global installation
+
+```bash
+# Install globally (available system-wide as CLI tool)
+npm install -g nodemon
+
+# View globally installed packages
+npm list -g --depth=0
+```
+
+### Clean install (CI/CD)
+
+```bash
+# Installs exact versions from package-lock.json — no updates
+# Fails if package-lock.json doesn't exist or is out of sync
+npm ci
+```
+
+<Tip>
+Always use `npm ci` in CI/CD pipelines. It's faster and guarantees reproducible installs by strictly following `package-lock.json`.
+</Tip>
+
+### Legacy peer deps
+
+```bash
+# Bypass peer dependency conflicts (common when upgrading React or other major libs)
+npm install --legacy-peer-deps
+```
+
+---
+
+## Gestionar Paquetes
+
+### Update packages
+
+```bash
+# Update all packages to their latest allowed versions (respects semver range)
+npm update
+
+# Update a specific package
+npm update express
+
+# Upgrade to latest (ignores semver range in package.json)
+npm install express@latest
+```
+
+### Remove packages
+
+```bash
+# Remove a package and delete from package.json
+npm uninstall lodash
+
+# Remove a dev dependency
+npm uninstall --save-dev jest
+```
+
+### List installed packages
+
+```bash
+# Show all installed packages (full tree)
+npm list
+
+# Show only top-level packages
+npm list --depth=0
+
+# Check if a specific package is installed
+npm list express
+```
+
+### Outdated packages
+
+```bash
+# Show packages that have newer versions available
+npm outdated
+```
+
+Example output:
+```
+Package    Current  Wanted  Latest  Location
+express      4.17.1  4.18.2  4.18.2  my-app
+lodash       4.17.0  4.17.21 4.17.21 my-app
+```
+
+| Column | Meaning |
+|---|---|
+| **Current** | Installed version |
+| **Wanted** | Latest version within your semver range |
+| **Latest** | Latest published version on npm |
+
+### Security audits
+
+```bash
+# Check for known vulnerabilities
+npm audit
+
+# Automatically fix vulnerabilities (applies safe updates)
+npm audit fix
+
+# Apply potentially breaking fixes too
+npm audit fix --force
+```
+
+---
+
+## Scripts
+
+Scripts defined in `package.json` let you standardize and share development workflows across your team.
+
+### Defining scripts in package.json
+
+```json
+{
+  "scripts": {
+    "start":       "node src/index.js",
+    "dev":         "nodemon src/index.js",
+    "build":       "tsc --project tsconfig.json",
+    "test":        "jest --coverage",
+    "test:watch":  "jest --watch",
+    "lint":        "eslint src --ext .ts,.js",
+    "lint:fix":    "eslint src --ext .ts,.js --fix",
+    "format":      "prettier --write src/**/*.{ts,js}",
+    "clean":       "rm -rf dist",
+    "prebuild":    "npm run clean",
+    "postbuild":   "echo 'Build complete!'"
+  }
+}
+```
+
+<Tip>
+`pre` and `post` hooks run automatically. `prebuild` runs before `npm run build`; `postbuild` runs after.
+</Tip>
+
+### Running scripts
+
+```bash
+# Run any custom script
+npm run dev
+npm run lint
+npm run test:watch
+
+# Special scripts that don't need the "run" keyword
+npm start     # equivalent to: npm run start
+npm test      # equivalent to: npm run test
+
+# Pass arguments to a script (after --)
+npm test -- --testPathPattern=auth
+npm run build -- --watch
+```
+
+---
+
+## npx
+
+`npx` executes a package binary directly — either from your local `node_modules`, or by temporarily downloading it from the registry. This is perfect for scaffolding tools you only need once.
+
+```bash
+# Run a package without installing it globally
+npx create-react-app my-app
+
+# Scaffold a Next.js project
+npx create-next-app@latest my-next-app
+
+# Run TypeScript files directly without compiling
+npx ts-node src/script.ts
+
+# Execute a specific version of a package
+npx eslint@8 src/
+
+# Run a local binary (from node_modules/.bin)
+npx jest --coverage
+
+# Check what version npx would run
+npx --no cowsay "Hello"
+```
+
+<Tip>
+When you run `npx some-tool` without `-g`, the package is downloaded, executed once, and discarded. Use this instead of `npm install -g` for one-off tasks to keep your global environment clean.
+</Tip>
+
+---
+
+## Versioning
+
+npm uses **Semantic Versioning (semver)**: `MAJOR.MINOR.PATCH`
+
+| Bump type | When to use | Example |
+|---|---|---|
+| `patch` | Bug fixes, no API changes | `1.0.0` → `1.0.1` |
+| `minor` | New features, backward compatible | `1.0.0` → `1.1.0` |
+| `major` | Breaking changes | `1.0.0` → `2.0.0` |
+
+```bash
+# Bump version in package.json and create a git tag
+npm version patch   # 1.2.3 → 1.2.4
+npm version minor   # 1.2.3 → 1.3.0
+npm version major   # 1.2.3 → 2.0.0
+
+# Bump to a specific version
+npm version 2.5.0
+
+# Bump without creating a git tag
+npm version patch --no-git-tag-version
+```
+
+### Semver range symbols
+
+| Symbol | Meaning | Example | Matches |
+|---|---|---|---|
+| `^` | Compatible with version (allows minor + patch) | `^1.2.3` | `>=1.2.3 <2.0.0` |
+| `~` | Approximately equivalent (allows patch only) | `~1.2.3` | `>=1.2.3 <1.3.0` |
+| `*` | Any version | `*` | Any |
+| `>=` | Greater than or equal | `>=1.2.0` | `1.2.0` and above |
+| exact | Exact version lock | `1.2.3` | Only `1.2.3` |
+
+```json
+{
+  "dependencies": {
+    "express":   "^4.18.2",   // allows 4.x.x updates, not 5.x.x
+    "lodash":    "~4.17.21",  // allows 4.17.x updates only
+    "react":     "18.2.0",    // locked to exactly this version
+    "typescript": ">=5.0.0"  // anything 5.0.0 or newer
+  }
+}
+```
+
+---
+
+## package.json Campos Clave
+
+```json
+{
+  "name":        "my-package",
+  "version":     "1.0.0",
+  "description": "A short description of your package",
+  "main":        "dist/index.js",
+  "module":      "dist/index.esm.js",
+  "types":       "dist/index.d.ts",
+
+  "exports": {
+    ".": {
+      "import":  "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types":   "./dist/index.d.ts"
+    },
+    "./utils": "./dist/utils.js"
+  },
+
+  "scripts": {
+    "build": "tsc",
+    "test":  "jest"
+  },
+
+  "engines": {
+    "node": ">=18.0.0",
+    "npm":  ">=9.0.0"
+  },
+
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "jest":       "^29.0.0"
+  },
+
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+
+  "files": [
+    "dist",
+    "README.md"
+  ],
+
+  "keywords": ["api", "rest", "express"],
+  "license":  "MIT",
+  "author":   "Your Name <you@example.com>"
+}
+```
+
+| Field | Purpose |
+|---|---|
+| `main` | Entry point for CJS `require()` |
+| `module` | Entry point for ESM `import` (bundler hint) |
+| `exports` | Modern, precise export map (overrides `main`) |
+| `types` | TypeScript type definitions |
+| `engines` | Declare minimum Node/npm versions |
+| `files` | Files to include when publishing to npm |
+| `peerDependencies` | Dependencies the consumer must install |
+
+---
+
+## Equivalentes pnpm y yarn
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    # Install all deps
+    npm install
+
+    # Add a package
+    npm install express
+
+    # Add dev dep
+    npm install -D jest
+
+    # Remove a package
+    npm uninstall lodash
+
+    # Run a script
+    npm run build
+
+    # Clean install
+    npm ci
+
+    # Update packages
+    npm update
+
+    # Audit
+    npm audit
+
+    # Global install
+    npm install -g nodemon
+
+    # Run binary
+    npx ts-node script.ts
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    # Install all deps
+    pnpm install
+
+    # Add a package
+    pnpm add express
+
+    # Add dev dep
+    pnpm add -D jest
+
+    # Remove a package
+    pnpm remove lodash
+
+    # Run a script
+    pnpm run build
+    # or shorthand:
+    pnpm build
+
+    # Clean install (frozen lockfile)
+    pnpm install --frozen-lockfile
+
+    # Update packages
+    pnpm update
+
+    # Audit
+    pnpm audit
+
+    # Global install
+    pnpm add -g nodemon
+
+    # Run binary
+    pnpm dlx ts-node script.ts
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    # Install all deps
+    yarn install
+    # or just:
+    yarn
+
+    # Add a package
+    yarn add express
+
+    # Add dev dep
+    yarn add -D jest
+
+    # Remove a package
+    yarn remove lodash
+
+    # Run a script
+    yarn build
+
+    # Clean install (frozen lockfile)
+    yarn install --frozen-lockfile
+
+    # Update packages
+    yarn upgrade
+
+    # Audit
+    yarn audit
+
+    # Global install
+    yarn global add nodemon
+
+    # Run binary
+    yarn dlx ts-node script.ts
+    ```
+  </Tab>
+</Tabs>

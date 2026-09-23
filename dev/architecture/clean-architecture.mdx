@@ -1,0 +1,444 @@
+---
+title: "Clean Architecture: Principles and Node.js Implementation"
+sidebarTitle: "Clean Architecture"
+description: "Understand Clean Architecture layers, dependency rules, and how to apply them in a Node.js project with practical folder structure and code examples."
+---
+
+Clean Architecture, popularized by Robert C. Martin ("Uncle Bob"), is a software design philosophy that organizes code into concentric layers with a strict **dependency rule**: inner layers know nothing about outer layers. The result is a codebase where business logic is completely isolated from infrastructure concerns — your domain does not care whether you're using Express or Fastify, PostgreSQL or MongoDB. This makes the system highly testable, maintainable, and adaptable to change.
+
+---
+
+## Las Capas
+
+Clean Architecture defines four primary layers, each with a clear responsibility:
+
+<CardGroup cols={2}>
+  <Card title="Entities (Domain)" icon="hexagon">
+    The innermost layer. Pure business objects and rules that would exist regardless of any application. No framework, no database, no HTTP — just logic.
+  </Card>
+  <Card title="Use Cases (Application)" icon="gears">
+    Orchestrates the flow of data to and from entities. Each use case represents one specific business action (e.g., `CreateUser`, `PlaceOrder`).
+  </Card>
+  <Card title="Interface Adapters" icon="arrows-left-right">
+    Converts data from the format used by use cases/entities into the format needed by external systems (controllers, presenters, repository implementations).
+  </Card>
+  <Card title="Frameworks & Drivers" icon="plug">
+    The outermost layer: web frameworks, databases, UI, external APIs. Everything here is replaceable without touching the business core.
+  </Card>
+</CardGroup>
+
+---
+
+## Regla de Dependencia
+
+The single most important rule: **dependencies always point inward**.
+
+```
+Frameworks & Drivers
+      ↓
+Interface Adapters
+      ↓
+Use Cases (Application)
+      ↓
+Entities (Domain)
+```
+
+- Outer layers **depend on** inner layers.
+- Inner layers **never import** from outer layers.
+- Communication from outer → inner is done via **interfaces** (dependency inversion).
+- Communication from inner → outer (e.g., persistence) is done via **repository interfaces** defined in the inner layer and implemented in the outer layer.
+
+<Note>
+  If your `User` entity ever imports from Express or Mongoose, the dependency rule is broken. Inner layers must remain framework-agnostic.
+</Note>
+
+---
+
+## Estructura de Carpetas
+
+A recommended folder structure for a Node.js project following Clean Architecture:
+
+```
+src/
+├── domain/                     # Entities layer
+│   ├── entities/
+│   │   ├── User.ts
+│   │   └── Order.ts
+│   ├── repositories/           # Repository interfaces (contracts)
+│   │   ├── IUserRepository.ts
+│   │   └── IOrderRepository.ts
+│   └── value-objects/
+│       └── Email.ts
+│
+├── application/                # Use Cases layer
+│   ├── use-cases/
+│   │   ├── user/
+│   │   │   ├── CreateUser.ts
+│   │   │   └── GetUserById.ts
+│   │   └── order/
+│   │       └── PlaceOrder.ts
+│   └── dtos/
+│       ├── CreateUserDTO.ts
+│       └── UserResponseDTO.ts
+│
+├── infrastructure/             # Interface Adapters + Frameworks
+│   ├── database/
+│   │   ├── prisma/
+│   │   │   └── PrismaUserRepository.ts
+│   │   └── mongoose/
+│   │       └── MongoUserRepository.ts
+│   ├── http/
+│   │   ├── controllers/
+│   │   │   └── UserController.ts
+│   │   ├── middlewares/
+│   │   │   └── authMiddleware.ts
+│   │   └── routes/
+│   │       └── userRoutes.ts
+│   └── config/
+│       └── database.ts
+│
+├── main/                       # Composition root (wires everything)
+│   ├── app.ts
+│   └── container.ts            # Dependency Injection container
+│
+└── shared/                     # Shared kernel
+    ├── errors/
+    │   └── AppError.ts
+    └── utils/
+        └── logger.ts
+```
+
+---
+
+## Entidades (Domain)
+
+Entities encapsulate enterprise-wide business rules. They are pure TypeScript/JavaScript classes with no framework dependencies. They can contain methods that enforce invariants.
+
+```typescript
+// src/domain/entities/User.ts
+
+export class User {
+  private constructor(
+    public readonly id: string,
+    public readonly email: string,
+    public readonly name: string,
+    private _isActive: boolean,
+    public readonly createdAt: Date
+  ) {}
+
+  static create(props: {
+    id: string;
+    email: string;
+    name: string;
+  }): User {
+    if (!props.email.includes("@")) {
+      throw new Error("Invalid email address");
+    }
+    if (props.name.trim().length < 2) {
+      throw new Error("Name must be at least 2 characters");
+    }
+
+    return new User(
+      props.id,
+      props.email.toLowerCase().trim(),
+      props.name.trim(),
+      true,
+      new Date()
+    );
+  }
+
+  get isActive(): boolean {
+    return this._isActive;
+  }
+
+  deactivate(): void {
+    if (!this._isActive) {
+      throw new Error("User is already inactive");
+    }
+    this._isActive = false;
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      email: this.email,
+      name: this.name,
+      isActive: this._isActive,
+      createdAt: this.createdAt,
+    };
+  }
+}
+```
+
+```typescript
+// src/domain/value-objects/Email.ts
+
+export class Email {
+  private readonly value: string;
+
+  constructor(email: string) {
+    const normalized = email.toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      throw new Error(`Invalid email: ${email}`);
+    }
+    this.value = normalized;
+  }
+
+  toString(): string {
+    return this.value;
+  }
+
+  equals(other: Email): boolean {
+    return this.value === other.value;
+  }
+}
+```
+
+---
+
+## Casos de Uso
+
+Use cases live in the application layer and orchestrate domain logic. They receive dependencies via constructor injection (interfaces, not concrete implementations).
+
+```typescript
+// src/application/dtos/CreateUserDTO.ts
+
+export interface CreateUserDTO {
+  name: string;
+  email: string;
+}
+
+export interface UserResponseDTO {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+```
+
+```typescript
+// src/application/use-cases/user/CreateUser.ts
+
+import { User } from "../../../domain/entities/User";
+import { IUserRepository } from "../../../domain/repositories/IUserRepository";
+import { CreateUserDTO, UserResponseDTO } from "../../dtos/CreateUserDTO";
+import { randomUUID } from "crypto";
+
+export class CreateUser {
+  constructor(private readonly userRepository: IUserRepository) {}
+
+  async execute(dto: CreateUserDTO): Promise<UserResponseDTO> {
+    // Check for duplicate email
+    const existing = await this.userRepository.findByEmail(dto.email);
+    if (existing) {
+      throw new Error(`A user with email ${dto.email} already exists`);
+    }
+
+    // Create domain entity (enforces business rules)
+    const user = User.create({
+      id: randomUUID(),
+      email: dto.email,
+      name: dto.name,
+    });
+
+    // Persist via repository interface
+    await this.userRepository.save(user);
+
+    return user.toJSON();
+  }
+}
+```
+
+```typescript
+// src/application/use-cases/user/GetUserById.ts
+
+import { IUserRepository } from "../../../domain/repositories/IUserRepository";
+import { UserResponseDTO } from "../../dtos/CreateUserDTO";
+
+export class GetUserById {
+  constructor(private readonly userRepository: IUserRepository) {}
+
+  async execute(id: string): Promise<UserResponseDTO> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new Error(`User with id ${id} not found`);
+    }
+    return user.toJSON();
+  }
+}
+```
+
+---
+
+## Repositorios e Interfaces
+
+The repository pattern decouples data persistence from business logic. Interfaces are defined in the **domain layer**; implementations live in the **infrastructure layer**.
+
+```typescript
+// src/domain/repositories/IUserRepository.ts
+// This interface lives in the DOMAIN layer — framework-free
+
+import { User } from "../entities/User";
+
+export interface IUserRepository {
+  save(user: User): Promise<void>;
+  findById(id: string): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  findAll(): Promise<User[]>;
+  delete(id: string): Promise<void>;
+}
+```
+
+```typescript
+// src/infrastructure/database/prisma/PrismaUserRepository.ts
+// Concrete implementation in the INFRASTRUCTURE layer
+
+import { PrismaClient } from "@prisma/client";
+import { User } from "../../../domain/entities/User";
+import { IUserRepository } from "../../../domain/repositories/IUserRepository";
+
+export class PrismaUserRepository implements IUserRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async save(user: User): Promise<void> {
+    const data = user.toJSON();
+    await this.prisma.user.upsert({
+      where: { id: data.id },
+      update: { name: data.name, isActive: data.isActive },
+      create: {
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        isActive: data.isActive,
+        createdAt: data.createdAt,
+      },
+    });
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const record = await this.prisma.user.findUnique({ where: { id } });
+    if (!record) return null;
+    return User.create({ id: record.id, email: record.email, name: record.name });
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const record = await this.prisma.user.findUnique({ where: { email } });
+    if (!record) return null;
+    return User.create({ id: record.id, email: record.email, name: record.name });
+  }
+
+  async findAll(): Promise<User[]> {
+    const records = await this.prisma.user.findMany();
+    return records.map((r) =>
+      User.create({ id: r.id, email: r.email, name: r.name })
+    );
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id } });
+  }
+}
+```
+
+```typescript
+// src/infrastructure/http/controllers/UserController.ts
+// HTTP controller — Interface Adapter layer
+
+import { Request, Response } from "express";
+import { CreateUser } from "../../../application/use-cases/user/CreateUser";
+import { GetUserById } from "../../../application/use-cases/user/GetUserById";
+
+export class UserController {
+  constructor(
+    private readonly createUser: CreateUser,
+    private readonly getUserById: GetUserById
+  ) {}
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const user = await this.createUser.execute(req.body);
+      res.status(201).json(user);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async getById(req: Request, res: Response): Promise<void> {
+    try {
+      const user = await this.getUserById.execute(req.params.id);
+      res.json(user);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  }
+}
+```
+
+```typescript
+// src/main/container.ts
+// Composition root — wires everything together
+
+import { PrismaClient } from "@prisma/client";
+import { PrismaUserRepository } from "../infrastructure/database/prisma/PrismaUserRepository";
+import { CreateUser } from "../application/use-cases/user/CreateUser";
+import { GetUserById } from "../application/use-cases/user/GetUserById";
+import { UserController } from "../infrastructure/http/controllers/UserController";
+
+const prisma = new PrismaClient();
+
+// Repositories
+const userRepository = new PrismaUserRepository(prisma);
+
+// Use Cases
+const createUserUseCase = new CreateUser(userRepository);
+const getUserByIdUseCase = new GetUserById(userRepository);
+
+// Controllers
+export const userController = new UserController(
+  createUserUseCase,
+  getUserByIdUseCase
+);
+```
+
+---
+
+## Ventajas y Cuándo Usarla
+
+### Ventajas
+
+<CardGroup cols={2}>
+  <Card title="Alta Testeabilidad" icon="flask">
+    Business logic (entities and use cases) can be unit tested with zero infrastructure setup. No database, no HTTP server required.
+  </Card>
+  <Card title="Independencia de Frameworks" icon="shield">
+    You can swap Express for Fastify, Prisma for TypeORM, or PostgreSQL for MongoDB without touching a single use case.
+  </Card>
+  <Card title="Separación Clara de Responsabilidades" icon="layer-group">
+    Each layer has a defined purpose. New developers immediately know where business logic lives vs. infrastructure code.
+  </Card>
+  <Card title="Mantenibilidad a Largo Plazo" icon="clock-rotate-left">
+    The codebase ages better. Infrastructure dependencies (the most volatile parts) are isolated at the edges.
+  </Card>
+</CardGroup>
+
+### Trade-offs
+
+- **Verbosity**: You write more code upfront — interfaces, DTOs, separate layers.
+- **Indirection**: Tracing a feature requires jumping between layers; can be confusing for newcomers.
+- **Overhead for small apps**: For a 5-route CRUD API, Clean Architecture is likely overkill.
+
+### ¿Cuándo tiene sentido?
+
+| Escenario | ¿Usar Clean Architecture? |
+|---|---|
+| Startup en fase MVP | ❌ Probablemente no — mueve rápido |
+| Aplicación de dominio complejo | ✅ Sí — protege la lógica de negocio |
+| Equipo grande (5+ devs) | ✅ Sí — fronteras claras reducen fricción |
+| Proyecto a largo plazo (2+ años) | ✅ Sí — la inversión se amortiza |
+| Script o herramienta CLI simple | ❌ No — innecesariamente complejo |
+| Necesitas cambiar de DB en el futuro | ✅ Sí — abstracción de repositorio paga |
+
+<Tip>
+  Start with a simpler layered architecture first. Refactor toward Clean Architecture when the complexity of your domain justifies it. Over-engineering a small project is as harmful as under-engineering a large one.
+</Tip>

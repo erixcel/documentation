@@ -1,0 +1,314 @@
+---
+title: "Docker Networking: Connect Containers Effectively"
+sidebarTitle: "Networking"
+description: "Learn Docker networking modes, how to create custom bridge networks, connect containers, and expose services to the host or internet."
+---
+
+Docker tiene su propio sistema de networking que permite aislar, conectar y exponer servicios de manera flexible. Entender cómo funcionan las redes en Docker es clave para construir aplicaciones multi-contenedor seguras y comunicadas correctamente. Esta página cubre los tipos de red disponibles, los comandos de gestión, la configuración en Docker Compose y los patrones más comunes.
+
+---
+
+## Tipos de Red
+
+Docker ofrece cuatro drivers de red principales, cada uno con un caso de uso distinto.
+
+### bridge (por defecto)
+
+El driver más común. Crea una red privada interna en el host donde los contenedores pueden comunicarse entre sí por nombre o IP. Los contenedores no son accesibles desde el exterior a menos que se publiquen sus puertos con `-p`.
+
+```
+Host
+└── Docker bridge network (172.17.0.0/16)
+    ├── container-a  172.17.0.2
+    ├── container-b  172.17.0.3
+    └── container-c  172.17.0.4
+```
+
+> La red `bridge` por defecto (`docker0`) no permite la resolución DNS por nombre de contenedor. Las **redes bridge personalizadas** sí lo permiten — es la razón principal para crearlas.
+
+### host
+
+El contenedor comparte directamente el stack de red del host. No hay aislamiento de red: el puerto 80 del contenedor es el puerto 80 del host.
+
+```bash
+docker run --network host nginx
+```
+
+Útil para herramientas de monitorización o cuando el overhead de NAT impacta el rendimiento. **No disponible en Docker Desktop para macOS/Windows** (solo en Linux).
+
+### none
+
+El contenedor no tiene ninguna interfaz de red (excepto loopback). Completamente aislado de la red.
+
+```bash
+docker run --network none my-batch-job
+```
+
+Ideal para procesos de cómputo que no necesitan acceso a la red por razones de seguridad.
+
+### overlay
+
+Permite comunicación entre contenedores que corren en **diferentes hosts Docker** (Docker Swarm o Kubernetes). Crea una red distribuida encima de la infraestructura física.
+
+```bash
+# Solo disponible en modo Swarm
+docker network create --driver overlay my-overlay-network
+```
+
+---
+
+## Comandos de Red
+
+### Listar redes
+
+```bash
+# Ver todas las redes existentes
+docker network ls
+
+# Ejemplo de salida:
+# NETWORK ID     NAME              DRIVER    SCOPE
+# 3b2c4f1a9e7d   bridge            bridge    local
+# 8e5d2c3b1a4f   host              host      local
+# 9f1e3a2b4c5d   none              null      local
+# a2b4c6d8e0f1   my-app_backend    bridge    local
+```
+
+### Crear una red personalizada
+
+```bash
+# Red bridge simple
+docker network create my-network
+
+# Con subnet y gateway personalizados
+docker network create \
+  --driver bridge \
+  --subnet 192.168.100.0/24 \
+  --gateway 192.168.100.1 \
+  my-custom-network
+
+# Red interna (los contenedores no tienen acceso a internet)
+docker network create --internal private-network
+```
+
+### Inspeccionar una red
+
+```bash
+# Ver detalles completos (contenedores conectados, subnet, etc.)
+docker network inspect my-network
+
+# Obtener solo la subnet
+docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}' my-network
+
+# Ver qué contenedores están en la red
+docker network inspect -f '{{json .Containers}}' my-network | python3 -m json.tool
+```
+
+### Conectar y desconectar contenedores
+
+```bash
+# Conectar un contenedor en ejecución a una red
+docker network connect my-network my-container
+
+# Conectar con un alias DNS personalizado
+docker network connect --alias db-primary my-network my-postgres
+
+# Desconectar un contenedor de una red
+docker network disconnect my-network my-container
+```
+
+### Eliminar redes
+
+```bash
+# Eliminar una red específica (debe estar sin contenedores)
+docker network rm my-network
+
+# Eliminar todas las redes no usadas
+docker network prune
+
+# Sin confirmación
+docker network prune -f
+```
+
+---
+
+## Redes en docker-compose.yml
+
+Docker Compose crea automáticamente una red bridge para cada proyecto, pero definir redes explícitas da más control sobre el aislamiento y la topología.
+
+```yaml
+version: "3.9"
+
+services:
+  api:
+    image: my-api:latest
+    networks:
+      - backend
+      - frontend    # Conectado a ambas redes
+
+  db:
+    image: postgres:15-alpine
+    networks:
+      - backend     # Solo accesible desde la red backend
+
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks:
+      - frontend    # Solo conectado al frontend
+
+  internal-worker:
+    image: my-worker:latest
+    networks:
+      - backend
+      - isolated
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    # Subnet personalizada
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  isolated:
+    driver: bridge
+    internal: true    # Sin acceso a internet
+```
+
+En esta configuración:
+- `proxy` puede hablar con `api` (ambos en `frontend`)
+- `api` puede hablar con `db` (ambos en `backend`)
+- `proxy` **no puede** acceder directamente a `db` (redes distintas)
+- `internal-worker` no tiene acceso a internet (red `internal: true`)
+
+### Usar una red externa ya existente
+
+```yaml
+networks:
+  shared-infra:
+    external: true   # No crea la red, usa una existente creada con docker network create
+    name: my-existing-network
+```
+
+---
+
+## Comunicación entre Contenedores
+
+Cuando dos contenedores están en la **misma red bridge personalizada**, Docker actúa como DNS interno y resuelve los nombres de los servicios automáticamente.
+
+```bash
+# Desde dentro del contenedor 'api', puedes hacer ping al servicio 'db':
+docker compose exec api ping db
+
+# O conectarte a PostgreSQL usando el nombre del servicio como hostname:
+docker compose exec api psql -h db -U postgres -d mydb
+
+# Curl a otro servicio por nombre:
+docker compose exec api curl http://cache:6379
+```
+
+### ¿Por qué el nombre del servicio funciona como hostname?
+
+Docker Compose registra cada servicio como un alias DNS dentro de la red del proyecto. Cuando `api` intenta resolver `db`, el daemon de Docker responde con la IP interna del contenedor `db`.
+
+```yaml
+# docker-compose.yml
+services:
+  api:
+    environment:
+      # Usar el nombre del servicio como host en la cadena de conexión
+      DATABASE_URL: postgresql://postgres:secret@db:5432/mydb
+      REDIS_URL: redis://cache:6379
+```
+
+<Note>
+Esto **solo funciona en redes bridge personalizadas**, no en la red `bridge` por defecto de Docker. Cuando usas `docker compose`, siempre se crea una red personalizada, por lo que la resolución DNS está habilitada automáticamente.
+</Note>
+
+### Alias de red
+
+Puedes asignar alias adicionales a un servicio, útil cuando tienes múltiples replicas o nombres alternativos:
+
+```yaml
+services:
+  db:
+    image: postgres:15-alpine
+    networks:
+      backend:
+        aliases:
+          - database
+          - postgres-primary
+```
+
+Ahora desde otros contenedores en `backend`, puedes usar `db`, `database` o `postgres-primary` indistintamente.
+
+---
+
+## Exponer Puertos
+
+### Publicar puertos con -p (docker run)
+
+```bash
+# host_port:container_port
+docker run -p 8080:80 nginx
+
+# Solo en localhost del host (no expuesto externamente)
+docker run -p 127.0.0.1:8080:80 nginx
+
+# Puerto aleatorio del host → puerto 80 del contenedor
+docker run -p 80 nginx
+
+# Ver qué puerto aleatorio se asignó
+docker port <container_name>
+
+# Múltiples puertos
+docker run -p 80:80 -p 443:443 nginx
+```
+
+### EXPOSE en el Dockerfile
+
+`EXPOSE` documenta qué puertos usa la aplicación, pero **no los publica al host** por sí solo. Sirve como documentación y es usado por `-P` (publish all).
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci
+EXPOSE 4000
+CMD ["node", "src/index.js"]
+```
+
+```bash
+# -P publica automáticamente todos los puertos declarados con EXPOSE
+# en puertos aleatorios del host
+docker run -d -P my-node-app
+
+# Ver los mapeos de puertos generados
+docker port my-node-app
+# 4000/tcp -> 0.0.0.0:49153
+```
+
+### Puertos en docker-compose.yml
+
+```yaml
+services:
+  api:
+    image: my-api:latest
+    ports:
+      - "4000:4000"                  # host:container
+      - "127.0.0.1:4001:4001"       # Solo en localhost del host
+      - "443:443"
+
+  db:
+    image: postgres:15-alpine
+    # Sin ports: la DB solo es accesible dentro de la red de compose
+    # (más seguro para producción)
+    expose:
+      - "5432"    # Documenta el puerto pero no lo publica al host
+```
+
+<Note>
+En producción, evita exponer los puertos de bases de datos al host (`5432`, `6379`, `27017`). Solo publícalos en desarrollo para poder conectarte con herramientas locales como DBeaver o TablePlus. Los demás servicios de tu stack los alcanzan por la red interna de Docker.
+</Note>

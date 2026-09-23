@@ -1,0 +1,70 @@
+---
+title: "Cómo Usar Esta Base de Conocimiento"
+sidebarTitle: "Cómo Usar"
+description: "Guía para navegar y aprovechar al máximo estos apuntes técnicos sobre desarrollo, DevOps e IA."
+---
+
+Esta base de conocimiento está organizada en secciones temáticas que reflejan las áreas clave del desarrollo de software moderno. Cada sección agrupa páginas relacionadas — desde conceptos fundamentales hasta referencias rápidas — para que puedas ir directo a lo que necesitas, sin importar si estás buscando un comando específico o entendiendo una arquitectura compleja. The goal is zero friction between you and the answer you need.
+
+## Las Cuatro Secciones Principales
+
+La navegación está dividida en cuatro tabs que cubren dominios distintos:
+
+- **Overview** — El punto de entrada. Aquí encontrarás la introducción, esta guía de uso y cualquier nota transversal que no pertenece a una sola categoría.
+- **DevOps** — Todo lo relacionado con infraestructura, contenedores y la terminal: Docker, Linux & Shell, y herramientas del ecosistema DevOps.
+- **Desarrollo** — El corazón del código: Node.js, arquitectura de software, Git y patrones que aplican a cualquier stack.
+- **IA & Skills** — Prompt engineering, integración de modelos de lenguaje, herramientas de IA para developers y habilidades blandas que complementan el trabajo técnico.
+
+## Cómo Encontrar Información Rápidamente
+
+<Steps>
+  <Step title="Usa la barra lateral">
+    El sidebar izquierdo muestra todas las páginas organizadas por sección y subsección. Expande cualquier categoría para ver el contenido disponible. Es tu mapa general de la base de conocimiento.
+  </Step>
+  <Step title="Busca por palabra clave">
+    Presiona `Cmd+K` (macOS) o `Ctrl+K` (Windows/Linux) para abrir el buscador global. Puedes buscar por título de página, comandos específicos, términos técnicos o cualquier texto dentro de las notas.
+  </Step>
+  <Step title="Navega por tema">
+    Cada sección empieza con una página de introducción o referencia rápida que enlaza a subtemas más específicos. Si no sabes exactamente qué buscas, empieza por la página principal del área temática.
+  </Step>
+  <Step title="Usa los enlaces internos">
+    Las páginas incluyen referencias cruzadas cuando un concepto depende de otro. Si ves un enlace dentro del contenido, suele apuntar a una nota relacionada que amplía el contexto.
+  </Step>
+</Steps>
+
+<Tip>
+  El buscador (`Cmd+K` / `Ctrl+K`) es tu mejor amigo. Puedes buscar por comando exacto (e.g., `docker exec`), por concepto (e.g., `event loop`) o por término en español o inglés — las notas mezclan ambos idiomas de forma natural, así que ambas búsquedas funcionan.
+</Tip>
+
+## Convenciones Usadas en las Notas
+
+Para que puedas leer cualquier página y entender la estructura a simple vista, estas notas siguen un conjunto de convenciones consistentes:
+
+**Bloques de código**
+
+Todo comando o fragmento de código aparece en un bloque con el lenguaje especificado para resaltado de sintaxis. Los comandos de terminal usan el prefijo `$` para indicar que se ejecutan como usuario normal, y `#` cuando requieren privilegios de superusuario.
+
+```bash
+$ docker ps -a          # lista todos los contenedores
+# systemctl restart nginx
+```
+
+**Callouts**
+
+Los callouts destacan información importante según su tipo:
+
+<Note>
+  Una **nota** agrega contexto útil o aclaraciones que complementan el contenido principal. Léelas para entender el "por qué" detrás de algo.
+</Note>
+
+<Tip>
+  Un **tip** ofrece un atajo, buena práctica o truco que hace tu trabajo más eficiente. Son opcionales pero valen la pena.
+</Tip>
+
+<Warning>
+  Un **warning** señala algo que puede romperse, generar comportamientos inesperados o causar pérdida de datos si no se tiene cuidado. Estos sí léelos siempre.
+</Warning>
+
+**Terminología bilingüe**
+
+Las notas están escritas principalmente en español, pero los términos técnicos (nombres de comandos, flags, conceptos del ecosistema) aparecen en inglés tal como los usarías en código o en la terminal. This is intentional — code is written in English, and switching languages mid-sentence for technical terms keeps things accurate and practical.

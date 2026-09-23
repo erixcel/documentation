@@ -1,0 +1,343 @@
+---
+title: "Docker Commands: Essential Reference for Developers"
+sidebarTitle: "Basics"
+description: "Complete reference for essential Docker CLI commands: containers, images, logs, exec, inspect, and cleanup. Ready-to-copy examples."
+---
+
+El CLI de Docker es la herramienta principal para interactuar con el daemon de Docker desde la terminal. Esta página reúne los comandos más usados en el día a día: gestión de imágenes, ciclo de vida de contenedores, inspección de logs, ejecución de comandos dentro de contenedores y limpieza del sistema. Todos los ejemplos están listos para copiar y ejecutar.
+
+---
+
+## Imágenes
+
+Las imágenes son plantillas de solo lectura a partir de las cuales se crean los contenedores. Aquí están los comandos esenciales para trabajar con ellas.
+
+### Descargar una imagen
+
+```bash
+# Descargar la última versión
+docker pull nginx
+
+# Descargar una versión específica
+docker pull node:20-alpine
+
+# Descargar desde un registro privado
+docker pull registry.mycompany.com/backend:v1.4.2
+```
+
+### Construir una imagen
+
+```bash
+# Construir desde el directorio actual (busca Dockerfile)
+docker build -t my-app:latest .
+
+# Especificar un Dockerfile alternativo
+docker build -f Dockerfile.prod -t my-app:prod .
+
+# Pasar argumentos de build
+docker build --build-arg NODE_ENV=production -t my-app:prod .
+
+# Sin caché (útil cuando las capas están desactualizadas)
+docker build --no-cache -t my-app:latest .
+```
+
+<Tip>
+Usa tags semánticos como `v1.2.3` en producción en lugar de `latest`. El tag `latest` no garantiza reproducibilidad en despliegues.
+</Tip>
+
+### Listar imágenes locales
+
+```bash
+# Ver todas las imágenes
+docker images
+
+# Filtrar por nombre
+docker images node
+
+# Ver solo los IDs
+docker images -q
+```
+
+### Eliminar imágenes
+
+```bash
+# Eliminar por nombre y tag
+docker rmi my-app:latest
+
+# Eliminar por ID
+docker rmi a1b2c3d4e5f6
+
+# Eliminar múltiples imágenes
+docker rmi nginx:latest node:18-alpine
+```
+
+### Etiquetar y publicar imágenes
+
+```bash
+# Asignar un nuevo tag a una imagen existente
+docker tag my-app:latest my-dockerhub-user/my-app:v2.0.0
+
+# Publicar en Docker Hub
+docker push my-dockerhub-user/my-app:v2.0.0
+
+# Publicar en un registro privado
+docker tag my-app:latest registry.mycompany.com/my-app:v2.0.0
+docker push registry.mycompany.com/my-app:v2.0.0
+```
+
+---
+
+## Contenedores
+
+Los contenedores son instancias en ejecución de una imagen. El comando `docker run` es el punto de entrada más completo.
+
+### docker run — flags esenciales
+
+```bash
+# Modo interactivo con terminal (-it) y eliminar al salir (--rm)
+docker run -it --rm ubuntu bash
+
+# En segundo plano (-d), con nombre (--name) y puerto expuesto (-p)
+docker run -d --name web-server -p 8080:80 nginx
+
+# Con variables de entorno (-e)
+docker run -d \
+  --name my-postgres \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_DB=mydb \
+  -p 5432:5432 \
+  postgres:15
+
+# Con volumen montado (-v)
+docker run -d \
+  --name app \
+  -v $(pwd)/src:/app/src \
+  -p 3000:3000 \
+  my-node-app:latest
+
+# Con red personalizada y reinicio automático
+docker run -d \
+  --name api \
+  --network my-network \
+  --restart unless-stopped \
+  -p 4000:4000 \
+  my-api:latest
+```
+
+| Flag | Descripción |
+|------|-------------|
+| `-d` | Ejecutar en segundo plano (detached) |
+| `-it` | Modo interactivo con pseudo-TTY |
+| `-p host:container` | Publicar puerto del contenedor al host |
+| `-e KEY=VALUE` | Establecer variable de entorno |
+| `--name` | Asignar nombre al contenedor |
+| `-v src:dst` | Montar volumen o directorio |
+| `--rm` | Eliminar contenedor al detenerse |
+| `--network` | Conectar a una red específica |
+| `--restart` | Política de reinicio (`no`, `always`, `unless-stopped`, `on-failure`) |
+
+### Iniciar, detener y reiniciar
+
+```bash
+# Iniciar un contenedor detenido
+docker start my-postgres
+
+# Detener con señal SIGTERM (graceful)
+docker stop web-server
+
+# Forzar parada con SIGKILL
+docker kill web-server
+
+# Reiniciar
+docker restart api
+
+# Detener todos los contenedores en ejecución
+docker stop $(docker ps -q)
+```
+
+### Eliminar contenedores
+
+```bash
+# Eliminar un contenedor detenido
+docker rm web-server
+
+# Forzar eliminación de un contenedor en ejecución
+docker rm -f web-server
+
+# Eliminar todos los contenedores detenidos
+docker rm $(docker ps -aq)
+```
+
+### Listar contenedores
+
+```bash
+# Ver contenedores en ejecución
+docker ps
+
+# Ver todos los contenedores (incluidos detenidos)
+docker ps -a
+
+# Formato personalizado
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# Solo IDs
+docker ps -q
+```
+
+---
+
+## Logs e Inspección
+
+### Ver logs
+
+```bash
+# Logs de un contenedor
+docker logs my-app
+
+# Seguir los logs en tiempo real
+docker logs -f my-app
+
+# Últimas 100 líneas
+docker logs --tail 100 my-app
+
+# Logs con timestamps
+docker logs -t my-app
+
+# Combinar: últimas 50 líneas, seguir en tiempo real
+docker logs --tail 50 -f my-app
+```
+
+<Note>
+Los logs de Docker se almacenan por defecto en formato JSON en `/var/lib/docker/containers/<id>/<id>-json.log`. Para aplicaciones en producción, considera usar un driver de logging centralizado como `fluentd` o `awslogs`.
+</Note>
+
+### Inspeccionar contenedores e imágenes
+
+```bash
+# Inspeccionar un contenedor (devuelve JSON completo)
+docker inspect my-app
+
+# Obtener la IP del contenedor
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' my-app
+
+# Obtener variables de entorno
+docker inspect -f '{{.Config.Env}}' my-app
+
+# Inspeccionar una imagen
+docker inspect nginx:latest
+```
+
+### Estadísticas en tiempo real
+
+```bash
+# Ver uso de CPU, memoria, red y disco de todos los contenedores activos
+docker stats
+
+# Solo un contenedor específico
+docker stats my-app
+
+# Una sola lectura (sin modo live)
+docker stats --no-stream
+```
+
+### Ver procesos dentro de un contenedor
+
+```bash
+# Listar procesos activos
+docker top my-app
+
+# Con formato ps personalizado
+docker top my-app aux
+```
+
+---
+
+## Ejecutar Comandos
+
+El comando `docker exec` permite ejecutar procesos adicionales dentro de un contenedor en ejecución, sin necesidad de reiniciarlo.
+
+```bash
+# Abrir una shell bash interactiva
+docker exec -it my-app bash
+
+# Cuando bash no está disponible (imágenes Alpine)
+docker exec -it my-app sh
+
+# Ejecutar un comando único
+docker exec my-app ls -la /app
+
+# Ejecutar con variable de entorno
+docker exec -e DEBUG=true my-app node debug.js
+
+# Ejecutar como usuario root (útil para depuración)
+docker exec -u root -it my-app bash
+
+# Ejecutar en un directorio específico
+docker exec -w /app/logs my-app tail -f app.log
+```
+
+<Tip>
+Si el contenedor usa una imagen basada en Alpine (como `node:20-alpine`), bash generalmente no está instalado. Usa `sh` en su lugar, o instala bash con `apk add bash` en el Dockerfile.
+</Tip>
+
+---
+
+## Limpieza
+
+Docker puede acumular imágenes, contenedores, redes y volúmenes no utilizados con el tiempo. Estos comandos ayudan a liberar espacio en disco.
+
+### Limpieza general del sistema
+
+```bash
+# Eliminar todo lo no utilizado (contenedores detenidos, imágenes sin tag, redes y caché de build)
+docker system prune
+
+# Incluir también volúmenes no usados
+docker system prune --volumes
+
+# Sin confirmación interactiva (útil en CI/CD)
+docker system prune -f
+
+# Ver cuánto espacio ocupa Docker actualmente
+docker system df
+```
+
+### Limpieza específica
+
+```bash
+# Eliminar imágenes sin tag (dangling)
+docker image prune
+
+# Eliminar TODAS las imágenes no usadas por ningún contenedor
+docker image prune -a
+
+# Eliminar contenedores detenidos
+docker container prune
+
+# Eliminar volúmenes no referenciados
+docker volume prune
+
+# Eliminar redes no usadas
+docker network prune
+```
+
+<Note>
+`docker volume prune` **elimina datos permanentemente**. Asegúrate de haber hecho backup de los volúmenes importantes antes de ejecutar este comando.
+</Note>
+
+### Flujo de limpieza recomendado en desarrollo
+
+```bash
+# 1. Ver el estado actual del espacio
+docker system df
+
+# 2. Eliminar contenedores detenidos primero
+docker container prune -f
+
+# 3. Eliminar imágenes sin uso
+docker image prune -a -f
+
+# 4. Si hace falta más espacio, limpiar volúmenes
+docker volume prune -f
+```

@@ -1,5 +1,5 @@
 ---
-title: "Node.js Fundamentals: Core Concepts and Patterns"
+title: "Node.js Fundamentals: Core Concepts and Key Patterns"
 sidebarTitle: "Basics"
 description: "Key Node.js concepts: event loop, async/await, modules (CommonJS vs ESM), streams, buffers, and built-in modules with practical examples."
 ---
@@ -23,7 +23,7 @@ The event loop is the heart of Node.js. It allows Node to perform non-blocking I
 | **check** | `setImmediate()` callbacks execute here |
 | **close callbacks** | Cleanup callbacks like `socket.on('close', ...)` |
 
-```js
+```javascript
 // Order of execution demonstration
 console.log("1 - synchronous");
 
@@ -46,7 +46,7 @@ console.log("6 - synchronous");
 
 ---
 
-## Módulos
+## Modules
 
 Node.js has two module systems. Understanding both is critical since many codebases mix them.
 
@@ -54,7 +54,7 @@ Node.js has two module systems. Understanding both is critical since many codeba
 
 The original Node.js module system. Files use `.js` extension and `require()` for imports.
 
-```js
+```javascript
 // math.js — exporting
 function add(a, b) {
   return a + b;
@@ -70,7 +70,7 @@ module.exports = { add, subtract };
 // module.exports = add;
 ```
 
-```js
+```javascript
 // main.js — importing
 const { add, subtract } = require("./math");
 
@@ -90,7 +90,7 @@ The modern standard. Uses `import`/`export` syntax. Requires either `.mjs` exten
 }
 ```
 
-```js
+```javascript
 // math.js — named exports
 export function add(a, b) {
   return a + b;
@@ -106,7 +106,7 @@ export default function multiply(a, b) {
 }
 ```
 
-```js
+```javascript
 // main.js — importing
 import multiply, { add, subtract } from "./math.js"; // .js extension required in ESM
 
@@ -125,7 +125,7 @@ console.log(multiply(5, 3));  // 15
 | `__dirname` / `__filename` | ✅ built-in | ❌ (use `import.meta.url`) |
 | Tree-shaking friendly | ❌ | ✅ |
 
-```js
+```javascript
 // ESM equivalent of __dirname
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -140,7 +140,7 @@ const __dirname = dirname(__filename);
 
 ### Callbacks (legacy)
 
-```js
+```javascript
 const fs = require("fs");
 
 fs.readFile("./data.txt", "utf8", (err, data) => {
@@ -154,7 +154,7 @@ fs.readFile("./data.txt", "utf8", (err, data) => {
 
 ### Promises
 
-```js
+```javascript
 const { readFile } = require("fs/promises");
 
 readFile("./data.txt", "utf8")
@@ -164,7 +164,7 @@ readFile("./data.txt", "utf8")
 
 ### async/await
 
-```js
+```javascript
 const { readFile, writeFile } = require("fs/promises");
 
 async function processFile() {
@@ -183,7 +183,7 @@ processFile();
 
 ### Promise.all — Parallel execution
 
-```js
+```javascript
 async function fetchAll() {
   const [users, posts, comments] = await Promise.all([
     fetchUsers(),
@@ -197,7 +197,7 @@ async function fetchAll() {
 
 ### Promise.allSettled — Handle mixed results
 
-```js
+```javascript
 async function tryAll() {
   const results = await Promise.allSettled([
     fetchUsers(),
@@ -227,7 +227,7 @@ Node.js ships with a rich standard library. No installation needed.
 
 ### `fs` — File System
 
-```js
+```javascript
 const fs = require("fs");
 const { readFile, writeFile, mkdir, unlink } = require("fs/promises");
 
@@ -247,7 +247,7 @@ await unlink("./temp.txt");
 
 ### `path` — Path Utilities
 
-```js
+```javascript
 const path = require("path");
 
 path.join("/home", "user", "docs", "file.txt");  // /home/user/docs/file.txt
@@ -262,7 +262,7 @@ const configPath = path.join(__dirname, "config", "settings.json");
 
 ### `os` — Operating System Info
 
-```js
+```javascript
 const os = require("os");
 
 console.log(os.platform());    // "linux", "darwin", "win32"
@@ -276,7 +276,7 @@ console.log(os.tmpdir());      // "/tmp"
 
 ### `http` — HTTP Server
 
-```js
+```javascript
 const http = require("http");
 
 const server = http.createServer((req, res) => {
@@ -296,7 +296,7 @@ server.listen(3000, () => {
 
 ### `crypto` — Cryptography
 
-```js
+```javascript
 const crypto = require("crypto");
 
 // Hash a password (use bcrypt in production, but for data integrity:)
@@ -314,7 +314,7 @@ const hmac = crypto
 
 ### `events` — EventEmitter
 
-```js
+```javascript
 const { EventEmitter } = require("events");
 
 class TaskQueue extends EventEmitter {
@@ -346,7 +346,7 @@ queue.process();
 
 ### `child_process` — Spawn Subprocesses
 
-```js
+```javascript
 const { exec, spawn, execSync } = require("child_process");
 const { promisify } = require("util");
 
@@ -369,7 +369,7 @@ ls.on("close", (code) => console.log(`Exited with code ${code}`));
 
 These are available in every Node.js file without `require`.
 
-```js
+```javascript
 // __dirname — absolute path of the current file's directory (CJS only)
 console.log(__dirname);  // /home/user/projects/app/src
 
@@ -398,11 +398,11 @@ console.log(myAppConfig.version); // accessible everywhere, but avoid this patte
 
 ---
 
-## Manejo de Errores
+## Error Handling
 
 ### try/catch in async functions
 
-```js
+```javascript
 async function getUserData(userId) {
   try {
     const response = await fetch(`https://api.example.com/users/${userId}`);
@@ -425,7 +425,7 @@ async function getUserData(userId) {
 
 ### Custom Error Classes
 
-```js
+```javascript
 class AppError extends Error {
   constructor(message, statusCode = 500) {
     super(message);
@@ -448,7 +448,7 @@ throw new NotFoundError("User");
 
 ### Process-level Error Handlers
 
-```js
+```javascript
 // Catch uncaught synchronous exceptions
 process.on("uncaughtException", (err) => {
   console.error("UNCAUGHT EXCEPTION — shutting down:", err.message);

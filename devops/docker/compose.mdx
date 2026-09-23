@@ -1,5 +1,5 @@
 ---
-title: "Docker Compose: Multi-Container Apps Made Simple"
+title: "Docker Compose: Orchestrate Multi-Container Applications"
 sidebarTitle: "Compose"
 description: "Reference for Docker Compose commands and docker-compose.yml structure. Includes service definitions, environment variables, and common patterns."
 ---
@@ -257,8 +257,8 @@ services:
   api:
     image: my-api:latest
     env_file:
-      - .env              # Variables comunes
-      - .env.api          # Variables específicas del servicio API
+      - .env          # Variables comunes
+      - .env.api      # Variables específicas del servicio API
 ```
 
 ### environment — valores inline en el compose
@@ -296,7 +296,7 @@ Docker Compose carga automáticamente `docker-compose.override.yml` si existe, y
 
 <CodeGroup>
 
-```yaml docker-compose.yml (base — compartido)
+```yaml docker-compose.yml (base)
 version: "3.9"
 
 services:
@@ -314,7 +314,7 @@ volumes:
   postgres_data:
 ```
 
-```yaml docker-compose.override.yml (desarrollo local)
+```yaml docker-compose.override.yml (desarrollo)
 version: "3.9"
 
 services:

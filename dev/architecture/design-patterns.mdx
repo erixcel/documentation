@@ -8,12 +8,12 @@ Design patterns are proven, reusable solutions to commonly occurring problems in
 
 ---
 
-## Creacionales
+## Creational Patterns
 
 Creational patterns deal with object creation mechanisms. They abstract the instantiation process, making systems independent of how objects are created, composed, and represented.
 
 <AccordionGroup>
-  <Accordion title="Singleton — Una sola instancia global">
+  <Accordion title="Singleton — One global instance">
     Ensures a class has only one instance and provides a global point of access to it. Commonly used for database connections, configuration managers, and loggers.
 
     ```typescript
@@ -58,7 +58,7 @@ Creational patterns deal with object creation mechanisms. They abstract the inst
     </Note>
   </Accordion>
 
-  <Accordion title="Factory Method — Delegar la creación a subclases">
+  <Accordion title="Factory Method — Delegate creation to subclasses">
     Defines an interface for creating an object but lets subclasses decide which class to instantiate. Useful when the exact type of object to create is determined at runtime.
 
     ```typescript
@@ -127,7 +127,7 @@ Creational patterns deal with object creation mechanisms. They abstract the inst
     ```
   </Accordion>
 
-  <Accordion title="Abstract Factory — Familias de objetos relacionados">
+  <Accordion title="Abstract Factory — Families of related objects">
     Creates families of related objects without specifying their concrete classes. Think of it as a factory of factories.
 
     ```typescript
@@ -184,7 +184,7 @@ Creational patterns deal with object creation mechanisms. They abstract the inst
     ```
   </Accordion>
 
-  <Accordion title="Builder — Construir objetos complejos paso a paso">
+  <Accordion title="Builder — Construct complex objects step by step">
     Separates the construction of a complex object from its representation, allowing the same construction process to create different representations. Ideal for objects with many optional parameters.
 
     ```typescript
@@ -267,12 +267,12 @@ Creational patterns deal with object creation mechanisms. They abstract the inst
 
 ---
 
-## Estructurales
+## Structural Patterns
 
 Structural patterns deal with object composition — how classes and objects are assembled to form larger structures.
 
 <AccordionGroup>
-  <Accordion title="Adapter — Compatibilizar interfaces incompatibles">
+  <Accordion title="Adapter — Bridge incompatible interfaces">
     Converts the interface of a class into another interface that clients expect. Useful when integrating third-party libraries that don't match your expected interface.
 
     ```typescript
@@ -325,7 +325,7 @@ Structural patterns deal with object composition — how classes and objects are
     ```
   </Accordion>
 
-  <Accordion title="Decorator — Añadir comportamiento dinámicamente">
+  <Accordion title="Decorator — Add behaviour dynamically">
     Attaches additional responsibilities to an object dynamically, as a flexible alternative to subclassing. Used extensively in TypeScript decorators and middleware chains.
 
     ```typescript
@@ -401,7 +401,7 @@ Structural patterns deal with object composition — how classes and objects are
     ```
   </Accordion>
 
-  <Accordion title="Facade — Interfaz simplificada para subsistemas complejos">
+  <Accordion title="Facade — Simplified interface for complex subsystems">
     Provides a simplified interface to a complex subsystem. Reduces the learning curve and dependencies for client code.
 
     ```typescript
@@ -457,7 +457,7 @@ Structural patterns deal with object composition — how classes and objects are
     ```
   </Accordion>
 
-  <Accordion title="Proxy — Controlar el acceso a un objeto">
+  <Accordion title="Proxy — Control access to an object">
     Provides a substitute or placeholder for another object to control access to it. Common uses: lazy initialization, caching, access control, logging.
 
     ```typescript
@@ -516,12 +516,12 @@ Structural patterns deal with object composition — how classes and objects are
 
 ---
 
-## De Comportamiento
+## Behavioral Patterns
 
 Behavioral patterns are concerned with algorithms and the assignment of responsibilities between objects — how they communicate and cooperate.
 
 <AccordionGroup>
-  <Accordion title="Observer / EventEmitter — Notificar a múltiples suscriptores">
+  <Accordion title="Observer / EventEmitter — Notify multiple subscribers">
     Defines a one-to-many dependency so when one object changes state, all dependents are notified automatically. This is the foundation of Node.js's `EventEmitter`.
 
     ```typescript
@@ -574,7 +574,7 @@ Behavioral patterns are concerned with algorithms and the assignment of responsi
     ```
   </Accordion>
 
-  <Accordion title="Strategy — Intercambiar algoritmos en tiempo de ejecución">
+  <Accordion title="Strategy — Swap algorithms at runtime">
     Defines a family of algorithms, encapsulates each one, and makes them interchangeable. The client selects which algorithm to use at runtime without changing the context class.
 
     ```typescript
@@ -640,7 +640,7 @@ Behavioral patterns are concerned with algorithms and the assignment of responsi
     **Real-world use:** Payment processors (Stripe / PayPal / Bank Transfer), authentication strategies (JWT / Session / OAuth), discount calculation strategies.
   </Accordion>
 
-  <Accordion title="Command — Encapsular operaciones como objetos">
+  <Accordion title="Command — Encapsulate operations as objects">
     Encapsulates a request as an object, allowing parameterization of clients, queuing operations, logging, and supporting undoable operations.
 
     ```typescript
@@ -733,7 +733,7 @@ Behavioral patterns are concerned with algorithms and the assignment of responsi
     ```
   </Accordion>
 
-  <Accordion title="Iterator — Recorrer colecciones sin exponer su estructura">
+  <Accordion title="Iterator — Traverse collections without exposing internals">
     Provides a way to access elements of a collection sequentially without exposing its underlying representation. JavaScript has this built-in via the `Symbol.iterator` protocol.
 
     ```typescript
@@ -800,12 +800,12 @@ Behavioral patterns are concerned with algorithms and the assignment of responsi
 
 ---
 
-## Patrones en Node.js
+## Node.js-Specific Patterns
 
 Beyond the GoF classics, the Node.js ecosystem has its own prevalent patterns worth knowing.
 
 <AccordionGroup>
-  <Accordion title="Middleware Pattern — Cadena de responsabilidades para HTTP">
+  <Accordion title="Middleware Pattern — Chain of responsibility for HTTP">
     The backbone of Express, Koa, and Fastify. Each middleware function receives the request, can transform it or short-circuit the chain, and passes control to the next handler.
 
     ```javascript
@@ -869,7 +869,7 @@ Beyond the GoF classics, the Node.js ecosystem has its own prevalent patterns wo
     ```
   </Accordion>
 
-  <Accordion title="Repository Pattern — Abstraer la capa de persistencia">
+  <Accordion title="Repository Pattern — Abstract the persistence layer">
     Mediates between the domain and data mapping layers. Provides a collection-like interface for accessing domain objects, hiding database specifics.
 
     ```typescript
@@ -948,7 +948,7 @@ Beyond the GoF classics, the Node.js ecosystem has its own prevalent patterns wo
     ```
   </Accordion>
 
-  <Accordion title="Dependency Injection — Invertir el control de dependencias">
+  <Accordion title="Dependency Injection — Invert control of dependencies">
     Instead of a class creating its own dependencies, they are passed in (injected) from outside. This makes code more testable, flexible, and follows the Dependency Inversion Principle.
 
     ```typescript
@@ -1017,5 +1017,5 @@ Beyond the GoF classics, the Node.js ecosystem has its own prevalent patterns wo
 ---
 
 <Tip>
-  **No sobre-ingenierices.** Design patterns are tools, not goals. Before applying a pattern, ask: *"What problem am I solving?"* The best code is often the simplest code that gets the job done. Introducing a pattern where it's not needed adds indirection and cognitive overhead for your team. Learn the patterns deeply — then use them sparingly and intentionally.
+  **Don't over-engineer.** Design patterns are tools, not goals. Before applying a pattern, ask: *"What problem am I solving?"* The best code is often the simplest code that gets the job done. Introducing a pattern where it's not needed adds indirection and cognitive overhead for your team. Learn the patterns deeply — then use them sparingly and intentionally.
 </Tip>

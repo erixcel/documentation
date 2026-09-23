@@ -1,5 +1,5 @@
 ---
-title: "Essential Linux Commands for Developers"
+title: "Essential Linux Commands Every Developer Should Know"
 sidebarTitle: "Commands"
 description: "Daily-use Linux commands for developers: file system, process management, networking, permissions, text processing, and system monitoring."
 ---
@@ -8,7 +8,7 @@ Linux is the backbone of modern software development — servers, containers, CI
 
 ---
 
-## Navegación y Archivos
+## File System Navigation
 
 Getting around the filesystem and managing files efficiently is the foundation of everything else.
 
@@ -81,7 +81,7 @@ stat README.md
 
 ---
 
-## Permisos
+## Permissions
 
 Linux permissions control who can read, write, and execute files. Understanding them is essential for security and for running scripts or services correctly.
 
@@ -128,7 +128,7 @@ su - bob
 
 ---
 
-## Procesos
+## Process Management
 
 Understanding what's running on your system — and how to control it — is critical for debugging and performance troubleshooting.
 
@@ -190,7 +190,7 @@ pidof apache2
 
 ---
 
-## Red
+## Networking
 
 Networking commands for testing connectivity, inspecting ports, and transferring data.
 
@@ -256,7 +256,7 @@ ip route show          # Routing table
 
 ---
 
-## Texto y Búsqueda
+## Text Processing and Search
 
 Linux shines at text processing. These tools let you search, filter, transform, and analyze text data without writing a single line of Python.
 
@@ -343,7 +343,7 @@ cut -c1-10 file.txt             # Characters 1–10
 
 ---
 
-## Compresión
+## Compression and Archives
 
 ```bash
 # Create a tar.gz archive
@@ -389,7 +389,7 @@ gzip -9 file.txt
 
 ---
 
-## Discos y Espacio
+## Disk Space and Storage
 
 Knowing where disk space is being used — and running out — can save you from mysterious application crashes.
 
@@ -441,7 +441,7 @@ cat /proc/mounts
 
 ---
 
-## SSH
+## SSH and Remote Access
 
 SSH is how you connect to remote servers, copy files, and manage infrastructure.
 
@@ -495,10 +495,10 @@ ssh -o ServerAliveInterval=60 user@hostname
       IdentityFile ~/.ssh/mykey.pem
       ServerAliveInterval 60
 
-  Host dev
-      HostName 10.0.0.5
-      User developer
+  Host staging
+      HostName 203.0.113.99
+      User deploy
       Port 2222
   ```
-  Now you can just type `ssh myserver` or `ssh dev`. Works with `scp` and `rsync` too.
+  Now you can just type `ssh myserver` or `ssh staging`. Works with `scp` and `rsync` too.
 </Tip>

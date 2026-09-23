@@ -1,5 +1,5 @@
 ---
-title: "AI-Powered Productivity for Developers"
+title: "AI-Powered Developer Productivity: A Practical Guide"
 sidebarTitle: "Productivity"
 description: "Use AI to supercharge developer productivity: automate repetitive tasks, generate boilerplate, write tests, create documentation, and debug faster."
 ---
@@ -8,7 +8,7 @@ The developers getting the most out of AI aren't using it to replace their think
 
 ---
 
-## Generación de Código Boilerplate
+## Generating Boilerplate Code
 
 Boilerplate is the perfect AI use case: repetitive structure, well-understood patterns, low risk if slightly wrong (easy to review).
 
@@ -62,11 +62,11 @@ After generating boilerplate, paste it back and ask: "Is there anything here tha
 
 ---
 
-## Escribir Tests con IA
+## Writing Tests with AI
 
 Tests are time-consuming to write well. AI can generate a solid first pass that you review and refine — often faster than writing from scratch.
 
-### Estrategia de prompt para tests
+### Prompt strategy for tests
 
 <Steps>
   <Step title="Paste the function under test">
@@ -86,7 +86,7 @@ Tests are time-consuming to write well. AI can generate a solid first pass that 
   </Step>
 </Steps>
 
-### Ejemplo de prompt para tests
+### Example test prompt
 
 ```text
 Write a complete Vitest test suite for this TypeScript function:
@@ -102,7 +102,7 @@ Requirements:
 - Return the full test file including imports
 ```
 
-### Tests de integración
+### Integration tests
 
 ```text
 Write integration tests for the POST /api/users endpoint using Supertest.
@@ -119,11 +119,11 @@ Use: an in-memory SQLite database with Prisma for test isolation
 
 ---
 
-## Revisión de Código
+## AI Code Review
 
 AI code review is fast, consistent, and doesn't get tired. Use it as a first pass before human review.
 
-### En tu flujo de trabajo diario
+### In your daily workflow
 
 ```bash
 # Review your staged changes before committing
@@ -136,7 +136,7 @@ cat src/auth/middleware.ts | llm "Review this Express middleware for security vu
 gh pr diff 42 | llm "Summarize this PR and flag any concerns I should raise in review."
 ```
 
-### Qué revisar con IA vs con humanos
+### What to review with AI vs humans
 
 | Review Type | AI | Human |
 |-------------|-----|-------|
@@ -153,11 +153,11 @@ Give the AI your team's style guide or a representative file as context before a
 
 ---
 
-## Documentación Automática
+## Automatic Documentation
 
 Documentation rot is universal — code changes faster than docs. AI makes it cheap enough to keep up.
 
-### JSDoc desde código
+### JSDoc from code
 
 ```text
 Add JSDoc comments to every exported function and type in this TypeScript file.
@@ -174,7 +174,7 @@ Return the full file with comments added. Don't change any logic.
 [PASTE FILE]
 ```
 
-### README desde código
+### README from code
 
 ```text
 Generate a README.md for this project based on the following files.
@@ -194,7 +194,7 @@ src/index.ts: [paste]
 .env.example: [paste]
 ```
 
-### Changelogs desde commits
+### Changelogs from commits
 
 ```bash
 # Generate a changelog section from recent commits
@@ -203,11 +203,11 @@ git log --oneline v1.2.0..HEAD | llm "Convert these git commits into a user-faci
 
 ---
 
-## Debugging con IA
+## Debugging with AI
 
 Error messages are information-dense but hard to parse when you're deep in a problem. AI is excellent at translating error noise into actionable steps.
 
-### El prompt de debugging definitivo
+### The definitive debugging prompt
 
 ```text
 I'm getting this error in my [Node.js 20 / Python 3.11 / etc.] application:
@@ -234,7 +234,7 @@ Please:
 4. Explain how to prevent this in the future
 ```
 
-### Debugging intermitente
+### Debugging intermittent issues
 
 ```text
 I have an intermittent bug that's hard to reproduce:
@@ -271,7 +271,7 @@ Help me: identify other possible causes I haven't considered, and design a loggi
 
 ---
 
-## Automatizar con Scripts
+## Automating with Scripts
 
 AI is exceptional at writing one-off automation scripts. Describe what you want; it writes the boilerplate you'd have to look up.
 
@@ -298,7 +298,7 @@ Write a Python script using the requests library that:
 - Skips repos that return 404 and logs them to skipped.txt
 ```
 
-### Scripts de base de datos
+### Database scripts
 
 ```text
 Write a PostgreSQL migration script that:
@@ -310,7 +310,7 @@ Write a PostgreSQL migration script that:
 
 ---
 
-## Tips de Flujo de Trabajo
+## Workflow Tips
 
 <Tip>
 **VS Code + Copilot shortcuts to memorize:**
@@ -331,9 +331,9 @@ Write a PostgreSQL migration script that:
 </Tip>
 
 <Tip>
-**Contexto es poder.** The more context you give, the better the output. Open the files that are relevant before asking Copilot/Cursor a question. In chat interfaces, paste the relevant code rather than describing it. Keep your AI tool's context window warm with the code you're actively working on.
+**Context is power.** The more context you give, the better the output. Open the files that are relevant before asking Copilot/Cursor a question. In chat interfaces, paste the relevant code rather than describing it. Keep your AI tool's context window warm with the code you're actively working on.
 </Tip>
 
 <Tip>
-**Mantén un snippet file.** Keep a `prompts.md` file in your project root (gitignored) with your go-to prompt templates customized for the project's stack and conventions. Paste and adapt rather than writing from scratch each time.
+**Keep a snippet file.** Keep a `prompts.md` file in your project root (gitignored) with your go-to prompt templates customized for the project's stack and conventions. Paste and adapt rather than writing from scratch each time.
 </Tip>

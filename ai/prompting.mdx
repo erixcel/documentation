@@ -8,18 +8,18 @@ Prompt engineering is the practice of crafting inputs to AI language models in a
 
 ---
 
-## Principios Básicos
+## Core Principles
 
 Before diving into advanced techniques, four foundational principles will take you far:
 
-- **Sé específico.** Vague prompts produce vague outputs. Instead of "explain this code", say "explain what this `useEffect` hook does, focusing on its cleanup function and when it fires."
-- **Proporciona contexto.** AI models don't know your project, your stack, or your constraints unless you tell them. Include relevant background: language, framework, version, business requirement.
-- **Define el formato de salida.** If you want a bullet list, say so. If you want JSON, provide a schema. If you want a one-paragraph summary, specify. Don't leave format to chance.
-- **Itera.** Treat prompting like debugging. Your first attempt is a hypothesis. Refine based on what the model returns — add constraints, rephrase, add examples.
+- **Be specific.** Vague prompts produce vague outputs. Instead of "explain this code", say "explain what this `useEffect` hook does, focusing on its cleanup function and when it fires."
+- **Provide context.** AI models don't know your project, your stack, or your constraints unless you tell them. Include relevant background: language, framework, version, business requirement.
+- **Define the output format.** If you want a bullet list, say so. If you want JSON, provide a schema. If you want a one-paragraph summary, specify. Don't leave format to chance.
+- **Iterate.** Treat prompting like debugging. Your first attempt is a hypothesis. Refine based on what the model returns — add constraints, rephrase, add examples.
 
 ---
 
-## Técnicas Principales
+## Core Techniques
 
 ### Zero-Shot Prompting
 
@@ -102,11 +102,11 @@ Best for: architecture decisions, algorithm selection, anything with genuine tra
 
 ---
 
-## Prompts para Código
+## Code Prompts
 
 AI is exceptional at code tasks when you give it the right framing. Here's how to approach the four main code-related prompts:
 
-### Escribir código
+### Writing Code
 
 ```text
 Write a TypeScript function that:
@@ -116,7 +116,7 @@ Write a TypeScript function that:
 - Include proper type annotations and a JSDoc comment
 ```
 
-### Revisar código
+### Reviewing Code
 
 ```text
 Review the following JavaScript function for:
@@ -128,7 +128,7 @@ Review the following JavaScript function for:
 [paste code here]
 ```
 
-### Refactorizar código
+### Refactoring Code
 
 ```text
 Refactor this function to:
@@ -140,7 +140,7 @@ Keep the same public interface.
 [paste code here]
 ```
 
-### Explicar código
+### Explaining Code
 
 ```text
 Explain what this code does to someone who knows JavaScript but hasn't worked with Promises before.
@@ -155,7 +155,7 @@ Focus on the async/await pattern, error handling, and what happens if the fetch 
 
 When you need output you can parse or plug directly into another tool, specify the exact structure.
 
-### JSON output
+### JSON Output
 
 ```text
 Extract the following information from this job description and return it as JSON:
@@ -173,14 +173,14 @@ Job description:
 [paste here]
 ```
 
-### Markdown table
+### Markdown Table
 
 ```text
 Compare the following three state management libraries for React: Redux Toolkit, Zustand, and Jotai.
 Return the comparison as a markdown table with columns: Library, Bundle Size, Learning Curve, Best For, DevTools Support.
 ```
 
-### Step-by-step list
+### Step-by-Step List
 
 ```text
 Give me a numbered step-by-step guide to set up a GitHub Actions CI pipeline for a Node.js project that:
@@ -293,12 +293,12 @@ Output format: markdown with code blocks for examples.
 
 ---
 
-## Errores Comunes
+## Common Mistakes
 
 Avoid these patterns — they're the most common reasons prompts underperform:
 
 <Warning>
-**Prompt vago sin contexto**
+**Vague prompt with no context**
 
 ❌ `"Fix my code"`
 
@@ -307,7 +307,7 @@ Avoid these patterns — they're the most common reasons prompts underperform:
 </Warning>
 
 <Warning>
-**Sin especificar el formato de salida**
+**Not specifying the output format**
 
 ❌ `"Summarize this article"`
 
@@ -315,7 +315,7 @@ Avoid these patterns — they're the most common reasons prompts underperform:
 </Warning>
 
 <Warning>
-**Preguntas compuestas no estructuradas**
+**Unstructured compound questions**
 
 ❌ `"How do I use Docker and what's Kubernetes and how do they work together and should I learn both"`
 
@@ -323,5 +323,5 @@ Avoid these patterns — they're the most common reasons prompts underperform:
 </Warning>
 
 <Tip>
-**El prompt es una conversación.** If the first response isn't quite right, don't start over — follow up. "Make the explanation shorter", "Add error handling to that example", or "Now do the same for the DELETE endpoint" all work great as follow-ups.
+**Prompting is a conversation.** If the first response isn't quite right, don't start over — follow up. "Make the explanation shorter", "Add error handling to that example", or "Now do the same for the DELETE endpoint" all work great as follow-ups.
 </Tip>

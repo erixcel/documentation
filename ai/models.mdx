@@ -1,5 +1,5 @@
 ---
-title: "AI Language Models: Comparison and Use Cases"
+title: "AI Language Models: GPT, Claude, Gemini, and Others"
 sidebarTitle: "Models"
 description: "Compare leading AI language models: GPT-4, Claude, Gemini, Llama, Mistral. Context windows, strengths, API access, and choosing the right model."
 ---
@@ -8,7 +8,7 @@ Language models are the engine underneath every AI tool a developer uses today �
 
 ---
 
-## Modelos Principales
+## Frontier Models at a Glance
 
 A side-by-side comparison of the frontier models you're most likely to encounter:
 
@@ -31,7 +31,7 @@ Context window sizes are listed in **tokens** — roughly 0.75 words per token i
 
 ---
 
-## Modelos Open Source
+## Open-Source Models
 
 Open-source models can be run entirely on your own hardware. No API keys, no data leaving your machine, no per-token costs after setup.
 
@@ -61,7 +61,7 @@ Open-source model trained specifically on code. Excellent for coding tasks if yo
 
 ---
 
-## Ollama — LLMs en Local
+## Running Models Locally with Ollama
 
 [Ollama](https://ollama.com) is the easiest way to run open-source LLMs locally. One command to download and run any supported model.
 
@@ -91,7 +91,7 @@ ollama pull phi3
 ollama rm llama3
 ```
 
-### Usar Ollama via API
+### Using Ollama via API
 
 Ollama exposes a REST API on `localhost:11434` that's compatible with the OpenAI API format:
 
@@ -135,11 +135,11 @@ Combine Ollama with [Continue.dev](https://continue.dev) in VS Code for a fully 
 
 ---
 
-## Elegir el Modelo Correcto
+## Choosing the Right Model
 
 Use this decision guide to pick the right model for your use case:
 
-### Por tipo de tarea
+### By Task Type
 
 | Task | Recommended Model |
 |------|------------------|
@@ -181,7 +181,7 @@ High Quality ←————————————→ Low Cost
 
 ---
 
-## APIs de Modelos
+## Model APIs
 
 ### OpenAI API
 
@@ -259,7 +259,7 @@ const review = await askClaude(
 console.log(review);
 ```
 
-### Groq — Inferencia Ultrarrápida
+### Groq — Ultra-Fast Inference
 
 [Groq](https://groq.com) runs open-source models (Llama 3, Mistral, Gemma) on custom LPU hardware — typically 10–20x faster than GPU-based inference. API is OpenAI-compatible.
 

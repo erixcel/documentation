@@ -1,5 +1,5 @@
 ---
-title: "Node.js Environment Setup and Configuration"
+title: "Node.js Environment Setup and App Configuration Guide"
 sidebarTitle: "Environment"
 description: "Configure Node.js environments with .env files, dotenv, environment-specific configs, nvm for version management, and best practices for secrets."
 ---
@@ -8,7 +8,7 @@ Managing your Node.js environment well is the foundation of a reliable developme
 
 ---
 
-## Gestión de Versiones con nvm
+## Version Management with nvm
 
 [nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) lets you install and switch between multiple Node.js versions on the same machine. This is essential when working on projects that require different Node versions.
 
@@ -53,7 +53,7 @@ nvm use
 
 ### .nvmrc file
 
-Commit a `.nvmrc` file to your project root to declare the required Node version. Any team member (or CI pipeline) can then just run `nvm use` with no arguments.
+Commit a `.nvmrc` file to your project root to declare the required Node version. Any team member or CI pipeline can then run `nvm use` with no arguments.
 
 ```bash
 # .nvmrc
@@ -72,13 +72,13 @@ Add `nvm use` to your shell's directory-change hook (`cd`) using tools like [avn
 
 ---
 
-## Variables de Entorno
+## Environment Variables
 
 Environment variables let you configure your app differently per environment (development, staging, production) without changing code.
 
 ### Reading with `process.env`
 
-```js
+```javascript
 // Access any env variable
 const port       = process.env.PORT;
 const dbUrl      = process.env.DATABASE_URL;
@@ -107,7 +107,7 @@ JWT_SECRET=super-secret-key-change-in-production
 API_KEY=abc123xyz
 ```
 
-```js
+```javascript
 // src/index.js — load dotenv FIRST, before any other imports
 require("dotenv").config();
 
@@ -121,7 +121,7 @@ app.listen(process.env.PORT);
 
 For ES Modules:
 
-```js
+```javascript
 // src/index.mjs
 import "dotenv/config"; // loads .env automatically
 
@@ -159,13 +159,13 @@ SMTP_PASS=your-smtp-password
 
 ---
 
-## Configuración por Entorno
+## Environment-Specific Configuration
 
 ### NODE_ENV
 
 `NODE_ENV` is the standard variable to declare the runtime environment. Common values: `development`, `test`, `staging`, `production`.
 
-```js
+```javascript
 const isProduction  = process.env.NODE_ENV === "production";
 const isDevelopment = process.env.NODE_ENV === "development";
 const isTest        = process.env.NODE_ENV === "test";
@@ -173,7 +173,7 @@ const isTest        = process.env.NODE_ENV === "test";
 
 ### Environment-specific config file
 
-```js
+```javascript
 // src/config/index.js
 require("dotenv").config();
 
@@ -207,7 +207,7 @@ const config = {
 module.exports = config;
 ```
 
-```js
+```javascript
 // Usage in any file
 const config = require("./config");
 
@@ -228,7 +228,7 @@ For projects with many environments, you can maintain separate files:
 .env.test          # test runner config
 ```
 
-```js
+```javascript
 // Load the right file based on NODE_ENV
 const envFile = `.env.${process.env.NODE_ENV || "development"}`;
 require("dotenv").config({ path: envFile });
@@ -237,7 +237,7 @@ require("dotenv").config(); // fallback to .env
 
 ---
 
-## Scripts de package.json
+## npm Scripts with Environment Variables
 
 ### Setting env vars inline
 
@@ -277,7 +277,7 @@ Use `cross-env` in all team projects, even if your team is currently Mac/Linux-o
 
 ---
 
-## Buenas Prácticas
+## Best Practices
 
 ### Validate env vars at startup with Zod
 
@@ -287,7 +287,7 @@ Fail immediately with a clear error if required variables are missing or malform
 npm install zod
 ```
 
-```js
+```javascript
 // src/config/env.js
 const { z } = require("zod");
 
@@ -313,7 +313,7 @@ if (!parsed.success) {
 module.exports = parsed.data;
 ```
 
-```js
+```javascript
 // src/index.js
 require("dotenv").config();
 
@@ -329,7 +329,7 @@ console.log(`Starting in ${env.NODE_ENV} on port ${env.PORT}`);
 npm install joi
 ```
 
-```js
+```javascript
 const Joi = require("joi");
 
 const schema = Joi.object({
@@ -348,7 +348,7 @@ if (error) {
 module.exports = env;
 ```
 
-### Summary of best practices
+### Best practices summary
 
 | Practice | Why |
 |---|---|

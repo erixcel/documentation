@@ -1,5 +1,5 @@
 ---
-title: "Docker Volumes: Persistent Data Storage Guide"
+title: "Docker Volumes: Persistent and Shared Data Storage"
 sidebarTitle: "Volumes"
 description: "Manage persistent data in Docker with named volumes, bind mounts, and tmpfs. Includes backup strategies and docker-compose volume patterns."
 ---
@@ -82,7 +82,7 @@ docker volume ls --filter dangling=true
 # Crear un volumen simple
 docker volume create my-data
 
-# Con opciones específicas de driver
+# Con opciones específicas de driver (NFS)
 docker volume create \
   --driver local \
   --opt type=nfs \
@@ -151,8 +151,8 @@ docker run -d \
 ```bash
 docker run -d \
   --name node-dev \
-  -v $(pwd):/app \               # Código fuente
-  -v /app/node_modules \         # Preservar node_modules del contenedor
+  -v $(pwd):/app \
+  -v /app/node_modules \
   -p 3000:3000 \
   -e NODE_ENV=development \
   node:20-alpine \
@@ -188,19 +188,19 @@ services:
   db:
     image: postgres:15-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data    # Named volume
+      - postgres_data:/var/lib/postgresql/data               # Named volume
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # Bind mount
 
   api:
     image: my-api:latest
     volumes:
-      - uploads:/app/uploads                      # Named volume compartido
-      - ./src:/app/src                            # Bind mount para dev
+      - uploads:/app/uploads      # Named volume compartido
+      - ./src:/app/src            # Bind mount para dev
 
   backup:
     image: my-backup-tool:latest
     volumes:
-      - uploads:/data/uploads:ro                  # Acceso de lectura al mismo volumen
+      - uploads:/data/uploads:ro  # Acceso de lectura al mismo volumen
 
 # Declaración de volúmenes a nivel de proyecto
 volumes:

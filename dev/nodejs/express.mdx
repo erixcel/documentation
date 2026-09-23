@@ -1,21 +1,21 @@
 ---
-title: "Express.js Patterns: Build REST APIs Fast"
+title: "Express.js Guide: REST APIs, Routing, and Middleware"
 sidebarTitle: "Express"
-description: "Express.js reference for routing, middleware, error handling, and REST API patterns. Includes request validation, CORS, and authentication middleware examples."
+description: "Express.js reference for routing, middleware, error handling, and REST API patterns. Covers CORS, request validation, and authentication middleware."
 ---
 
 Express.js is the most widely used Node.js web framework — minimal, unopinionated, and fast. It wraps Node's `http` module with a clean API for routing, middleware chaining, and response helpers. Whether you're building a simple REST API or a full-featured backend, Express gives you the primitives you need without getting in your way.
 
 ---
 
-## Setup Básico
+## Basic Setup
 
 ```bash
 npm install express
 npm install -D @types/express  # if using TypeScript
 ```
 
-```js
+```javascript
 // src/index.js
 const express = require("express");
 
@@ -45,7 +45,7 @@ app.listen(PORT, () => {
 
 ### HTTP method handlers
 
-```js
+```javascript
 // GET — retrieve data
 app.get("/users", (req, res) => {
   res.json({ users: [] });
@@ -75,7 +75,7 @@ app.delete("/users/:id", (req, res) => {
 
 ### Route parameters
 
-```js
+```javascript
 // :id is a named parameter — accessible via req.params.id
 app.get("/users/:id", (req, res) => {
   const { id } = req.params;
@@ -91,7 +91,7 @@ app.get("/posts/:postId/comments/:commentId", (req, res) => {
 
 ### Query strings
 
-```js
+```javascript
 // GET /search?q=nodejs&page=2&limit=10
 app.get("/search", (req, res) => {
   const { q = "", page = 1, limit = 20 } = req.query;
@@ -107,7 +107,7 @@ app.get("/search", (req, res) => {
 
 Break large route files into modules using `express.Router()`.
 
-```js
+```javascript
 // src/routes/users.js
 const router = require("express").Router();
 
@@ -120,7 +120,7 @@ router.delete("/:id",  deleteUser);
 module.exports = router;
 ```
 
-```js
+```javascript
 // src/index.js
 const usersRouter  = require("./routes/users");
 const postsRouter  = require("./routes/posts");
@@ -141,7 +141,7 @@ Request → [middleware 1] → [middleware 2] → [route handler] → Response
 
 ### app.use() — Apply middleware globally
 
-```js
+```javascript
 // Runs for EVERY request
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} — ${new Date().toISOString()}`);
@@ -151,7 +151,7 @@ app.use((req, res, next) => {
 
 ### Built-in middleware
 
-```js
+```javascript
 // Parse JSON request bodies
 app.use(express.json({ limit: "10mb" }));
 
@@ -171,7 +171,7 @@ app.use("/assets", express.static("static"));
 npm install cors morgan helmet compression
 ```
 
-```js
+```javascript
 const cors        = require("cors");
 const morgan      = require("morgan");
 const helmet      = require("helmet");
@@ -197,7 +197,7 @@ app.use(compression());
 
 ### Custom middleware examples
 
-```js
+```javascript
 // Authentication middleware
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -231,7 +231,7 @@ app.get("/api/v1/dashboard", authenticate, (req, res) => {
 
 ### Request object (`req`)
 
-```js
+```javascript
 app.post("/example", (req, res) => {
   // Body (requires express.json() middleware)
   console.log(req.body);        // { name: "Alice", email: "a@b.com" }
@@ -260,7 +260,7 @@ app.post("/example", (req, res) => {
 
 ### Response object (`res`)
 
-```js
+```javascript
 app.get("/demo", (req, res) => {
   // Send JSON (sets Content-Type: application/json)
   res.json({ message: "Hello" });
@@ -295,13 +295,13 @@ app.get("/demo", (req, res) => {
 
 ---
 
-## Manejo de Errores
+## Error Handling
 
 Express has a special middleware signature for error handling: **four parameters** — `(err, req, res, next)`. It must be registered **after** all routes.
 
 ### Centralized error handler
 
-```js
+```javascript
 // src/middleware/errorHandler.js
 function errorHandler(err, req, res, next) {
   // Log the error (use a proper logger in production)
@@ -323,7 +323,7 @@ function errorHandler(err, req, res, next) {
 module.exports = errorHandler;
 ```
 
-```js
+```javascript
 // src/index.js — register AFTER all routes
 const errorHandler = require("./middleware/errorHandler");
 
@@ -332,7 +332,7 @@ app.use(errorHandler);
 
 ### Passing errors from route handlers
 
-```js
+```javascript
 // Async wrapper to avoid try/catch in every handler
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -355,7 +355,7 @@ app.get(
 
 ### 404 handler
 
-```js
+```javascript
 // Place this after all routes but before the error handler
 app.use((req, res, next) => {
   const err = new Error(`Route not found: ${req.method} ${req.url}`);
@@ -366,9 +366,9 @@ app.use((req, res, next) => {
 
 ---
 
-## Estructura de Proyecto
+## Project Structure
 
-A recommended layout for a REST API built with Express:
+A clean folder structure separates concerns and keeps your codebase navigable as it grows. Here is a recommended layout for a REST API built with Express.
 
 ```
 my-api/
@@ -386,14 +386,14 @@ my-api/
 │   │   ├── users.service.js  # Business logic
 │   │   └── posts.service.js
 │   ├── models/
-│   │   ├── user.model.js     # DB schema / ORM model
+│   │   ├── user.model.js     # ORM model definition
 │   │   └── post.model.js
 │   ├── middleware/
 │   │   ├── authenticate.js   # JWT / session auth
 │   │   ├── validate.js       # Request validation
 │   │   └── errorHandler.js   # Centralized error handler
 │   ├── config/
-│   │   └── index.js          # Env vars, DB config
+│   │   └── index.js          # Env vars, app config
 │   └── utils/
 │       ├── asyncHandler.js
 │       └── ApiError.js
@@ -405,15 +405,15 @@ my-api/
 └── README.md
 ```
 
-The key separation: **routes** declare paths, **controllers** handle HTTP logic, **services** contain business logic, **models** talk to the database.
+The key separation: **routes** declare paths, **controllers** handle HTTP logic, **services** contain business logic, **models** define data shapes.
 
 ---
 
-## Ejemplos Comunes
+## Full CRUD Example
 
-### Full CRUD API for a resource
+Here is a complete CRUD implementation for a `/users` resource — controllers, routes, and error handling wired together.
 
-```js
+```javascript
 // src/controllers/users.controller.js
 const db = require("../services/users.service");
 
@@ -505,7 +505,7 @@ async function deleteUser(req, res, next) {
 module.exports = { getUsers, getUserById, createUser, updateUser, deleteUser };
 ```
 
-```js
+```javascript
 // src/routes/users.js
 const router = require("express").Router();
 const {

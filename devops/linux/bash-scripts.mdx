@@ -1,5 +1,5 @@
 ---
-title: "Bash Scripting: Practical Patterns and Examples"
+title: "Bash Scripting: Practical Patterns and Real Examples"
 sidebarTitle: "Bash Scripts"
 description: "Practical Bash scripting patterns: variables, conditionals, loops, functions, error handling, and reusable script templates for automation."
 ---
@@ -8,7 +8,7 @@ Bash scripts are the glue of the Linux world — they automate repetitive tasks,
 
 ---
 
-## Estructura Básica de un Script
+## Basic Script Structure
 
 Every well-written Bash script starts with the same structure. These few lines at the top turn a fragile ad-hoc sequence of commands into a robust, predictable program.
 
@@ -42,7 +42,7 @@ echo "Script starting..."
 
 ---
 
-## Variables y Parámetros
+## Variables and Parameters
 
 Variables in Bash are untyped by default. Understanding how to use positional parameters and default values is key to writing flexible, reusable scripts.
 
@@ -119,7 +119,7 @@ echo "${FILENAME:7:8}"        # 20240115
 
 ---
 
-## Condicionales
+## Conditionals
 
 Bash conditionals let you branch logic based on file existence, string values, numbers, or command exit codes.
 
@@ -226,7 +226,7 @@ fi
 
 ---
 
-## Bucles
+## Loops
 
 Loops let you process collections of files, read data line by line, or repeat actions until a condition is met.
 
@@ -321,7 +321,7 @@ done
 
 ---
 
-## Funciones
+## Functions
 
 Functions let you organize scripts into reusable, testable units. They're the difference between a script you never want to look at again and one you can actually maintain.
 
@@ -414,7 +414,7 @@ create_backup() {
 
 ---
 
-## Manejo de Errores
+## Error Handling
 
 A script that fails silently is worse than one that fails loudly. Good error handling means you know exactly what went wrong, where, and why.
 
@@ -514,9 +514,9 @@ EXISTING_USERS=$(grep "alice" /etc/passwd || true)   # Don't fail if user not fo
 
 ---
 
-## Ejemplos Prácticos
+## Practical Script Examples
 
-### Script 1: Backup con Timestamp
+### Script 1: Timestamped Backup
 
 A robust backup script that archives a directory, optionally rotates old backups, and provides clear feedback.
 
@@ -580,7 +580,6 @@ fi
 # ── Rotate Old Backups ────────────────────────────────────
 log_info "Keeping last $MAX_BACKUPS backups, removing older ones..."
 
-# List all backups for this source, sorted by date (oldest first)
 BACKUP_COUNT=$(find "$DEST_DIR" -name "${SOURCE_NAME}_*.tar.gz" | wc -l)
 
 if (( BACKUP_COUNT > MAX_BACKUPS )); then
@@ -603,7 +602,7 @@ log_success "Backup complete. $REMAINING backup(s) stored in $DEST_DIR"
 
 ---
 
-### Script 2: Process Watchdog (Monitor y Reinicio)
+### Script 2: Process Watchdog
 
 A watchdog script that checks whether a process is running and restarts it if not. Suitable for running via `cron`.
 
@@ -703,7 +702,7 @@ fi
 
 ---
 
-### Script 3: Renombrado Masivo de Archivos
+### Script 3: Batch File Renamer
 
 A script that batch-renames files — useful for normalizing filenames, changing extensions, or adding prefixes/suffixes.
 

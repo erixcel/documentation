@@ -8,16 +8,16 @@ Microservices architecture structures an application as a collection of small, i
 
 ---
 
-## Principios Clave
+## Core Principles
 
 <CardGroup cols={2}>
   <Card title="Single Responsibility" icon="bullseye">
     Each service owns exactly one business capability (e.g., `OrderService`, `PaymentService`, `NotificationService`). If it does two things, it should probably be two services.
   </Card>
-  <Card title="Despliegue Independiente" icon="rocket">
+  <Card title="Independent Deployment" icon="rocket">
     Services can be deployed, updated, and rolled back without coordinating with other teams. Each service has its own CI/CD pipeline.
   </Card>
-  <Card title="Escalado Independiente" icon="arrows-up-down-left-right">
+  <Card title="Independent Scaling" icon="arrows-up-down-left-right">
     The `OrderService` can scale to 20 replicas while `UserService` stays at 2, based on actual load per service.
   </Card>
   <Card title="Own Data Store" icon="database">
@@ -31,13 +31,13 @@ Microservices architecture structures an application as a collection of small, i
 
 ---
 
-## Comunicación entre Servicios
+## Service Communication
 
-### Síncrona vs Asíncrona
+### Synchronous vs. Asynchronous
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  SINCRÓNICA (Request/Response)                           │
+│  SYNCHRONOUS (Request/Response)                          │
 │                                                          │
 │  Client ──── HTTP/REST ────► Service B                   │
 │         ◄─── Response ──────                             │
@@ -47,7 +47,7 @@ Microservices architecture structures an application as a collection of small, i
 └──────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
-│  ASÍNCRONA (Fire & Forget / Event-Driven)                │
+│  ASYNCHRONOUS (Fire & Forget / Event-Driven)             │
 │                                                          │
 │  Service A ──► Message Broker ──► Service B              │
 │                (RabbitMQ/Kafka)   Service C              │
@@ -168,12 +168,12 @@ async function consumeOrderEvents() {
 }
 ```
 
-| Método | Latencia | Acoplamiento | Mejor para |
-|--------|----------|--------------|------------|
-| REST | Baja-Media | Mayor | APIs externas, CRUD simple |
-| gRPC | Muy baja | Medio | Comunicación interna alta frecuencia |
-| RabbitMQ | Media | Bajo | Workflows, notificaciones |
-| Kafka | Media | Muy bajo | Event streaming, auditoría, alta escala |
+| Method | Latency | Coupling | Best For |
+|--------|---------|----------|----------|
+| REST | Low–Medium | Higher | External APIs, simple CRUD |
+| gRPC | Very low | Medium | High-frequency internal calls |
+| RabbitMQ | Medium | Low | Workflows, notifications |
+| Kafka | Medium | Very low | Event streaming, auditing, high scale |
 
 ---
 
@@ -247,7 +247,7 @@ app.listen(3000);
 
 ---
 
-## Patrones de Resiliencia
+## Resilience Patterns
 
 In distributed systems, failures are not exceptional — they are expected. Design every service call assuming the remote service might be slow, down, or returning errors.
 
@@ -389,7 +389,7 @@ How do services find each other when IPs and ports are dynamic (containers come 
   [Service Instance]              [Calling Service]
 ```
 
-| Tipo | Descripción | Ejemplo |
+| Type | Description | Example |
 |------|-------------|---------|
 | **DNS-based** | Services register a DNS name; resolved by the platform | Kubernetes Services |
 | **Client-side** | Client queries the registry and picks an instance (load balances itself) | Consul + Node client |
@@ -422,15 +422,15 @@ process.on("SIGTERM", () => {
 
 ---
 
-## Datos en Microservicios
+## Data in Microservices
 
 ### Database per Service
 
 Each service owns its own database — no shared schema, no cross-service joins.
 
 ```
-UserService   → PostgreSQL (users DB)
-OrderService  → PostgreSQL (orders DB)  ← separate instance/schema
+UserService    → PostgreSQL (users DB)
+OrderService   → PostgreSQL (orders DB)  ← separate instance/schema
 ProductService → MongoDB (products DB)
 NotificationService → Redis (queues) + DynamoDB (logs)
 ```
@@ -596,20 +596,20 @@ spec:
 
 ---
 
-## Cuándo NO usar Microservices
+## When NOT to Use Microservices
 
 <Warning>
   Microservices are not a silver bullet. Many teams have suffered by adopting them too early. Here's when to stay with a monolith.
 </Warning>
 
-| Situación | Recomendación |
-|-----------|---------------|
-| Equipo pequeño (< 5 devs) | ✅ Monolito — menos overhead operacional |
-| Producto en fase MVP / early startup | ✅ Monolito — itera rápido, valida el negocio |
-| Dominio no bien entendido todavía | ✅ Monolito — boundaries incorrectos cuestan mucho |
-| No tienes DevOps/SRE dedicado | ✅ Monolito — microservices requieren infraestructura madura |
-| Alto tráfico + equipos independientes | ✅ Microservicios — escala organizacional + técnico |
-| Servicios con requisitos de escala muy distintos | ✅ Microservicios — escala solo lo que necesita |
+| Situation | Recommendation |
+|-----------|----------------|
+| Small team (< 5 devs) | ✅ Monolith — less operational overhead |
+| MVP / early-stage product | ✅ Monolith — iterate fast, validate the business |
+| Domain not yet well understood | ✅ Monolith — wrong service boundaries are expensive to fix |
+| No dedicated DevOps/SRE | ✅ Monolith — microservices require mature infrastructure |
+| High traffic + independent teams | ✅ Microservices — organizational and technical scale |
+| Services with very different scaling needs | ✅ Microservices — scale only what needs it |
 
 <Tip>
   **Monolith First.** Start with a well-structured monolith using clear module boundaries. When a specific module has independent scaling or deployment requirements, extract it into a service. This is far easier than splitting a poorly designed monolith later.

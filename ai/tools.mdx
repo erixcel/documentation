@@ -1,5 +1,5 @@
 ---
-title: "AI Tools for Developers: The Essential Toolkit"
+title: "AI Tools for Developers: Your Essential Dev Toolkit"
 sidebarTitle: "Tools"
 description: "Overview of AI tools for developers: coding assistants, image generation, productivity tools, CLI tools, and how to integrate them into your workflow."
 ---
@@ -8,7 +8,7 @@ The AI tooling ecosystem for developers has exploded. In the span of two years, 
 
 ---
 
-## Asistentes de Código
+## Coding Assistants
 
 These are the tools you interact with while writing code — in your editor, in your terminal, or in a chat interface alongside your codebase.
 
@@ -70,7 +70,7 @@ These are the tools you interact with while writing code — in your editor, in 
 
 ---
 
-## Modelos de Chat
+## Chat Interfaces
 
 Sometimes you need a conversation, not an autocomplete. These are the chat interfaces worth knowing.
 
@@ -102,7 +102,7 @@ Sometimes you need a conversation, not an autocomplete. These are the chat inter
 
 ---
 
-## Herramientas CLI
+## CLI Tools
 
 Run AI from your terminal — useful for scripting, quick lookups, and integrating AI into shell pipelines.
 
@@ -176,7 +176,7 @@ fabric --list
 
 ---
 
-## Generación de Imágenes
+## Image Generation
 
 Less central to dev work, but worth knowing for documentation, mockups, and product work.
 
@@ -192,11 +192,11 @@ For dev documentation specifically, DALL-E 3 via ChatGPT is often the fastest pa
 
 ---
 
-## Flujo de Trabajo con IA
+## Integrating AI Into Your Workflow
 
 The biggest productivity gains come not from any single tool, but from weaving AI into your existing workflow consistently.
 
-### Code review con IA
+### AI-assisted code review
 
 Before requesting a human review, run your diff through an AI review:
 
@@ -205,7 +205,7 @@ Before requesting a human review, run your diff through an AI review:
 git diff --staged | llm "Review this code diff. Focus on bugs, edge cases, and anything that looks non-obvious."
 ```
 
-### Generación de tests
+### Test generation
 
 ```text
 Prompt pattern:
@@ -214,14 +214,14 @@ Cover: happy path, empty input, null/undefined, boundary values, and error cases
 Mock any external dependencies."
 ```
 
-### Generación de docs
+### Documentation generation
 
 ```bash
 # Generate JSDoc for a file
 cat src/utils/auth.ts | llm "Add JSDoc comments to every exported function and type in this TypeScript file. Return the full file with comments added."
 ```
 
-### Automatización de tareas repetitivas
+### Automating repetitive tasks
 
 ```text
 Prompt: "Write a bash script that watches the /logs directory, and when a new .log file appears,

@@ -8,7 +8,7 @@ Clean Architecture, popularized by Robert C. Martin ("Uncle Bob"), is a software
 
 ---
 
-## Las Capas
+## The Four Layers
 
 Clean Architecture defines four primary layers, each with a clear responsibility:
 
@@ -29,7 +29,7 @@ Clean Architecture defines four primary layers, each with a clear responsibility
 
 ---
 
-## Regla de Dependencia
+## The Dependency Rule
 
 The single most important rule: **dependencies always point inward**.
 
@@ -54,7 +54,7 @@ Entities (Domain)
 
 ---
 
-## Estructura de Carpetas
+## Folder Structure
 
 A recommended folder structure for a Node.js project following Clean Architecture:
 
@@ -110,7 +110,7 @@ src/
 
 ---
 
-## Entidades (Domain)
+## Entities (Domain Layer)
 
 Entities encapsulate enterprise-wide business rules. They are pure TypeScript/JavaScript classes with no framework dependencies. They can contain methods that enforce invariants.
 
@@ -196,7 +196,7 @@ export class Email {
 
 ---
 
-## Casos de Uso
+## Use Cases (Application Layer)
 
 Use cases live in the application layer and orchestrate domain logic. They receive dependencies via constructor injection (interfaces, not concrete implementations).
 
@@ -271,7 +271,7 @@ export class GetUserById {
 
 ---
 
-## Repositorios e Interfaces
+## Repositories and Interfaces
 
 The repository pattern decouples data persistence from business logic. Interfaces are defined in the **domain layer**; implementations live in the **infrastructure layer**.
 
@@ -403,21 +403,21 @@ export const userController = new UserController(
 
 ---
 
-## Ventajas y Cuándo Usarla
+## Benefits and Trade-offs
 
-### Ventajas
+### Benefits
 
 <CardGroup cols={2}>
-  <Card title="Alta Testeabilidad" icon="flask">
+  <Card title="High Testability" icon="flask">
     Business logic (entities and use cases) can be unit tested with zero infrastructure setup. No database, no HTTP server required.
   </Card>
-  <Card title="Independencia de Frameworks" icon="shield">
+  <Card title="Framework Independence" icon="shield">
     You can swap Express for Fastify, Prisma for TypeORM, or PostgreSQL for MongoDB without touching a single use case.
   </Card>
-  <Card title="Separación Clara de Responsabilidades" icon="layer-group">
+  <Card title="Clear Separation of Concerns" icon="layer-group">
     Each layer has a defined purpose. New developers immediately know where business logic lives vs. infrastructure code.
   </Card>
-  <Card title="Mantenibilidad a Largo Plazo" icon="clock-rotate-left">
+  <Card title="Long-term Maintainability" icon="clock-rotate-left">
     The codebase ages better. Infrastructure dependencies (the most volatile parts) are isolated at the edges.
   </Card>
 </CardGroup>
@@ -428,16 +428,16 @@ export const userController = new UserController(
 - **Indirection**: Tracing a feature requires jumping between layers; can be confusing for newcomers.
 - **Overhead for small apps**: For a 5-route CRUD API, Clean Architecture is likely overkill.
 
-### ¿Cuándo tiene sentido?
+### When Does It Make Sense?
 
-| Escenario | ¿Usar Clean Architecture? |
+| Scenario | Use Clean Architecture? |
 |---|---|
-| Startup en fase MVP | ❌ Probablemente no — mueve rápido |
-| Aplicación de dominio complejo | ✅ Sí — protege la lógica de negocio |
-| Equipo grande (5+ devs) | ✅ Sí — fronteras claras reducen fricción |
-| Proyecto a largo plazo (2+ años) | ✅ Sí — la inversión se amortiza |
-| Script o herramienta CLI simple | ❌ No — innecesariamente complejo |
-| Necesitas cambiar de DB en el futuro | ✅ Sí — abstracción de repositorio paga |
+| Early-stage MVP / startup | ❌ Probably not — move fast |
+| Complex domain application | ✅ Yes — protects business logic |
+| Large team (5+ devs) | ✅ Yes — clear boundaries reduce friction |
+| Long-lived project (2+ years) | ✅ Yes — the investment pays off |
+| Simple CLI script or tool | ❌ No — unnecessarily complex |
+| Need to swap databases in the future | ✅ Yes — repository abstraction pays dividends |
 
 <Tip>
   Start with a simpler layered architecture first. Refactor toward Clean Architecture when the complexity of your domain justifies it. Over-engineering a small project is as harmful as under-engineering a large one.

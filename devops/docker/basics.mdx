@@ -1,7 +1,7 @@
 ---
-title: "Docker Commands: Essential Reference for Developers"
+title: "Docker CLI: Essential Commands Reference for Developers"
 sidebarTitle: "Basics"
-description: "Complete reference for essential Docker CLI commands: containers, images, logs, exec, inspect, and cleanup. Ready-to-copy examples."
+description: "Essential Docker CLI commands for managing images, containers, logs, exec, inspect, and system cleanup — with copy-pasteable examples."
 ---
 
 El CLI de Docker es la herramienta principal para interactuar con el daemon de Docker desde la terminal. Esta página reúne los comandos más usados en el día a día: gestión de imágenes, ciclo de vida de contenedores, inspección de logs, ejecución de comandos dentro de contenedores y limpieza del sistema. Todos los ejemplos están listos para copiar y ejecutar.
@@ -22,7 +22,7 @@ docker pull nginx
 docker pull node:20-alpine
 
 # Descargar desde un registro privado
-docker pull registry.mycompany.com/backend:v1.4.2
+docker pull registry.example.com/my-app:v1.4.2
 ```
 
 ### Construir una imagen
@@ -81,8 +81,8 @@ docker tag my-app:latest my-dockerhub-user/my-app:v2.0.0
 docker push my-dockerhub-user/my-app:v2.0.0
 
 # Publicar en un registro privado
-docker tag my-app:latest registry.mycompany.com/my-app:v2.0.0
-docker push registry.mycompany.com/my-app:v2.0.0
+docker tag my-app:latest registry.example.com/my-app:v2.0.0
+docker push registry.example.com/my-app:v2.0.0
 ```
 
 ---
@@ -296,7 +296,7 @@ docker system prune
 # Incluir también volúmenes no usados
 docker system prune --volumes
 
-# Sin confirmación interactiva (útil en CI/CD)
+# Sin confirmación interactiva
 docker system prune -f
 
 # Ver cuánto espacio ocupa Docker actualmente

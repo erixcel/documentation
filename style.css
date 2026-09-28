@@ -3,15 +3,3 @@ img.nav-logo {
   height: 2.25rem !important;
   width: auto !important;
 }
-
-/* Achicar el subtítulo (description del frontmatter) bajo el H1 */
-#page-title + p {
-  font-size: 1rem !important;
-  line-height: 1.6 !important;
-  font-weight: 400 !important;
-  color: rgb(107 114 128) !important;
-}
-
-.dark #page-title + p {
-  color: rgb(156 163 175) !important;
-}

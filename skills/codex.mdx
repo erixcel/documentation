@@ -1,0 +1,131 @@
+---
+title: "Skills en Codex"
+sidebarTitle: "Codex"
+description: "Cómo usar Agent Skills en Codex CLI: invocarlas con $skill, instalar skills pre-hechas con $skill-installer y crear las tuyas con $skill-creator."
+---
+
+Codex CLI (OpenAI) soporta **Agent Skills**: paquetes de instrucciones que el agente carga bajo demanda para tareas específicas (integrar Linear, hacer code review, usar tu propio SDK, etc.). Están basadas en el mismo estándar abierto de Anthropic, así que una skill escrita para Claude Code también funciona en Codex.
+
+## Invocar una skill
+
+Dentro de una sesión de Codex:
+
+```bash Codex
+$nombre-skill
+```
+
+O lista las disponibles:
+
+```bash Codex
+/skills
+```
+
+## Dónde viven las skills
+
+| Ubicación | Alcance |
+| --- | --- |
+| `.agents/skills/` | Del proyecto actual |
+| `$HOME/.agents/skills/` | Personal |
+| `/etc/codex/skills/` | Administradas por la organización |
+
+## Skills built-in
+
+Codex viene con dos skills muy útiles listas para usar:
+
+<Tabs>
+  <Tab title="$skill-creator">
+    Te guía paso a paso para crear una nueva skill: pregunta qué hace, dónde debe vivir, genera el `SKILL.md` con la estructura correcta y lo prueba.
+
+    ```bash Codex
+    $skill-creator
+    ```
+  </Tab>
+  <Tab title="$skill-installer">
+    Instala una skill del marketplace oficial.
+
+    ```bash Codex
+    $skill-installer linear
+    $skill-installer github
+    ```
+  </Tab>
+</Tabs>
+
+## Crear una skill a mano
+
+<Steps>
+  <Step title="Crear la carpeta">
+    ```bash Terminal
+    mkdir -p .agents/skills/desplegar-staging
+    ```
+  </Step>
+  <Step title="Escribir SKILL.md">
+    ```markdown SKILL.md
+    ---
+    name: desplegar-staging
+    description: Despliega la rama actual al entorno de staging usando el script deploy.sh. Úsalo cuando pidan "deploy a staging" o "subir a QA".
+    ---
+    
+    # Desplegar a staging
+    
+    1. Verifica que la rama actual no sea `main`.
+    2. Ejecuta `./scripts/deploy.sh staging`.
+    3. Reporta la URL de staging cuando termine.
+    4. Si falla, muestra los últimos 20 logs.
+    ```
+  </Step>
+  <Step title="Invocarla">
+    ```bash Codex
+    $desplegar-staging
+    ```
+  </Step>
+</Steps>
+
+## Estructura de una skill
+
+```text
+.agents/skills/mi-skill/
+├── SKILL.md              # Requerido
+├── scripts/              # Opcional
+├── references/           # Opcional
+└── assets/               # Opcional
+```
+
+## Frontmatter
+
+```markdown SKILL.md
+---
+name: mi-skill
+description: Qué hace y cuándo debe usarse. Codex lee esto para saber si aplicar la skill.
+---
+```
+
+<Tip>
+  Escribí la `description` como si le hablaras al agente: "úsalo cuando el usuario pida X" funciona mejor que descripciones genéricas.
+</Tip>
+
+## AGENTS.md: instrucciones siempre activas
+
+A diferencia de las skills (que se cargan bajo demanda), `AGENTS.md` se lee al inicio de cada sesión. Úsalo para reglas globales:
+
+| Ubicación | Cuándo se usa |
+| --- | --- |
+| `~/.codex/AGENTS.md` | Reglas personales globales |
+| `AGENTS.md` (raíz del repo) | Reglas del equipo para ese proyecto |
+
+Ejemplo mínimo:
+
+```markdown AGENTS.md
+- Usá TypeScript strict siempre que sea posible.
+- No hagas commits directos a `main`.
+- Los tests van en `__tests__/` al lado del archivo.
+```
+
+## Recursos
+
+<Card title="Codex CLI" icon="terminal" href="https://developers.openai.com/codex/cli/">
+  Documentación oficial
+</Card>
+
+<Card title="Agent Skills en Codex" icon="book" href="https://developers.openai.com/codex/cli/skills/">
+  Guía oficial de skills
+</Card>

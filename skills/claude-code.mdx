@@ -1,0 +1,139 @@
+---
+title: "Skills en Claude Code"
+sidebarTitle: "Claude Code"
+description: "Cómo usar skills en Claude Code: qué son, dónde se instalan, cómo invocarlas y cómo crear tus propias skills personales o de proyecto con SKILL.md."
+---
+
+Las **Skills** en Claude Code son paquetes de instrucciones (y opcionalmente scripts o recursos) que extienden lo que Claude sabe hacer. Se cargan solo cuando Claude las necesita, así no consumen contexto de más.
+
+Cada skill es una carpeta con un archivo `SKILL.md`. Claude las descubre automáticamente y las usa cuando el contexto de tu tarea coincide con su descripción, o puedes invocarlas manualmente con `/nombre-skill`.
+
+## Skills incluidas (bundled)
+
+Claude Code trae skills listas para usar como `/doctor`, `/code-review`, `/debug`, `/verify`, `/run`, `/batch` y `/loop`. Se invocan escribiendo `/` seguido del nombre.
+
+```bash Terminal
+/doctor          # Diagnóstico de la instalación
+/code-review     # Revisión de código
+/verify          # Verificar que un cambio funciona
+```
+
+Para desactivarlas: agrega `disableBundledSkills: true` a la configuración.
+
+## Dónde viven las skills
+
+| Ubicación | Alcance |
+| --- | --- |
+| `~/.claude/skills/<nombre>/` | Personal (todos los proyectos) |
+| `.claude/skills/<nombre>/` | Del proyecto actual |
+
+Las personales van en tu home y funcionan en cualquier repo. Las del proyecto viven en `.claude/skills/` dentro del repositorio y se comparten con el equipo si las commiteas.
+
+## Crear tu primera skill
+
+<Steps>
+  <Step title="Crear la carpeta">
+    ```bash Terminal
+    mkdir -p ~/.claude/skills/resumir-cambios
+    ```
+  </Step>
+  <Step title="Escribir SKILL.md">
+    Crea el archivo `~/.claude/skills/resumir-cambios/SKILL.md`:
+
+    ```markdown SKILL.md
+    ---
+    name: resumir-cambios
+    description: Resume los cambios sin commitear del repositorio actual y marca los que sean riesgosos. Úsalo cuando el usuario pregunte "qué cambié" o pida un resumen del diff.
+    ---
+    
+    # Resumir cambios
+    
+    Cuando el usuario invoque esta skill:
+    
+    1. Ejecuta `git status` y `git diff` para inspeccionar los cambios.
+    2. Agrupa los cambios por área (features, fixes, refactors, docs).
+    3. Marca con ⚠️ cualquier cambio en archivos de configuración, secretos o migraciones.
+    4. Devuelve el resumen en formato de lista.
+    ```
+  </Step>
+  <Step title="Usarla">
+    Abre Claude Code en cualquier proyecto y escribe:
+
+    ```bash Terminal
+    /resumir-cambios
+    ```
+
+    Claude también la puede invocar automáticamente si preguntas "resumime los cambios".
+  </Step>
+</Steps>
+
+## Estructura completa de una skill
+
+```text
+~/.claude/skills/mi-skill/
+├── SKILL.md              # Requerido: instrucciones + metadata
+├── scripts/              # Opcional: código ejecutable
+├── references/           # Opcional: documentación extra
+└── assets/               # Opcional: plantillas, imágenes
+```
+
+## Frontmatter de SKILL.md
+
+```markdown SKILL.md
+---
+name: mi-skill
+description: Qué hace y cuándo debe usarse. Sé específico para que Claude sepa cuándo invocarla.
+---
+```
+
+<Tip>
+  La `description` es lo que Claude lee para decidir si la skill aplica a tu tarea. Sé claro y usa palabras clave del dominio.
+</Tip>
+
+## Skill con scripts
+
+Si necesitas ejecutar código real:
+
+```markdown SKILL.md
+---
+name: analizar-csv
+description: Analiza archivos CSV y genera estadísticas y gráficos.
+dependencies: python>=3.8, pandas, matplotlib
+---
+
+# Analizar CSV
+
+1. Pídele al usuario la ruta del CSV.
+2. Ejecuta `scripts/analyze.py <ruta>`.
+3. Muestra el resumen y los gráficos generados.
+```
+
+## Recargar skills sin reiniciar
+
+```bash Terminal
+/reload-plugins
+```
+
+## Convertir una skill en plugin
+
+Cuando quieras compartirla con tu equipo, empaquétala como plugin agregando `.claude-plugin/plugin.json`:
+
+```json plugin.json
+{
+  "name": "mi-plugin",
+  "description": "Skills útiles para el equipo",
+  "version": "1.0.0"
+}
+```
+
+Los skills de un plugin se invocan namespaced: `/mi-plugin:nombre-skill`.
+
+## Recursos
+
+<Card title="Documentación oficial de Skills" icon="book" href="https://code.claude.com/docs/en/skills">
+  Skills en Claude Code
+</Card>
+
+<Card title="Ejemplos oficiales" icon="github" href="https://github.com/anthropics/skills">
+  Skills de ejemplo de Anthropic
+</Card>

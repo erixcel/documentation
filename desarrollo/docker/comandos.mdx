@@ -1,0 +1,144 @@
+---
+title: "Docker: Comandos esenciales"
+sidebarTitle: "Comandos"
+description: "Comandos Docker organizados de lo más usado a lo más específico: run, imágenes, contenedores, redes, volúmenes, compose, DockerHub y flags."
+---
+
+Referencia completa de comandos Docker que uso en el día a día, organizada de lo más usado a lo más específico.
+
+## Lo más usado
+
+```bash Terminal
+docker --version                                    # Ver versión de Docker
+docker build -t nombre-image-docker .               # Construir imagen desde Dockerfile
+docker run -p 9000:8080 nombre-image-docker         # Correr imagen mapeando puertos (host:contenedor)
+docker ps -a                                        # Todos los contenedores (incluso apagados)
+docker images                                       # Listar imágenes
+docker logs -f nombre_contenedor                    # Ver logs en tiempo real
+docker exec -it nombre_contenedor bash              # Entrar al contenedor
+docker stop nombre_contenedor                       # Detener contenedor
+```
+
+## Truquitos
+
+<Tip>
+  Ver las variables de entorno de una imagen
+</Tip>
+
+```bash Terminal
+docker inspect nombre_image --format='{{range .Config.Env}}{{println .}}{{end}}'
+```
+
+<Tip>
+  Resetear un docker-compose completo
+</Tip>
+
+```bash Terminal
+docker compose -p nombre_proyecto down -v    # Remueve todo (desde cualquier carpeta)
+docker compose -p nombre_proyecto up -d      # Recompila (desde la carpeta del docker-compose.yml)
+```
+
+## Limpieza y mantenimiento
+
+```bash Terminal
+docker system prune -a           # Eliminar caché y todas las imágenes no usadas
+docker builder prune             # Eliminar caché de compilación
+docker container prune           # Eliminar todos los contenedores parados
+```
+
+## Ejecutar contenedores (docker run)
+
+```bash Terminal
+docker run -p 80:80 -p 8080:8080 nombre-image-docker              # Dos puertos a la vez
+docker run --env-file .env -p 8080:8080 nombre-image-docker       # Con archivo .env
+docker run image_from_docker_hub                                  # Contenedor desde imagen pública
+docker run -it nombre_contenedor                                  # Interactivo
+docker run --name nombre_contenedor hello-world                   # Con nombre
+docker run --name nombre -d image tail -f /dev/null               # Con nombre, siempre activo
+docker run -it --rm -d -p 1700:80 --name nombre imagen:tag        # Interactivo + autodestruible + background + puerto
+docker run -d --name nombre --network nombre imagen:tag           # En red específica
+docker run -d --name nombre -v "/ruta:/ruta_datos_imagen" imagen:tag                              # Con bind mount
+docker run -d --name nombre --mount src=nombre_volumen,dst=ruta_datos_imagen imagen:tag           # Con volumen nombrado
+```
+
+## Imágenes
+
+```bash Terminal
+docker search redis                # Buscar imágenes en DockerHub
+docker pull redis                  # Descargar imagen
+docker rmi nombre_image            # Eliminar imagen por nombre
+docker rmi id_image                # Eliminar imagen por id
+```
+
+## Contenedores
+
+```bash Terminal
+docker rm nombre_contenedor              # Eliminar contenedor por nombre
+docker rm id_contenedor                  # Eliminar contenedor por id
+docker inspect nombre_contenedor         # Inspeccionar contenedor
+docker logs nombre_contenedor            # Logs del contenedor
+docker stats nombre_contenedor           # Estadísticas en vivo
+docker stop nombre_contenedor            # Detener contenedor
+docker exec nombre_contenedor            # Ejecutar comando dentro del contenedor
+```
+
+## Redes
+
+```bash Terminal
+docker network ls                                            # Listar redes
+docker network create nombre_red                             # Crear red
+docker network inspect nombre_red                            # Inspeccionar red
+docker network disconnect nombre_network nombre_contenedor   # Desconectar contenedor de una red
+docker network rm nombre_red                                 # Eliminar red
+```
+
+## Volúmenes
+
+```bash Terminal
+docker volume ls                     # Listar volúmenes
+docker volume create nombre          # Crear volumen
+docker volume rm nombre_volumen      # Eliminar volumen
+```
+
+## Docker Compose
+
+```bash Terminal
+docker compose up -d                        # Levantar en segundo plano
+docker compose -f nombre.yml up -d          # Con archivo específico
+docker compose down                         # Detener y eliminar contenedores
+```
+
+## DockerHub
+
+```bash Terminal
+docker login -u erixcel https://index.docker.io/v1/          # Login
+docker tag local_image:latest id_user/name_repository:tag    # Etiquetar imagen
+docker push id_user/name_repository:tag                      # Subir a DockerHub
+```
+
+### Crear nuevo tag para una imagen existente
+
+```bash Terminal
+docker build -t erixcel/evolution-api:version .
+docker images
+docker run -p 8080:8080 erixcel/evolution-api:version
+docker login
+docker push erixcel/evolution-api:version
+```
+
+## Flags comunes
+
+```text
+-p          Especificar un puerto
+-d          Ejecutar en segundo plano
+-a          Ver todo
+-f          Seguir en tiempo real
+-t          Asignar nombre + tag a una imagen
+-v          Asignar un bind mount
+-e          Asignar variables de entorno
+--name      Asignar nombre a un contenedor
+--network   Asignar una red
+--mount     Asignar un volumen
+-it         Ejecutar de forma interactiva
+--rm        Autodestruir una vez inactivo
+```

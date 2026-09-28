@@ -1,0 +1,47 @@
+---
+title: "Python: Comandos esenciales"
+sidebarTitle: "Comandos"
+description: "Comandos de referencia para pip y entornos virtuales en Python: instalar paquetes, crear venv, activar en Windows y Linux, y gestionar requirements."
+---
+
+Referencia rápida para gestionar paquetes con `pip` y entornos virtuales en Python.
+
+## Gestión de paquetes con pip
+
+```bash Terminal
+pip list                    # Ver todos los paquetes instalados
+pip install nombre          # Instalar un paquete
+pip install nombre==1.0.0   # Instalar una versión específica
+pip cache purge             # Limpiar la caché de pip
+```
+
+## Entornos virtuales
+
+```bash Terminal
+virtualenv -p python3 venv   # Crear entorno virtual (virtualenv)
+python -m venv venv          # Crear entorno virtual (módulo nativo)
+```
+
+### Activar / desactivar
+
+<Tabs>
+  <Tab title="Windows">
+    ```powershell PowerShell
+    .\venv\Scripts\activate
+    deactivate
+    ```
+  </Tab>
+  <Tab title="Linux / macOS">
+    ```bash Terminal
+    source venv/scripts/activate
+    deactivate
+    ```
+  </Tab>
+</Tabs>
+
+## Requirements
+
+```bash Terminal
+pip freeze > requirements.txt      # Exportar dependencias actuales
+pip install -r requirements.txt    # Instalar desde requirements
+```

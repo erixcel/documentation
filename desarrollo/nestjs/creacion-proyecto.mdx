@@ -1,0 +1,41 @@
+---
+title: "NestJS: Crear un proyecto"
+sidebarTitle: "Creación de proyecto"
+description: "Cómo crear un proyecto NestJS al vuelo con degit desde el starter oficial en TypeScript y levantar el servidor de desarrollo en el puerto 3000."
+---
+
+Forma rápida de arrancar un proyecto NestJS sin necesidad de instalar el `@nestjs/cli` globalmente.
+
+## Sin el CLI instalado
+
+```bash Terminal
+npx degit nestjs/typescript-starter nombre-proyecto
+cd nombre-proyecto
+npm install
+```
+
+## Levantar el proyecto
+
+```bash Terminal
+npm run start:dev
+```
+
+Queda escuchando en `http://localhost:3000`.
+
+## Con el CLI instalado globalmente
+
+```bash Terminal
+npm i -g @nestjs/cli
+nest new mi-proyecto
+cd mi-proyecto
+npm run start:dev
+```
+
+## Generar recursos
+
+```bash Terminal
+nest g module usuarios
+nest g controller usuarios
+nest g service usuarios
+nest g resource productos    # CRUD completo
+```

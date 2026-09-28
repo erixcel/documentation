@@ -1,0 +1,36 @@
+---
+title: "Angular: Crear un proyecto"
+sidebarTitle: "Creación de proyecto"
+description: "Cómo crear un proyecto de Angular con o sin el CLI instalado globalmente, usar una versión específica y levantar el servidor de desarrollo."
+---
+
+Formas de crear un proyecto Angular al vuelo, sin necesidad de tener el `@angular/cli` instalado globalmente.
+
+## Sin el CLI instalado
+
+```bash Terminal
+npx @angular/cli@latest new nombre_proyecto
+```
+
+## Con una versión específica
+
+```bash Terminal
+npx @angular/cli@18.0 new nombre_proyecto
+```
+
+## Levantar el servidor
+
+```bash Terminal
+npx ng serve
+```
+
+Por defecto queda en `http://localhost:4200`.
+
+## Con el CLI instalado globalmente
+
+```bash Terminal
+npm i -g @angular/cli
+ng new mi-app
+cd mi-app
+ng serve
+```

@@ -1,0 +1,134 @@
+---
+title: "Skills en Antigravity"
+sidebarTitle: "Antigravity"
+description: "Cómo usar skills y plugins en Antigravity de Google: invocarlas como slash commands, instalar plugins con la CLI agy y crear tus propias skills."
+---
+
+Antigravity (Google) soporta **Agent Skills** y **plugins**. Las skills viven en carpetas con un `SKILL.md` que describe cuándo y cómo usarlas; los plugins son bundles distribuibles que pueden contener una o más skills.
+
+Cada skill queda automáticamente disponible como slash command dentro del agente.
+
+## Invocar una skill
+
+```bash Antigravity
+/nombre-skill
+```
+
+O deja que el agente la elija automáticamente según el contexto de tu pedido.
+
+## Dónde viven las skills y plugins
+
+| Tipo | Ubicación | Alcance |
+| --- | --- | --- |
+| Skill | `.agents/skills/<nombre>/` | Del workspace actual |
+| Skill | `~/.gemini/antigravity/skills/<nombre>/` | Personal (global) |
+| Plugin | `.agents/plugins/<nombre>/` | Del workspace actual |
+| Plugin | `~/.gemini/config/plugins/<nombre>/` | Personal (global) |
+
+## Gestionar plugins con `agy`
+
+Antigravity trae una CLI llamada `agy` para manejar plugins:
+
+```bash Terminal
+agy plugin list                # Ver plugins instalados
+agy plugin install <nombre>    # Instalar
+agy plugin enable <nombre>     # Habilitar
+agy plugin disable <nombre>    # Deshabilitar
+agy plugin uninstall <nombre>  # Desinstalar
+```
+
+## Crear una skill
+
+<Steps>
+  <Step title="Crear la carpeta">
+    ```bash Terminal
+    mkdir -p .agents/skills/revisar-pr
+    ```
+  </Step>
+  <Step title="Escribir SKILL.md">
+    ```markdown SKILL.md
+    ---
+    name: revisar-pr
+    description: Revisa el PR abierto actual y sugiere mejoras de código, tests y documentación. Úsalo cuando pidan "revisá el PR" o "code review".
+    ---
+    
+    # Revisar PR
+    
+    1. Ejecuta `gh pr view --json files,title,body` para leer el PR.
+    2. Analiza cada archivo cambiado buscando:
+       - Bugs potenciales
+       - Falta de tests
+       - Nombres poco claros
+       - Código duplicado
+    3. Devuelve la revisión agrupada por archivo, con severidad (blocker / nice-to-have).
+    ```
+  </Step>
+  <Step title="Usarla">
+    En Antigravity, escribe:
+
+    ```bash Antigravity
+    /revisar-pr
+    ```
+  </Step>
+</Steps>
+
+## Estructura completa
+
+```text
+.agents/skills/mi-skill/
+├── SKILL.md              # Requerido
+├── scripts/              # Opcional: código ejecutable
+├── references/           # Opcional: docs de apoyo
+└── assets/               # Opcional: plantillas
+```
+
+## Frontmatter
+
+```markdown SKILL.md
+---
+name: mi-skill
+description: Qué hace y cuándo aplicarla. Sé específico para que el agente sepa cuándo usarla.
+---
+```
+
+<Tip>
+  La `description` es la única pista que tiene el agente para decidir si tu skill aplica. Escribíla mencionando el disparador ("cuando el usuario diga...").
+</Tip>
+
+## Empaquetar como plugin
+
+Si querés compartir tus skills con el equipo, empaquetalas como plugin:
+
+```text
+mi-plugin/
+├── plugin.json
+└── skills/
+    ├── skill-uno/
+    │   └── SKILL.md
+    └── skill-dos/
+        └── SKILL.md
+```
+
+```json plugin.json
+{
+  "name": "mi-plugin",
+  "version": "1.0.0",
+  "description": "Skills para el equipo"
+}
+```
+
+Luego cualquier miembro puede instalarlo con:
+
+```bash Terminal
+agy plugin install ./mi-plugin
+```
+
+## Recursos
+
+<Card title="Antigravity" icon="rocket" href="https://antigravity.google/">
+  Sitio oficial
+</Card>
+
+<Card title="Documentación de skills" icon="book" href="https://antigravity.google/docs">
+  Guía oficial
+</Card>

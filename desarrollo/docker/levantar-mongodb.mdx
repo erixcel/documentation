@@ -1,0 +1,26 @@
+---
+title: "MongoDB con Docker"
+sidebarTitle: "Levantar MongoDB"
+description: "Cómo levantar MongoDB rápidamente con Docker: comando run listo para copiar con credenciales root y string de conexión al puerto 27017 en local."
+---
+
+Comando listo para levantar MongoDB en local con Docker.
+
+## Levantar MongoDB
+
+```bash Terminal
+docker run -d \
+  --name mongodb \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=admin \
+  -p 27017:27017 \
+  mongo:6
+```
+
+## Conexión
+
+```text
+mongodb://admin:admin@127.0.0.1:27017
+```
+
+<Tip>Cambia usuario y contraseña antes de usarlo en cualquier entorno real.</Tip>

@@ -1,0 +1,43 @@
+---
+title: "Instalar Homebrew en macOS"
+sidebarTitle: "Instalar Homebrew"
+description: "Guía para instalar Homebrew, el gestor de paquetes de macOS, desde la terminal y empezar a instalar herramientas de desarrollo rápidamente."
+---
+
+Homebrew es el gestor de paquetes de facto en macOS. Instala herramientas de desarrollo (git, node, python, etc.) con un comando.
+
+## Instalación
+
+Ejecuta en la terminal:
+
+```bash Terminal
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+## Verificar
+
+```bash Terminal
+brew --version
+```
+
+## Comandos básicos
+
+```bash Terminal
+brew install <paquete>      # Instalar CLI
+brew install --cask <app>   # Instalar apps GUI
+brew update                 # Actualizar Homebrew
+brew upgrade                # Actualizar paquetes
+brew list                   # Listar instalados
+brew uninstall <paquete>    # Desinstalar
+```
+
+## Ejemplos comunes
+
+```bash Terminal
+brew install git node pnpm
+brew install --cask visual-studio-code docker
+```
+
+<Note>
+  En Apple Silicon, Homebrew se instala en `/opt/homebrew`. Asegúrate de tenerlo en tu `PATH`.
+</Note>

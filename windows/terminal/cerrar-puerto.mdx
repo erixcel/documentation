@@ -1,0 +1,29 @@
+---
+title: "Cerrar un puerto en Windows"
+sidebarTitle: "Cerrar puerto"
+description: "Cómo identificar el proceso que ocupa un puerto en Windows con netstat y terminarlo desde PowerShell o CMD usando taskkill."
+---
+
+Cuando un puerto queda ocupado (por ejemplo el `3000` de un servidor Node), estos comandos identifican el proceso que lo retiene y lo terminan.
+
+## Identificar el PID que usa el puerto
+
+```powershell PowerShell
+netstat -ano | findstr :3000
+```
+
+La última columna es el **PID** del proceso.
+
+## Terminar el proceso
+
+```powershell PowerShell
+taskkill /PID <PID> /F
+```
+
+El flag `/F` fuerza el cierre.
+
+## En una sola línea
+
+```powershell PowerShell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
+```

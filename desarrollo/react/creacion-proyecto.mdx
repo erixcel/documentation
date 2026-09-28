@@ -1,0 +1,30 @@
+---
+title: "React: Crear un proyecto"
+sidebarTitle: "Creación de proyecto"
+description: "Cómo crear un proyecto de React al vuelo con Vite usando la plantilla TypeScript y levantar el servidor de desarrollo en pocos comandos."
+---
+
+Forma rápida y ligera de crear un proyecto React con Vite, sin instalar nada globalmente.
+
+## Crear el proyecto (Vite + TypeScript)
+
+```bash Terminal
+npm create vite@latest nombre-app -- --template react-ts
+```
+
+## Instalar y levantar
+
+```bash Terminal
+cd nombre-app
+npm install
+npm run dev
+```
+
+Vite queda escuchando en `http://localhost:5173`.
+
+## Otras plantillas útiles
+
+```bash Terminal
+npm create vite@latest nombre-app -- --template react       # JavaScript
+npm create vite@latest nombre-app -- --template react-swc-ts # Con SWC
+```

@@ -1,0 +1,22 @@
+---
+title: "Redis con Docker"
+sidebarTitle: "Levantar Redis"
+description: "Cómo levantar Redis rápidamente con Docker: comando run listo para copiar y string de conexión al puerto 6379 en local para pruebas y desarrollo."
+---
+
+Comando listo para levantar Redis en local con Docker.
+
+## Levantar Redis
+
+```bash Terminal
+docker run -d \
+  --name redis \
+  -p 6379:6379 \
+  redis:7
+```
+
+## Conexión
+
+```text
+redis://127.0.0.1:6379
+```

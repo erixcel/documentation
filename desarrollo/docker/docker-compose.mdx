@@ -1,0 +1,167 @@
+---
+title: "Docker Compose: Teoría y palabras reservadas"
+sidebarTitle: "Docker Compose"
+description: "Explicación de qué es Docker Compose, cómo se estructura un docker-compose.yml y qué significa cada palabra reservada como services, image, ports o volumes."
+---
+
+Docker Compose es la herramienta oficial para definir y ejecutar aplicaciones Docker de múltiples contenedores. En vez de lanzar cada `docker run` a mano, describes toda la stack en un archivo `docker-compose.yml` y la levantas con un solo comando.
+
+## Estructura de un docker-compose.yml
+
+```yaml docker-compose.yml
+version: '3.9'
+services:
+  api:
+    image: node:20-alpine
+    container_name: mi-api
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    volumes:
+      - ./app:/usr/src/app
+    networks:
+      - backend
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  db-data:
+```
+
+## `version`
+
+Declara la versión del formato del archivo Compose. Ejemplos comunes: `'3.8'`, `'3.9'`. Determina qué palabras reservadas están disponibles.
+
+<Note>
+  Desde Compose v2 (el que trae Docker Desktop moderno) el campo `version` es opcional y se ignora, pero mucha gente lo sigue escribiendo por costumbre.
+</Note>
+
+## `services`
+
+Bloque raíz donde defines cada contenedor de tu aplicación. Cada clave debajo (`api`, `db`, ...) es el nombre lógico del servicio y también el hostname que otros servicios usan para conectarse a él.
+
+## Palabras reservadas dentro de un servicio
+
+### `image`
+
+Imagen de Docker que se usará para crear el contenedor. Puede venir de DockerHub (`postgres:15`) o de un registro privado.
+
+### `build`
+
+Alternativa a `image`. Le dices a Compose que construya la imagen desde un `Dockerfile` local.
+
+```yaml
+build:
+  context: ./api
+  dockerfile: Dockerfile
+```
+
+### `container_name`
+
+Nombre fijo que tendrá el contenedor al levantarse. Si lo omites, Compose genera uno con el patrón `<proyecto>_<servicio>_1`.
+
+### `ports`
+
+Mapea puertos del **host** hacia el **contenedor**. El formato es `"HOST:CONTENEDOR"`.
+
+```yaml
+ports:
+  - "8080:80"   # localhost:8080 → contenedor:80
+```
+
+### `environment`
+
+Variables de entorno que recibe el contenedor. Se pueden escribir como mapa o como lista.
+
+```yaml
+environment:
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: admin
+```
+
+### `env_file`
+
+Carga variables de entorno desde un archivo externo.
+
+```yaml
+env_file:
+  - .env
+```
+
+### `volumes`
+
+Persiste datos y monta carpetas entre el host y el contenedor. Hay dos tipos:
+
+- **Bind mount**: `./local:/ruta/contenedor` — carpeta del host.
+- **Volumen nombrado**: `mi-volumen:/ruta/contenedor` — gestionado por Docker.
+
+### `networks`
+
+Redes a las que se conecta el servicio. Los servicios en la misma red se ven entre sí por su nombre.
+
+### `depends_on`
+
+Define orden de arranque: `api` se levanta después de `db`. **No** espera a que `db` esté listo para recibir conexiones; solo espera a que el contenedor arranque.
+
+### `restart`
+
+Política de reinicio del contenedor. Valores comunes:
+
+- `no` (por defecto)
+- `always`
+- `on-failure`
+- `unless-stopped`
+
+### `command`
+
+Sobrescribe el comando por defecto de la imagen.
+
+```yaml
+command: npm run start:prod
+```
+
+### `healthcheck`
+
+Define cómo Docker verifica si el contenedor está sano.
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  interval: 30s
+  retries: 3
+```
+
+## Bloques raíz adicionales
+
+### `networks`
+
+Declara redes personalizadas que los servicios pueden usar en su bloque `networks`.
+
+### `volumes`
+
+Declara volúmenes nombrados que Docker gestiona por ti (persisten aunque borres el contenedor).
+
+## Comandos básicos
+
+```bash Terminal
+docker compose up -d        # Levantar en segundo plano
+docker compose down         # Detener y eliminar contenedores
+docker compose down -v      # + eliminar volúmenes
+docker compose ps           # Ver contenedores del proyecto
+docker compose logs -f api  # Ver logs de un servicio
+docker compose restart api  # Reiniciar un servicio
+```

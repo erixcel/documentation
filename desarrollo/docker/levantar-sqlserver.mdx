@@ -1,0 +1,26 @@
+---
+title: "SQL Server con Docker"
+sidebarTitle: "Levantar SQL Server"
+description: "Cómo levantar Microsoft SQL Server en Docker: comando run con EULA aceptado, contraseña de prueba y string de conexión al puerto 1433 en local."
+---
+
+Comando listo para levantar SQL Server (imagen oficial de Microsoft) en local con Docker.
+
+## Levantar SQL Server
+
+```bash Terminal
+docker run -d \
+  --name sqlserver \
+  -e "ACCEPT_EULA=Y" \
+  -e "SA_PASSWORD=Admin12345!" \
+  -p 1433:1433 \
+  mcr.microsoft.com/mssql/server:2022-latest
+```
+
+## Conexión
+
+```text
+sqlserver://sa:Admin12345!@127.0.0.1:1433
+```
+
+<Note>La contraseña debe cumplir la política de complejidad de SQL Server (mayúsculas, minúsculas, números y símbolos, mínimo 8 caracteres).</Note>

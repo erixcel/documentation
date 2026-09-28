@@ -3,42 +3,47 @@
   "theme": "maple",
   "name": "Erixcel Dev Notes",
   "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
+    "primary": "#2B76D9",
+    "light": "#A7C8F2",
+    "dark": "#3F77BF"
   },
-  "favicon": "/favicon.svg",
+  "favicon": {
+    "light": "/images/logo_erixcel_light.png",
+    "dark": "/images/logo_erixcel_dark.png"
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Overview",
+        "tab": "General",
         "groups": [
           {
             "group": "Inicio",
             "pages": [
-              "introduction",
-              "how-to-use"
+              "introduction"
             ]
           }
         ]
       },
       {
-        "tab": "DevOps",
+        "tab": "Windows",
         "groups": [
           {
-            "group": "Docker",
+            "group": "Terminal",
             "pages": [
-              "devops/docker/basics",
-              "devops/docker/compose",
-              "devops/docker/networking",
-              "devops/docker/volumes"
+              "windows/terminal/cerrar-puerto",
+              "windows/terminal/instalar-chocolatey"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Mac",
+        "groups": [
           {
-            "group": "Linux & Shell",
+            "group": "Terminal",
             "pages": [
-              "devops/linux/commands",
-              "devops/linux/bash-scripts"
+              "mac/terminal/cerrar-puerto",
+              "mac/terminal/instalar-homebrew"
             ]
           }
         ]
@@ -47,47 +52,63 @@
         "tab": "Desarrollo",
         "groups": [
           {
-            "group": "Node.js",
+            "group": "Docker",
             "pages": [
-              "dev/nodejs/basics",
-              "dev/nodejs/npm-commands",
-              "dev/nodejs/express",
-              "dev/nodejs/environment"
+              "desarrollo/docker/comandos",
+              "desarrollo/docker/docker-compose",
+              "desarrollo/docker/levantar-postgres",
+              "desarrollo/docker/levantar-mysql",
+              "desarrollo/docker/levantar-sqlserver",
+              "desarrollo/docker/levantar-redis",
+              "desarrollo/docker/levantar-mongodb"
             ]
           },
           {
-            "group": "Arquitectura",
+            "group": "NestJS",
             "pages": [
-              "dev/architecture/clean-architecture",
-              "dev/architecture/microservices",
-              "dev/architecture/design-patterns"
+              "desarrollo/nestjs/creacion-proyecto"
             ]
           },
           {
-            "group": "Git",
+            "group": "React",
             "pages": [
-              "dev/git/commands",
-              "dev/git/workflows"
+              "desarrollo/react/creacion-proyecto"
+            ]
+          },
+          {
+            "group": "Angular",
+            "pages": [
+              "desarrollo/angular/creacion-proyecto"
+            ]
+          },
+          {
+            "group": "Python",
+            "pages": [
+              "desarrollo/python/comandos"
             ]
           }
         ]
       },
       {
-        "tab": "IA & Skills",
+        "tab": "Skills",
         "groups": [
           {
-            "group": "Inteligencia Artificial",
+            "group": "Agent Skills",
             "pages": [
-              "ai/prompting",
-              "ai/tools",
-              "ai/models"
+              "skills/antigravity",
+              "skills/codex",
+              "skills/claude-code"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Proyectos",
+        "groups": [
           {
-            "group": "Skills & Recursos",
+            "group": "Stacks",
             "pages": [
-              "ai/skills/productivity",
-              "ai/skills/learning-resources"
+              "proyectos/index"
             ]
           }
         ]
@@ -95,19 +116,16 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/logo_erixcel_large_light.png",
+    "dark": "/images/logo_erixcel_large_dark.png"
   },
-  "navbar": {
-    "primary": {
-      "type": "button",
-      "label": "GitHub",
-      "href": "https://github.com"
+  "background": {
+    "color": {
+      "light": "#F2F2F2",
+      "dark": "#0D0D0D"
     }
   },
-  "footer": {
-    "socials": {
-      "github": "https://github.com"
-    }
+  "icons": {
+    "library": "fontawesome"
   }
 }

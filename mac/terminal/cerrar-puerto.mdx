@@ -1,0 +1,31 @@
+---
+title: "Cerrar un puerto en macOS"
+sidebarTitle: "Cerrar puerto"
+description: "Cómo encontrar el proceso que ocupa un puerto en macOS con lsof y terminarlo con kill desde la terminal en pocos pasos."
+---
+
+En macOS, `lsof` es la forma más directa de descubrir qué proceso está usando un puerto y liberarlo.
+
+## Identificar el PID
+
+```bash Terminal
+lsof -i :3000
+```
+
+Devuelve el PID del proceso que escucha en ese puerto.
+
+## Terminar el proceso
+
+```bash Terminal
+kill -9 <PID>
+```
+
+## En una sola línea
+
+```bash Terminal
+kill -9 $(lsof -t -i:3000)
+```
+
+<Tip>
+  `lsof -t` devuelve solo el PID, ideal para encadenar comandos.
+</Tip>

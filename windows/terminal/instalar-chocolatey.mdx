@@ -1,0 +1,38 @@
+---
+title: "Instalar Chocolatey en Windows"
+sidebarTitle: "Instalar Chocolatey"
+description: "Guía rápida para instalar Chocolatey, el gestor de paquetes de Windows, desde PowerShell con permisos de administrador y verificar la instalación."
+---
+
+Chocolatey es el gestor de paquetes de Windows. Permite instalar herramientas (git, node, vscode, etc.) desde la terminal con un solo comando.
+
+## Requisitos
+
+- PowerShell 5+ o PowerShell Core
+- Ejecutar como **Administrador**
+
+## Instalación
+
+Abre PowerShell como administrador y ejecuta:
+
+```powershell PowerShell
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+## Verificar
+
+```powershell PowerShell
+choco --version
+```
+
+## Instalar paquetes
+
+```powershell PowerShell
+choco install git nodejs vscode -y
+```
+
+<Tip>
+  El flag `-y` acepta todos los prompts automáticamente.
+</Tip>

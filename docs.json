@@ -90,6 +90,17 @@
         ]
       },
       {
+        "tab": "UI",
+        "groups": [
+          {
+            "group": "Diseño",
+            "pages": [
+              "ui/copiar-estilo"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Skills",
         "groups": [
           {

@@ -1,0 +1,130 @@
+---
+title: "Copiar estilo visual con Gemini"
+sidebarTitle: "Copiar estilo"
+description: "Cómo extraer el sistema de diseño de cualquier sitio usando Mobbin, Gemini y un prompt en JSON para replicar el look en tus proyectos."
+---
+
+Técnica para tomar el estilo visual de un sitio real (colores, tipografías, sombras, animaciones, etc.), convertirlo a un JSON de sistema de diseño y usarlo como input para que un agente de IA construya tu propia página con ese mismo look.
+
+## Flujo general
+
+<Steps>
+  <Step title="Elegir un sitio de referencia">
+    Entrá a [Mobbin · Últimos sitios](https://mobbin.com/discover/sites/latest) y navegá hasta encontrar un sitio cuyo estilo te guste.
+
+    <Tip>
+      Buscá algo cuyo *look* te resuene: tipografías, colorimetría, espaciado, densidad. No importa el rubro.
+    </Tip>
+  </Step>
+
+  <Step title="Capturar 3 o 4 pantallas">
+    Sacá entre **3 y 4 capturas** del sitio que representen bien el estilo:
+
+    - Landing / hero
+    - Una pantalla con formularios o botones
+    - Una pantalla con tarjetas, listados o datos
+    - Opcional: footer o modales
+
+    Cuantas más variantes visuales, mejor va a inferir el sistema.
+  </Step>
+
+  <Step title="Subirlas a Gemini con el prompt">
+    Abrí [Gemini](https://gemini.google.com), adjuntá las capturas y pegá este prompt:
+
+    ```text Prompt para Gemini
+    Analiza únicamente el estilo visual y genera un sistema de diseño completo en formato JSON
+    que permita replicar este look de forma coherente en cualquier app, sin copiar contenido ni
+    layouts exactos.
+
+    El JSON debe incluir:
+    - paleta de colores
+    - tipografías
+    - jerarquía visual
+    - espaciados
+    - grid y layout
+    - estilos de botones (primarios y secundarios)
+    - sombras
+    - estados hover / active
+    - iconografía
+    - animaciones (keyframes, scripts e instrucciones)
+    - transiciones
+    - patrones reutilizables
+    - especificaciones de diseño adaptativo (responsive)
+    ```
+
+    <Note>
+      Gemini funciona mejor que otros modelos para este caso porque procesa múltiples imágenes en paralelo y devuelve JSON estructurado sin desviarse.
+    </Note>
+  </Step>
+
+  <Step title="Guardar el JSON resultante">
+    Gemini devuelve un JSON con toda la especificación. Copialo y guardalo (por ejemplo, `design-system.json`).
+
+    Ejemplo de estructura esperada:
+
+    ```json design-system.json
+    {
+      "colors": {
+        "primary": "#2B76D9",
+        "background": "#F2F2F2",
+        "surface": "#FFFFFF",
+        "text": { "primary": "#0D0D0D", "secondary": "#6B7280" }
+      },
+      "typography": {
+        "fontFamily": "Inter, sans-serif",
+        "scale": { "h1": "3rem", "h2": "2rem", "body": "1rem" }
+      },
+      "spacing": { "xs": "4px", "sm": "8px", "md": "16px", "lg": "32px" },
+      "radius": { "sm": "6px", "md": "12px", "lg": "24px" },
+      "shadows": { "card": "0 4px 12px rgba(0,0,0,.08)" },
+      "buttons": {
+        "primary": { "bg": "#2B76D9", "text": "#fff", "hover": "#1E5DB8" },
+        "secondary": { "bg": "transparent", "border": "1px solid #D1D5DB" }
+      },
+      "animations": {
+        "fadeIn": "opacity 0 → 1 en 300ms ease-out"
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Pasarle el JSON a un agente de IA">
+    Abrí tu agente favorito (Claude Code, Codex, Cursor, Antigravity, v0, Lovable...) y pegá algo como:
+
+    ```text Prompt para el agente
+    Construí una landing para {mi_proyecto} respetando estrictamente este sistema de diseño.
+    No inventes colores, tipografías, espaciados ni sombras: usá solo los definidos en el JSON.
+
+    <design-system>
+    {pegá el JSON acá}
+    </design-system>
+
+    Contenido de la landing:
+    - Hero con título "..." y CTA
+    - Sección de features (3 cards)
+    - Footer con links
+    ```
+
+    <Tip>
+      Si el agente se desvía del estilo, recordale explícitamente: *"revisá el design-system y ajustá los componentes que no lo respeten"*.
+    </Tip>
+  </Step>
+</Steps>
+
+## Por qué funciona
+
+- **Mobbin** te da acceso rápido a miles de sitios reales bien diseñados.
+- **Gemini** ve las imágenes y abstrae el estilo a tokens, sin engancharse en copiar el contenido literal.
+- El **JSON como intermediario** es portable: podés usarlo con cualquier agente, framework o stack.
+- El resultado es un sitio propio con un look profesional, sin partir de cero ni copiar HTML ajeno.
+
+## Recursos
+
+<CardGroup cols={2}>
+  <Card title="Mobbin" icon="globe" href="https://mobbin.com/discover/sites/latest">
+    Galería de sitios web reales
+  </Card>
+  <Card title="Gemini" icon="sparkle" href="https://gemini.google.com">
+    Análisis visual multimodal
+  </Card>
+</CardGroup>

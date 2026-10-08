@@ -1,0 +1,21 @@
+---
+title: "drizzle.config.ts"
+sidebarTitle: "drizzle.config.ts"
+description: "Configuración de Drizzle Kit para PostgreSQL."
+---
+
+Guarda el archivo `drizzle.config.ts` en la raíz del proyecto.
+
+```typescript drizzle.config.ts
+import type { Config } from 'drizzle-kit';
+import { dbConfig } from '@db/config.db';
+
+export default {
+  schema: './src/db/tables/*.table.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: dbConfig,
+} satisfies Config;
+```
+
+El alias `@db/config.db` debe poder resolverse al ejecutar Drizzle Kit; una entrada en `tsconfig.json` por sí sola no garantiza que todas las herramientas de ejecución resuelvan alias.

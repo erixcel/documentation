@@ -74,7 +74,11 @@
                   "desarrollo/nestjs/package-json/dependencias",
                   "desarrollo/nestjs/package-json/devdependencias"
                 ]
-              }
+              },
+              "desarrollo/nestjs/dockerfile",
+              "desarrollo/nestjs/.prettierrc",
+              "desarrollo/nestjs/drizzle-config",
+              "desarrollo/nestjs/tsconfig"
             ]
           },
           {

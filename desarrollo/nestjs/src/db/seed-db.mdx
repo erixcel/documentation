@@ -1,0 +1,57 @@
+---
+title: "seed.db.ts"
+sidebarTitle: "seed.db.ts"
+---
+
+Carga datos iniciales o de prueba mediante los archivos de `src/seeds`. Ejecuta los seeds en un orden definido para respetar las relaciones entre tablas. **Adapta las importaciones a los seeds de tu proyecto.**
+
+```typescript seed.db.ts
+import { seedBathTypes } from '@seeds/bath-type.seed';
+import { seedBaths } from '@seeds/bath.seed';
+import { seedBreeds } from '@seeds/breed.seed';
+import { seedCustomers } from '@seeds/customer.seed';
+import { seedCustomerRelations } from '@seeds/customer-relation.seed';
+import { seedPets } from '@seeds/pet.seed';
+import { seedSpecies } from '@seeds/specie.seed';
+import { seedTreatmentTypes } from '@seeds/treatment-type.seed';
+import { seedTreatments } from '@seeds/treatment.seed';
+import { seedUsers } from '@seeds/user.seed';
+import { seedBranches } from '@seeds/branch.seed';
+import { seedWhatsappTemplates } from '@seeds/whatsapp_template.seed';
+import { seedIncomes } from '@seeds/income.seed';
+
+async function seed() {
+  try {
+    console.log('🚀 Starting database seeding...\n');
+
+    // Seeds must run in order due to foreign key dependencies
+    await seedUsers(); // Users can be seeded first (no dependencies)
+    const branchesData = await seedBranches();
+    await seedWhatsappTemplates();
+    const speciesData = await seedSpecies();
+    const breedsData = await seedBreeds(speciesData);
+    const treatmentTypesData = await seedTreatmentTypes();
+    const bathTypesData = await seedBathTypes();
+    const customersData = await seedCustomers();
+    await seedCustomerRelations(customersData);
+    const petsData = await seedPets(customersData, breedsData);
+    await seedBaths(petsData, bathTypesData, branchesData);
+    await seedTreatments(petsData, treatmentTypesData, branchesData);
+    await seedIncomes(customersData, branchesData);
+
+    console.log('\n✨ Database seeding completed successfully!');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error seeding database:', error);
+    process.exit(1);
+  }
+}
+
+seed();
+```
+
+## Ejecutar
+
+```bash Terminal
+npm run db:seed
+```

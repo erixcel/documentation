@@ -78,7 +78,13 @@
               "desarrollo/nestjs/dockerfile",
               "desarrollo/nestjs/.prettierrc",
               "desarrollo/nestjs/drizzle-config",
-              "desarrollo/nestjs/tsconfig"
+              "desarrollo/nestjs/tsconfig",
+              {
+                "group": "scripts",
+                "pages": [
+                  "desarrollo/nestjs/scripts/generate-api-types"
+                ]
+              }
             ]
           },
           {

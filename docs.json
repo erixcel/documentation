@@ -68,19 +68,6 @@
             "pages": [
               "desarrollo/nestjs/creacion-proyecto",
               {
-                "group": "package.json",
-                "pages": [
-                  "desarrollo/nestjs/package-json/scripts",
-                  "desarrollo/nestjs/package-json/dependencias",
-                  "desarrollo/nestjs/package-json/devdependencias"
-                ]
-              },
-              "desarrollo/nestjs/dockerfile",
-              "desarrollo/nestjs/.prettierrc",
-              "desarrollo/nestjs/drizzle-config",
-              "desarrollo/nestjs/tsconfig",
-              "desarrollo/nestjs/env-example",
-              {
                 "group": "scripts",
                 "pages": [
                   "desarrollo/nestjs/scripts/generate-api-types"
@@ -108,7 +95,20 @@
                     ]
                   }
                 ]
-              }
+              },
+              "desarrollo/nestjs/env-example",
+              "desarrollo/nestjs/.prettierrc",
+              "desarrollo/nestjs/dockerfile",
+              "desarrollo/nestjs/drizzle-config",
+              {
+                "group": "package.json",
+                "pages": [
+                  "desarrollo/nestjs/package-json/scripts",
+                  "desarrollo/nestjs/package-json/dependencias",
+                  "desarrollo/nestjs/package-json/devdependencias"
+                ]
+              },
+              "desarrollo/nestjs/tsconfig"
             ]
           },
           {

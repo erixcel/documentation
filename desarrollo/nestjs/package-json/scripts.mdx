@@ -39,15 +39,23 @@ Ubicación en `package.json`:
 
 | Script | Función |
 | --- | --- |
-| `db:create` | Ejecuta el script personalizado de creación. |
+| `db:create` | Ejecuta el script de creación de la base de datos. |
 | `db:seed` | Ejecuta la carga de datos iniciales. |
 | `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
+| `db:migrate` | Ejecuta el script personalizado de migraciones. |
+| `db:command` | Ejecuta comandos de base de datos definidos en el proyecto. |
+| `db:backup` | Ejecuta el script de respaldo de la base de datos. |
+| `db:restore` | Ejecuta el script de restauración de la base de datos. |
 | `db:studio` | Abre Drizzle Studio para explorar los datos. |
 
 ```json package.json
 "db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
 "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
 "db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+"db:migrate": "ts-node -r tsconfig-paths/register src/db/migrate.db.ts",
+"db:command": "ts-node -r tsconfig-paths/register src/db/command.db.ts",
+"db:backup": "ts-node -r tsconfig-paths/register src/db/backup.db.ts",
+"db:restore": "ts-node -r tsconfig-paths/register src/db/restore.db.ts",
 "db:studio": "drizzle-kit studio"
 ```
 

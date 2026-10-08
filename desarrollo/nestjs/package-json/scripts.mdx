@@ -2,16 +2,15 @@
 title: "Scripts"
 ---
 
-> **Ubicación:** `package.json` → propiedad `"scripts"`. Copia las líneas dentro del objeto `"scripts": { ... }`, junto a las existentes. Separa las entradas con comas (si añades líneas después de una entrada existente, esa entrada debe terminar en coma). Los fragmentos no incluyen llaves para facilitar el pegado.
+Ubicación en `package.json`:
+
+```jsonc
+"scripts": {
+  // Colocar aquí
+}
+```
 
 ## Formato e indentación (Prettier)
-
-```json
-"format": "npm run format:all",
-"format:all": "prettier --write --ignore-path .gitignore .",
-"format:all:check": "prettier --check --ignore-path .gitignore .",
-"format:check": "npm run format:all:check"
-```
 
 | Script | Función |
 | --- | --- |
@@ -20,14 +19,14 @@ title: "Scripts"
 | `format:all:check` | Comprueba el formato sin modificar archivos. |
 | `format:check` | Alias de la verificación. |
 
-## Base de datos (PostgreSQL y Drizzle)
-
 ```json
-"db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
-"db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
-"db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
-"db:studio": "drizzle-kit studio"
+"format": "npm run format:all",
+"format:all": "prettier --write --ignore-path .gitignore .",
+"format:all:check": "prettier --check --ignore-path .gitignore .",
+"format:check": "npm run format:all:check"
 ```
+
+## Base de datos (PostgreSQL y Drizzle)
 
 | Script | Función |
 | --- | --- |
@@ -36,12 +35,19 @@ title: "Scripts"
 | `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
 | `db:studio` | Abre Drizzle Studio para explorar los datos. |
 
-## Documentación y tipos de API
-
 ```json
-"generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
+"db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
+"db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
+"db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+"db:studio": "drizzle-kit studio"
 ```
+
+## Documentación y tipos de API
 
 | Script | Función |
 | --- | --- |
 | `generate:types` | Ejecuta un generador personalizado de tipos de API. El resultado concreto depende del contenido de `generate-api-types.ts`. |
+
+```json
+"generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
+```

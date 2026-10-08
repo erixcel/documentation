@@ -1,0 +1,29 @@
+---
+title: "Organización y reglas"
+sidebarTitle: "Organización y reglas"
+---
+
+Esta carpeta organiza el acceso a datos de **cada tabla por separado**. Crea una subcarpeta por tabla (por ejemplo, `producto`) y coloca **como máximo dos archivos** dentro de ella.
+
+## Estructura
+
+```text src/queries
+queries/
+├── producto/
+│   ├── producto.query.ts
+│   └── producto-join.query.ts
+└── categoria/
+    ├── categoria.query.ts
+    └── categoria-join.query.ts
+```
+
+## Reglas de separación
+
+| Archivo | Operaciones permitidas | Restricción |
+| --- | --- | --- |
+| `nombre-tabla.query.ts` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` | Consultar y modificar **únicamente la tabla base**, sin importar ni mencionar otras tablas. |
+| `nombre-tabla-join.query.ts` | **Solo `SELECT`** | Puede utilizar `JOIN` con otras tablas relacionadas, pero nunca insertar, actualizar ni eliminar registros. |
+
+Ambos archivos pueden usar `@Injectable()` de NestJS, Drizzle ORM y la conexión exportada desde `@db/connection.db`.
+
+**Convención:** para la tabla `producto`, las clases serían `ProductoQuery` y `ProductoJoinQuery`. Los ejemplos de `producto` y `categoria` son genéricos: adapta los nombres de campos a tus esquemas reales.

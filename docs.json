@@ -93,6 +93,22 @@
                       "desarrollo/nestjs/src/db/restore-db",
                       "desarrollo/nestjs/src/db/seed-db"
                     ]
+                  },
+                  {
+                    "group": "queries",
+                    "pages": [
+                      "desarrollo/nestjs/src/queries/organizacion",
+                      {
+                        "group": "producto (ejemplo)",
+                        "pages": []
+                      }
+                    ]
+                  },
+                  {
+                    "group": "seeds",
+                    "pages": [
+                      "desarrollo/nestjs/src/seeds/organizacion"
+                    ]
                   }
                 ]
               },

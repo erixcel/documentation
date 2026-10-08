@@ -1,0 +1,41 @@
+---
+title: "Organización y ejecución"
+sidebarTitle: "Organización y ejecución"
+---
+
+Cada archivo `*.seed.ts` contiene la **carga inicial de una sola tabla**. El nombre debe corresponder a la tabla: `categoria.seed.ts`, `producto.seed.ts`, etc.
+
+## Estructura
+
+```text src/seeds
+seeds/
+├── categoria.seed.ts
+├── producto.seed.ts
+├── usuario.seed.ts
+└── cliente.seed.ts
+```
+
+## Convenciones
+
+| Elemento | Regla |
+| --- | --- |
+| Archivo | Un `nombre-tabla.seed.ts` por tabla. |
+| Función | Exportar una función descriptiva, por ejemplo `seedCategorias()`. |
+| Operación | Insertar los datos iniciales con Drizzle ORM. |
+| Retorno | Puede devolver los registros insertados para que los utilicen otros seeds. |
+| Orden | Ejecutar primero tablas independientes, y después las que necesitan claves foráneas. |
+
+## Ejecución centralizada
+
+`src/db/seed.db.ts` importa y ejecuta estos archivos en orden:
+
+```typescript seed.db.ts
+const categorias = await seedCategorias();
+await seedProductos(categorias);
+```
+
+```bash Terminal
+npm run db:seed
+```
+
+**Importante:** estos ejemplos no evitan inserciones duplicadas si se ejecutan varias veces. Para que sean idempotentes, aplica restricciones únicas y estrategias como `onConflictDoNothing()` cuando corresponda.

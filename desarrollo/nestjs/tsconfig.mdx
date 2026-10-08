@@ -4,49 +4,23 @@ sidebarTitle: "tsconfig.json"
 description: "Configuración TypeScript y alias de rutas del proyecto NestJS."
 ---
 
-Archivo `tsconfig.json` de la raíz del proyecto.
+Ubicación dentro de `tsconfig.json`:
 
-```json tsconfig.json
+```jsonc tsconfig.json
 {
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "types": ["node", "jest"],
-    "sourceMap": true,
-    "outDir": "./dist",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strict": true,
+    // ... otras opciones
     "strictPropertyInitialization": false,
-    "paths": {
-      "@core/*": ["src/core/*"],
-      "@models/*": ["src/models/*"],
-      "@db/*": ["src/db/*"],
-      "@seeds/*": ["src/seeds/*"],
-      "@modules/*": ["src/modules/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@services/*": ["src/services/*"],
-      "@queries/*": ["src/queries/*"],
-      "@functions/*": ["src/functions/*"],
-      "@utils/*": ["src/utils/*"],
-      "@config/*": ["src/config/*"]
-    }
+    // Coloca aquí "paths"
   }
 }
 ```
 
 ## Alias de rutas: `paths`
 
-**La sección `paths` es especialmente importante:** permite importar módulos con alias como `@db/config.db` en lugar de rutas relativas largas. Añade estas rutas dentro de `compilerOptions` y adáptalas a las carpetas reales de tu proyecto.
+Copia este bloque dentro de `compilerOptions`, en el lugar señalado arriba:n alias como `@db/config.db` en lugar de rutas relativas largas. Añade estas rutas dentro de `compilerOptions` y adáptalas a las carpetas reales de tu proyecto.
 
 ```json tsconfig.json
 "paths": {

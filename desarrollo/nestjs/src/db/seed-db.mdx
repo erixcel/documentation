@@ -1,54 +1,50 @@
----
-title: "seed.db.ts"
-sidebarTitle: "seed.db.ts"
----
+Carga datos iniciales o de prueba desde `src/seeds`. Ejecuta primero las tablas independientes y después las que tienen claves foráneas.
 
-Carga datos iniciales o de prueba mediante los archivos de `src/seeds`. Ejecuta los seeds en un orden definido para respetar las relaciones entre tablas. **Adapta las importaciones a los seeds de tu proyecto.**
+## Ejemplo de estructura
+
+```text src/seeds
+seeds/
+├── usuario.seed.ts
+├── categoria.seed.ts
+├── producto.seed.ts
+├── cliente.seed.ts
+└── pedido.seed.ts
+```
+
+## Ejemplo de implementación
 
 ```typescript seed.db.ts
-import { seedBathTypes } from '@seeds/bath-type.seed';
-import { seedBaths } from '@seeds/bath.seed';
-import { seedBreeds } from '@seeds/breed.seed';
-import { seedCustomers } from '@seeds/customer.seed';
-import { seedCustomerRelations } from '@seeds/customer-relation.seed';
-import { seedPets } from '@seeds/pet.seed';
-import { seedSpecies } from '@seeds/specie.seed';
-import { seedTreatmentTypes } from '@seeds/treatment-type.seed';
-import { seedTreatments } from '@seeds/treatment.seed';
-import { seedUsers } from '@seeds/user.seed';
-import { seedBranches } from '@seeds/branch.seed';
-import { seedWhatsappTemplates } from '@seeds/whatsapp_template.seed';
-import { seedIncomes } from '@seeds/income.seed';
+import { seedUsuarios } from '@seeds/usuario.seed';
+import { seedCategorias } from '@seeds/categoria.seed';
+import { seedProductos } from '@seeds/producto.seed';
+import { seedClientes } from '@seeds/cliente.seed';
+import { seedPedidos } from '@seeds/pedido.seed';
 
 async function seed() {
   try {
-    console.log('🚀 Starting database seeding...\n');
+    console.log('🚀 Iniciando carga de datos iniciales...');
 
-    // Seeds must run in order due to foreign key dependencies
-    await seedUsers(); // Users can be seeded first (no dependencies)
-    const branchesData = await seedBranches();
-    await seedWhatsappTemplates();
-    const speciesData = await seedSpecies();
-    const breedsData = await seedBreeds(speciesData);
-    const treatmentTypesData = await seedTreatmentTypes();
-    const bathTypesData = await seedBathTypes();
-    const customersData = await seedCustomers();
-    await seedCustomerRelations(customersData);
-    const petsData = await seedPets(customersData, breedsData);
-    await seedBaths(petsData, bathTypesData, branchesData);
-    await seedTreatments(petsData, treatmentTypesData, branchesData);
-    await seedIncomes(customersData, branchesData);
+    // Primero las tablas que no dependen de otras.
+    await seedUsuarios();
+    const categorias = await seedCategorias();
+    const clientes = await seedClientes();
 
-    console.log('\n✨ Database seeding completed successfully!');
+    // Después las tablas con relaciones.
+    const productos = await seedProductos(categorias);
+    await seedPedidos(clientes, productos);
+
+    console.log('✅ Datos iniciales cargados correctamente.');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error('❌ Error al cargar datos iniciales:', error);
     process.exit(1);
   }
 }
 
 seed();
 ```
+
+Este ejemplo es **referencial**: las funciones `seedUsuarios`, `seedCategorias`, etc. deben implementarse en sus respectivos archivos. Los parámetros y los datos devueltos dependerán de sus relaciones.
 
 ## Ejecutar
 

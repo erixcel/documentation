@@ -1,26 +1,90 @@
----
-title: "command.db.ts"
-sidebarTitle: "command.db.ts"
----
+Ejecuta archivos SQL desde `src/db/commands/<DB_VERSION>` en orden alfabético, registra los ya ejecutados en `comandos_ejecutados` y utiliza una transacción por archivo.
 
-Ejecuta los comandos SQL definidos en `src/db/commands` para modificar **datos** (por ejemplo, actualizaciones o eliminaciones masivas), a diferencia de las migraciones que modifican el esquema.
+## Archivo completo
 
-## Ubicación
+```typescript command.db.ts
+import { Pool } from 'pg';
+import * as fs from 'fs';
+import * as path from 'path';
+import { dbConfig } from '@db/config.db';
 
-```text src/db
-db/
-├── commands/
-│   └── version_002/
-│       └── v002_001_actualizar_estados.sql
-└── command.db.ts
+async function executeCommands() {
+  const pool = new Pool(dbConfig);
+  const client = await pool.connect();
+
+  try {
+    console.log('🔄 Iniciando ejecución de comandos SQL...');
+
+    // Crear tabla de control de comandos si no existe
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS comandos_ejecutados (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(255) NOT NULL UNIQUE,
+        ejecutado_en TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Leer archivos de comandos
+    const versionDir = process.env.DB_VERSION || '';
+    const commandsDir = path.join(__dirname, 'commands', versionDir);
+
+    if (!fs.existsSync(commandsDir)) {
+      console.log('⚠️ No se encontró el directorio de comandos.');
+      return;
+    }
+
+    const files = fs
+      .readdirSync(commandsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+
+    console.log(`📁 Encontrados ${files.length} comandos`);
+
+    for (const file of files) {
+      // Verificar si ya fue ejecutado
+      const { rows } = await client.query('SELECT 1 FROM comandos_ejecutados WHERE nombre = $1', [file]);
+
+      if (rows.length > 0) {
+        console.log(`⏭️  Saltando (ya ejecutado): ${file}`);
+        continue;
+      }
+
+      // Leer y ejecutar comando
+      const sqlPath = path.join(commandsDir, file);
+      const sql = fs.readFileSync(sqlPath, 'utf-8');
+
+      console.log(`🚀 Ejecutando: ${file}`);
+      await client.query('BEGIN');
+
+      try {
+        await client.query(sql);
+        await client.query('INSERT INTO comandos_ejecutados (nombre) VALUES ($1)', [file]);
+        await client.query('COMMIT');
+        console.log(`✅ Completado: ${file}`);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`❌ Error ejecutando ${file}:`, err);
+        throw err;
+      }
+    }
+
+    console.log('✅ Todos los comandos ejecutados correctamente');
+  } catch (error) {
+    console.error('❌ Error general en ejecución de comandos:', error);
+    process.exit(1);
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+executeCommands();
 ```
 
-El archivo `command.db.ts` debe implementar la lectura y ejecución de los comandos correspondientes a `DB_VERSION` del `.env`. El comportamiento exacto dependerá de su implementación.
-
-## Ejecutar
+## Ejecución
 
 ```bash Terminal
 npm run db:command
 ```
 
-**Pendiente:** agregar el código completo de `command.db.ts` cuando esté disponible.
+**Nota:** el registro actual identifica los archivos por nombre. Usa nombres únicos entre versiones o incluye la versión en el registro para evitar colisiones.

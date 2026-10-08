@@ -85,6 +85,20 @@
                 "pages": [
                   "desarrollo/nestjs/scripts/generate-api-types"
                 ]
+              },
+              {
+                "group": "src",
+                "pages": [
+                  {
+                    "group": "db",
+                    "pages": [
+                      "desarrollo/nestjs/src/db/backups",
+                      "desarrollo/nestjs/src/db/commands",
+                      "desarrollo/nestjs/src/db/migrations",
+                      "desarrollo/nestjs/src/db/tables"
+                    ]
+                  }
+                ]
               }
             ]
           },

@@ -1,0 +1,24 @@
+---
+title: "backups"
+sidebarTitle: "backups"
+description: "Documentación de src/db/backups para proyectos NestJS con PostgreSQL y Drizzle."
+---
+
+Guarda copias de la base de datos antes de ejecutar migraciones o comandos SQL. El script `npm run db:backup` genera un respaldo con la versión indicada en `DB_VERSION` del archivo `.env`, según la implementación de `src/db/backup.db.ts`.
+
+## Ejemplo de estructura
+
+```text src/db/backups
+backups/
+├── version_001.sql
+├── version_002.sql
+└── version_003.sql
+```
+
+## Ejecución
+
+```bash Terminal
+npm run db:backup
+```
+
+**Importante:** conserva los respaldos antes de modificar el esquema o los datos y verifica que puedan restaurarse. El contenido del respaldo depende de tu script de backup.

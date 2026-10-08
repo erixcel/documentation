@@ -1,0 +1,35 @@
+---
+title: "migrations"
+sidebarTitle: "migrations"
+description: "Documentación de src/db/migrations para proyectos NestJS con PostgreSQL y Drizzle."
+---
+
+Contiene archivos SQL destinados a **cambiar el esquema** de PostgreSQL: crear o eliminar tablas, agregar columnas, modificar restricciones o crear índices. En esta organización, los cambios masivos de **datos** van en `commands`.
+
+Las migraciones se organizan por la versión `DB_VERSION` de `.env` y se ejecutan a través del script personalizado `src/db/migrate.db.ts`.
+
+## Ejemplo de estructura
+
+```text src/db/migrations
+migrations/
+├── version_002/
+│   ├── v002_001_crear_clientes.sql
+│   └── v002_002_indice_clientes.sql
+└── version_003/
+    └── v003_001_agregar_telefono.sql
+```
+
+## Ejemplo SQL
+
+```sql v003_001_agregar_telefono.sql
+ALTER TABLE clientes
+ADD COLUMN telefono VARCHAR(20);
+```
+
+## Ejecución
+
+```bash Terminal
+npm run db:migrate
+```
+
+**Precaución:** respalda la base antes de aplicar migraciones. La versión y el orden efectivos dependen de cómo esté implementado `migrate.db.ts`.

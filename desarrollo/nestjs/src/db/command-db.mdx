@@ -1,0 +1,26 @@
+---
+title: "command.db.ts"
+sidebarTitle: "command.db.ts"
+---
+
+Ejecuta los comandos SQL definidos en `src/db/commands` para modificar **datos** (por ejemplo, actualizaciones o eliminaciones masivas), a diferencia de las migraciones que modifican el esquema.
+
+## Ubicación
+
+```text src/db
+db/
+├── commands/
+│   └── version_002/
+│       └── v002_001_actualizar_estados.sql
+└── command.db.ts
+```
+
+El archivo `command.db.ts` debe implementar la lectura y ejecución de los comandos correspondientes a `DB_VERSION` del `.env`. El comportamiento exacto dependerá de su implementación.
+
+## Ejecutar
+
+```bash Terminal
+npm run db:command
+```
+
+**Pendiente:** agregar el código completo de `command.db.ts` cuando esté disponible.

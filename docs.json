@@ -95,7 +95,9 @@
                       "desarrollo/nestjs/src/db/backups",
                       "desarrollo/nestjs/src/db/commands",
                       "desarrollo/nestjs/src/db/migrations",
-                      "desarrollo/nestjs/src/db/tables"
+                      "desarrollo/nestjs/src/db/tables",
+                      "desarrollo/nestjs/src/db/backup-db",
+                      "desarrollo/nestjs/src/db/command-db"
                     ]
                   }
                 ]

@@ -94,27 +94,8 @@
                       "desarrollo/nestjs/src/db/seed-db"
                     ]
                   },
-                  {
-                    "group": "queries",
-                    "pages": [
-                      "desarrollo/nestjs/src/queries/organizacion",
-                      {
-                        "group": "producto",
-                        "pages": [
-                          "desarrollo/nestjs/src/queries/producto/producto-query",
-                          "desarrollo/nestjs/src/queries/producto/producto-join-query"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "group": "seeds",
-                    "pages": [
-                      "desarrollo/nestjs/src/seeds/organizacion",
-                      "desarrollo/nestjs/src/seeds/categoria-seed",
-                      "desarrollo/nestjs/src/seeds/producto-seed"
-                    ]
-                  }
+                  "desarrollo/nestjs/src/queries-guia",
+                  "desarrollo/nestjs/src/seeds-guia"
                 ]
               },
               "desarrollo/nestjs/env-example",

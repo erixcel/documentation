@@ -1,0 +1,108 @@
+---
+title: "seeds"
+sidebarTitle: "seeds"
+---
+
+Cada archivo `*.seed.ts` contiene la **carga inicial de una sola tabla**. El nombre debe corresponder a la tabla: `categoria.seed.ts`, `producto.seed.ts`, etc.
+
+## Estructura
+
+```text src/seeds
+seeds/
+├── categoria.seed.ts
+├── producto.seed.ts
+├── usuario.seed.ts
+└── cliente.seed.ts
+```
+
+## Convenciones
+
+| Elemento | Regla |
+| --- | --- |
+| Archivo | Un `nombre-tabla.seed.ts` por tabla. |
+| Función | Exportar una función descriptiva, por ejemplo `seedCategorias()`. |
+| Operación | Insertar los datos iniciales con Drizzle ORM. |
+| Retorno | Puede devolver los registros insertados para que los utilicen otros seeds. |
+| Orden | Ejecutar primero tablas independientes, y después las que necesitan claves foráneas. |
+
+## Ejecución centralizada
+
+`src/db/seed.db.ts` importa y ejecuta estos archivos en orden:
+
+```typescript seed.db.ts
+const categorias = await seedCategorias();
+await seedProductos(categorias);
+```
+
+```bash Terminal
+npm run db:seed
+```
+
+**Importante:** estos ejemplos no evitan inserciones duplicadas si se ejecutan varias veces. Para que sean idempotentes, aplica restricciones únicas y estrategias como `onConflictDoNothing()` cuando corresponda.
+
+## Ejemplo: `categoria.seed.ts`
+
+Carga datos iniciales de la **tabla categorías**, sin insertar registros de otras tablas.
+
+```typescript categoria.seed.ts
+import { database } from '@db/connection.db';
+import { categorias } from '@db/tables/categoria.table';
+
+export async function seedCategorias() {
+  console.log('🌱 Cargando categorías...');
+
+  const registros = await database
+    .insert(categorias)
+    .values([
+      { nombre: 'Tecnología' },
+      { nombre: 'Hogar' },
+    ])
+    .returning();
+
+  console.log('✅ Categorías cargadas.');
+  return registros;
+}
+```
+
+Devuelve los registros insertados con sus IDs para que otros seeds puedan utilizar sus relaciones. Adapta los campos al esquema real.
+
+## Ejemplo: `producto.seed.ts`
+
+Carga productos utilizando el ID de una categoría **previamente insertada**. La función recibe los datos del seed de categorías para respetar la clave foránea.
+
+```typescript producto.seed.ts
+import { database } from '@db/connection.db';
+import { productos } from '@db/tables/producto.table';
+
+type CategoriaSeed = { id: number; nombre: string };
+
+export async function seedProductos(categorias: CategoriaSeed[]) {
+  console.log('🌱 Cargando productos...');
+
+  const categoria = categorias.find((item) => item.nombre === 'Hogar');
+
+  if (!categoria) {
+    throw new Error('No se encontró la categoría Hogar.');
+  }
+
+  const registros = await database
+    .insert(productos)
+    .values([
+      { nombre: 'Lámpara', categoriaId: categoria.id },
+      { nombre: 'Escritorio', categoriaId: categoria.id },
+    ])
+    .returning();
+
+  console.log('✅ Productos cargados.');
+  return registros;
+}
+```
+
+En `src/db/seed.db.ts` ejecútalos en orden:
+
+```typescript seed.db.ts
+const categorias = await seedCategorias();
+await seedProductos(categorias);
+```
+
+Cada archivo seed debe insertar **solo la tabla a la que pertenece**. Los campos son de ejemplo y deben adaptarse al esquema real.

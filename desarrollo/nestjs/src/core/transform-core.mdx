@@ -1,0 +1,34 @@
+---
+title: "transform.core.ts"
+sidebarTitle: "transform.core.ts"
+---
+
+Aplica `ValidationPipe` globalmente para transformar y validar los DTO de entrada, descartando propiedades desconocidas y devolviendo errores cuando se envían campos no permitidos.
+
+```typescript transform.core.ts
+import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
+
+export function setupTransform(app: INestApplication) {
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        const messages = errors.flatMap((error) => {
+          if (error.constraints) {
+            return Object.values(error.constraints);
+          }
+          return [];
+        });
+        return new BadRequestException(messages);
+      },
+    }),
+  );
+}
+```
+
+**Nota:** las validaciones concretas dependen de los decoradores configurados en tus DTO.

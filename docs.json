@@ -77,6 +77,15 @@
                 "group": "src",
                 "pages": [
                   {
+                    "group": "core",
+                    "pages": [
+                      "desarrollo/nestjs/src/core/cors-core",
+                      "desarrollo/nestjs/src/core/filters-core",
+                      "desarrollo/nestjs/src/core/swagger-core",
+                      "desarrollo/nestjs/src/core/transform-core"
+                    ]
+                  },
+                  {
                     "group": "db",
                     "pages": [
                       "desarrollo/nestjs/src/db/backups",
@@ -95,7 +104,8 @@
                     ]
                   },
                   "desarrollo/nestjs/src/queries-guia",
-                  "desarrollo/nestjs/src/seeds-guia"
+                  "desarrollo/nestjs/src/seeds-guia",
+                  "desarrollo/nestjs/src/main"
                 ]
               },
               "desarrollo/nestjs/env-example",

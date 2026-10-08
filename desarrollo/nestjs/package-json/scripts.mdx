@@ -4,7 +4,7 @@ title: "Scripts"
 
 Ubicación en `package.json`:
 
-```jsonc
+```jsonc package.json
 {
   "name": "backend",
   "version": "0.0.1",
@@ -28,7 +28,7 @@ Ubicación en `package.json`:
 | `format:all:check` | Comprueba el formato sin modificar archivos. |
 | `format:check` | Alias de la verificación. |
 
-```json
+```json package.json
 "format": "npm run format:all",
 "format:all": "prettier --write --ignore-path .gitignore .",
 "format:all:check": "prettier --check --ignore-path .gitignore .",
@@ -44,7 +44,7 @@ Ubicación en `package.json`:
 | `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
 | `db:studio` | Abre Drizzle Studio para explorar los datos. |
 
-```json
+```json package.json
 "db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
 "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
 "db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
@@ -57,6 +57,6 @@ Ubicación en `package.json`:
 | --- | --- |
 | `generate:types` | Ejecuta un generador personalizado de tipos de API. El resultado concreto depende del contenido de `generate-api-types.ts`. |
 
-```json
+```json package.json
 "generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
 ```

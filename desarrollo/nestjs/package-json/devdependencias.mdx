@@ -2,7 +2,19 @@
 title: "DevDependencias"
 ---
 
-> **Ubicación:** `package.json` → `"devDependencies"`.
+Ubicación en `package.json`:
+
+```jsonc
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "",
+  // ... otras propiedades
+  "devDependencies": {
+    // Coloca aquí las nuevas dependencias
+  }
+}
+```
 
 ## ESLint y calidad del código
 
@@ -14,12 +26,25 @@ title: "DevDependencias"
 | `typescript-eslint` | `^8.20.0` | Habilitar parsing y reglas de ESLint para TypeScript. |
 | `globals` | `^15.14.0` | Definir variables globales conocidas según el entorno (Node.js, navegador, etc.). |
 
+```json
+"eslint": "^9.18.0",
+"@eslint/js": "^9.18.0",
+"@eslint/eslintrc": "^3.2.0",
+"typescript-eslint": "^8.20.0",
+"globals": "^15.14.0"
+```
+
 ## Integración ESLint + Prettier
 
 | Librería | Versión | ¿Para qué sirve? |
 | --- | --- | --- |
 | `eslint-config-prettier` | `^10.0.1` | Desactivar reglas de ESLint que entran en conflicto con Prettier. |
 | `eslint-plugin-prettier` | `^5.2.3` | Ejecutar Prettier como regla de ESLint y reportar diferencias de formato. |
+
+```json
+"eslint-config-prettier": "^10.0.1",
+"eslint-plugin-prettier": "^5.2.3"
+```
 
 ## Tipos TypeScript
 
@@ -30,11 +55,22 @@ title: "DevDependencias"
 | `@types/passport-jwt` | `^4.0.1` | Tipos de las opciones y estrategias JWT de Passport. |
 | `@types/pg` | `^8.15.6` | Tipos de clientes, conexiones y consultas PostgreSQL con pg. |
 
+```json
+"@types/bcrypt": "^6.0.0",
+"@types/multer": "^2.0.0",
+"@types/passport-jwt": "^4.0.1",
+"@types/pg": "^8.15.6"
+```
+
 ## Base de datos: Drizzle
 
 | Librería | Versión | ¿Para qué sirve? |
 | --- | --- | --- |
 | `drizzle-kit` | `^0.31.6` | CLI para generar y aplicar migraciones y abrir Drizzle Studio. |
+
+```json
+"drizzle-kit": "^0.31.6"
+```
 
 ## Generación de clientes y tipos de API
 
@@ -42,10 +78,12 @@ title: "DevDependencias"
 | --- | --- | --- |
 | `swagger-typescript-api` | `^13.2.16` | Generar código TypeScript y clientes HTTP desde una especificación OpenAPI/Swagger. |
 
+```json
+"swagger-typescript-api": "^13.2.16"
+```
+
 ## Instalación
 
 ```bash
-npm install -D @eslint/eslintrc@^3.2.0 @eslint/js@^9.18.0 @types/bcrypt@^6.0.0 @types/multer@^2.0.0 @types/passport-jwt@^4.0.1 @types/pg@^8.15.6 drizzle-kit@^0.31.6 eslint@^9.18.0 eslint-config-prettier@^10.0.1 eslint-plugin-prettier@^5.2.3 globals@^15.14.0 swagger-typescript-api@^13.2.16 typescript-eslint@^8.20.0
+npm install
 ```
-
-**Nota:** el script `generate:types` puede emplear `swagger-typescript-api`, pero eso depende de la implementación del generador. Los scripts de formato también necesitan `prettier`; y los scripts TypeScript, `ts-node` y `tsconfig-paths`, si no están ya instalados.

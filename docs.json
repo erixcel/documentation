@@ -66,7 +66,8 @@
           {
             "group": "NestJS",
             "pages": [
-              "desarrollo/nestjs/creacion-proyecto"
+              "desarrollo/nestjs/creacion-proyecto",
+              "desarrollo/nestjs/librerias"
             ]
           },
           {

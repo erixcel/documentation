@@ -99,15 +99,20 @@
                     "pages": [
                       "desarrollo/nestjs/src/queries/organizacion",
                       {
-                        "group": "producto (ejemplo)",
-                        "pages": []
+                        "group": "producto",
+                        "pages": [
+                          "desarrollo/nestjs/src/queries/producto/producto-query",
+                          "desarrollo/nestjs/src/queries/producto/producto-join-query"
+                        ]
                       }
                     ]
                   },
                   {
                     "group": "seeds",
                     "pages": [
-                      "desarrollo/nestjs/src/seeds/organizacion"
+                      "desarrollo/nestjs/src/seeds/organizacion",
+                      "desarrollo/nestjs/src/seeds/categoria-seed",
+                      "desarrollo/nestjs/src/seeds/producto-seed"
                     ]
                   }
                 ]

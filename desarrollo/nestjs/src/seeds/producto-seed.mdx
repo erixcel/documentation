@@ -1,0 +1,43 @@
+---
+title: "producto.seed.ts"
+sidebarTitle: "producto.seed.ts"
+---
+
+Carga productos utilizando el ID de una categoría **previamente insertada**. La función recibe los datos del seed de categorías para respetar la clave foránea.
+
+```typescript producto.seed.ts
+import { database } from '@db/connection.db';
+import { productos } from '@db/tables/producto.table';
+
+type CategoriaSeed = { id: number; nombre: string };
+
+export async function seedProductos(categorias: CategoriaSeed[]) {
+  console.log('🌱 Cargando productos...');
+
+  const categoria = categorias.find((item) => item.nombre === 'Hogar');
+
+  if (!categoria) {
+    throw new Error('No se encontró la categoría Hogar.');
+  }
+
+  const registros = await database
+    .insert(productos)
+    .values([
+      { nombre: 'Lámpara', categoriaId: categoria.id },
+      { nombre: 'Escritorio', categoriaId: categoria.id },
+    ])
+    .returning();
+
+  console.log('✅ Productos cargados.');
+  return registros;
+}
+```
+
+En `src/db/seed.db.ts` ejecútalos en orden:
+
+```typescript seed.db.ts
+const categorias = await seedCategorias();
+await seedProductos(categorias);
+```
+
+Cada archivo seed debe insertar **solo la tabla a la que pertenece**. Los campos son de ejemplo y deben adaptarse al esquema real.

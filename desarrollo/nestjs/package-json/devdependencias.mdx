@@ -1,13 +1,53 @@
 ---
-title: "package.json: DevDependencias"
-sidebarTitle: "DevDependencias"
-description: "Paquetes de desarrollo en devDependencies de package.json."
+title: "DevDependencias"
 ---
 
 # DevDependencias
 
-Las `devDependencies` contienen herramientas necesarias durante el desarrollo, como linters, compiladores y herramientas de pruebas.
+Herramientas del campo `devDependencies` de `package.json`, usadas principalmente para desarrollar, analizar y generar código.
+
+## ESLint y calidad del código
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `eslint` | `^9.18.0` | Detectar problemas y aplicar reglas de calidad al código. |
+| `@eslint/js` | `^9.18.0` | Proveer las reglas base recomendadas de ESLint para JavaScript. |
+| `@eslint/eslintrc` | `^3.2.0` | Facilitar compatibilidad con configuraciones tradicionales de ESLint. |
+| `typescript-eslint` | `^8.20.0` | Habilitar parsing y reglas de ESLint para TypeScript. |
+| `globals` | `^15.14.0` | Definir variables globales conocidas según el entorno (Node.js, navegador, etc.). |
+
+## Integración ESLint + Prettier
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `eslint-config-prettier` | `^10.0.1` | Desactivar reglas de ESLint que entran en conflicto con Prettier. |
+| `eslint-plugin-prettier` | `^5.2.3` | Ejecutar Prettier como regla de ESLint y reportar diferencias de formato. |
+
+## Tipos TypeScript
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `@types/bcrypt` | `^6.0.0` | Declaraciones de tipos para usar bcrypt con TypeScript. |
+| `@types/multer` | `^2.0.0` | Tipos para archivos y middleware Multer, usado en cargas de archivos. |
+| `@types/passport-jwt` | `^4.0.1` | Tipos de las opciones y estrategias JWT de Passport. |
+| `@types/pg` | `^8.15.6` | Tipos de clientes, conexiones y consultas PostgreSQL con pg. |
+
+## Base de datos: Drizzle
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `drizzle-kit` | `^0.31.6` | CLI para generar y aplicar migraciones y abrir Drizzle Studio. |
+
+## Generación de clientes y tipos de API
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `swagger-typescript-api` | `^13.2.16` | Generar código TypeScript y clientes HTTP desde una especificación OpenAPI/Swagger. |
+
+## Instalación
 
 ```bash
-npm install -D nombre-del-paquete
+npm install -D @eslint/eslintrc@^3.2.0 @eslint/js@^9.18.0 @types/bcrypt@^6.0.0 @types/multer@^2.0.0 @types/passport-jwt@^4.0.1 @types/pg@^8.15.6 drizzle-kit@^0.31.6 eslint@^9.18.0 eslint-config-prettier@^10.0.1 eslint-plugin-prettier@^5.2.3 globals@^15.14.0 swagger-typescript-api@^13.2.16 typescript-eslint@^8.20.0
 ```
+
+**Nota:** el script `generate:types` puede emplear `swagger-typescript-api`, pero eso depende de la implementación del generador. Los scripts de formato también necesitan `prettier`; y los scripts TypeScript, `ts-node` y `tsconfig-paths`, si no están ya instalados.

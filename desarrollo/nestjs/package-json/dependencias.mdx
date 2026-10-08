@@ -1,13 +1,43 @@
 ---
-title: "package.json: Dependencias"
-sidebarTitle: "Dependencias"
-description: "Paquetes de producción en dependencies de package.json."
+title: "Dependencias"
 ---
 
 # Dependencias
 
-Las `dependencies` contienen paquetes necesarios para ejecutar la aplicación en producción.
+Paquetes del campo `dependencies` de `package.json`, necesarios para ejecutar funcionalidades de la aplicación.
+
+## Autenticación y seguridad
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `@nestjs/jwt` | `^11.0.2` | Generar y verificar tokens JWT desde NestJS. |
+| `@nestjs/passport` | `^11.0.5` | Integrar estrategias de autenticación de Passport con guards de NestJS. |
+| `passport` | `^0.7.0` | Middleware base de autenticación y estrategias. |
+| `passport-jwt` | `^4.0.1` | Validar JWT en peticiones usando una estrategia Passport. |
+| `bcrypt` | `^6.0.0` | Hashear contraseñas y comparar hashes de forma segura. |
+
+## Validación y transformación de datos
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `class-validator` | `^0.14.2` | Validar DTOs con decoradores como `@IsEmail()` y `@IsString()`. |
+| `class-transformer` | `^0.5.1` | Convertir objetos planos en instancias de clase y transformar valores. |
+
+## Base de datos: PostgreSQL y Drizzle
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `drizzle-orm` | `^0.44.7` | Definir esquemas y consultas SQL tipadas mediante Drizzle ORM. |
+| `pg` | `^8.16.3` | Driver de Node.js para conectarse a PostgreSQL. |
+
+## Configuración
+
+| Librería | Versión | ¿Para qué sirve? |
+| --- | --- | --- |
+| `dotenv` | `^17.2.3` | Cargar variables de entorno desde archivos `.env` a `process.env`. |
+
+## Instalación
 
 ```bash
-npm install nombre-del-paquete
+npm install @nestjs/jwt@^11.0.2 @nestjs/passport@^11.0.5 bcrypt@^6.0.0 class-transformer@^0.5.1 class-validator@^0.14.2 dotenv@^17.2.3 drizzle-orm@^0.44.7 passport@^0.7.0 passport-jwt@^4.0.1 pg@^8.16.3
 ```

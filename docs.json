@@ -67,7 +67,14 @@
             "group": "NestJS",
             "pages": [
               "desarrollo/nestjs/creacion-proyecto",
-              "desarrollo/nestjs/librerias"
+              {
+                "group": "package.json",
+                "pages": [
+                  "desarrollo/nestjs/package-json/scripts",
+                  "desarrollo/nestjs/package-json/dependencias",
+                  "desarrollo/nestjs/package-json/devdependencias"
+                ]
+              }
             ]
           },
           {

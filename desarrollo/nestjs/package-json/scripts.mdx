@@ -2,21 +2,15 @@
 title: "Scripts"
 ---
 
-# Scripts
-
-Comandos del campo `scripts` de `package.json`, organizados por su función.
+> **Ubicación:** `package.json` → propiedad `"scripts"`. Copia las líneas dentro del objeto `"scripts": { ... }`, junto a las existentes. Separa las entradas con comas (si añades líneas después de una entrada existente, esa entrada debe terminar en coma). Los fragmentos no incluyen llaves para facilitar el pegado.
 
 ## Formato e indentación (Prettier)
 
-Estos scripts unifican el formato del código. `format` modifica archivos y `format:check` solo verifica; ambos recorren el proyecto respetando `.gitignore`.
-
 ```json
-{
-  "format": "npm run format:all",
-  "format:all": "prettier --write --ignore-path .gitignore .",
-  "format:all:check": "prettier --check --ignore-path .gitignore .",
-  "format:check": "npm run format:all:check"
-}
+"format": "npm run format:all",
+"format:all": "prettier --write --ignore-path .gitignore .",
+"format:all:check": "prettier --check --ignore-path .gitignore .",
+"format:check": "npm run format:all:check"
 ```
 
 | Script | Función |
@@ -28,15 +22,11 @@ Estos scripts unifican el formato del código. `format` modifica archivos y `for
 
 ## Base de datos (PostgreSQL y Drizzle)
 
-Estos scripts ejecutan archivos propios para crear, sembrar y reiniciar la base de datos. **Su comportamiento exacto depende del código de esos archivos**; no son comandos de migración automáticos de Drizzle.
-
 ```json
-{
-  "db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
-  "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
-  "db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
-  "db:studio": "drizzle-kit studio"
-}
+"db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
+"db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
+"db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+"db:studio": "drizzle-kit studio"
 ```
 
 | Script | Función |
@@ -46,28 +36,12 @@ Estos scripts ejecutan archivos propios para crear, sembrar y reiniciar la base 
 | `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
 | `db:studio` | Abre Drizzle Studio para explorar los datos. |
 
-Para generar y aplicar migraciones con Drizzle Kit normalmente se usan `drizzle-kit generate` y `drizzle-kit migrate`, si están configurados en el proyecto.
-
 ## Documentación y tipos de API
 
 ```json
-{
-  "generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
-}
+"generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
 ```
 
 | Script | Función |
 | --- | --- |
 | `generate:types` | Ejecuta un generador personalizado de tipos de API. El resultado concreto depende del contenido de `generate-api-types.ts`. |
-
-### Ejecución
-
-```bash
-npm run format
-npm run format:check
-npm run db:seed
-npm run db:studio
-npm run generate:types
-```
-
-**Nota:** estos scripts requieren que las herramientas invocadas, como `prettier`, `ts-node` y `tsconfig-paths`, estén instaladas, y que las rutas de los archivos existan.

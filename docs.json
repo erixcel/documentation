@@ -79,6 +79,7 @@
               "desarrollo/nestjs/.prettierrc",
               "desarrollo/nestjs/drizzle-config",
               "desarrollo/nestjs/tsconfig",
+              "desarrollo/nestjs/env-example",
               {
                 "group": "scripts",
                 "pages": [

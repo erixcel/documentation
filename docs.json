@@ -114,7 +114,9 @@
                     "group": "functions",
                     "pages": [
                       "desarrollo/nestjs/src/functions/date-function",
-                      "desarrollo/nestjs/src/functions/db-error-function"
+                      "desarrollo/nestjs/src/functions/db-error-function",
+                      "desarrollo/nestjs/src/functions/pagination-function",
+                      "desarrollo/nestjs/src/functions/string-function"
                     ]
                   },
                   "desarrollo/nestjs/src/queries-guia",

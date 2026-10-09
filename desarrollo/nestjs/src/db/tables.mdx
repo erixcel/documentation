@@ -3,69 +3,67 @@ title: "tables"
 sidebarTitle: "tables"
 ---
 
-Contiene las definiciones de tablas de PostgreSQL usando **Drizzle ORM**. Cada tabla debe estar en un archivo con el patrón `nombre_tabla.table.ts`.
+Contiene las definiciones de las tablas PostgreSQL mediante **Drizzle ORM**. Usa **un archivo por tabla** con el nombre de la tabla y el sufijo `.table.ts`.
 
 ## Ejemplo de estructura
 
 ```text src/db/tables
 tables/
-├── usuarios.table.ts
-├── clientes.table.ts
-└── productos.table.ts
+├── user.table.ts
+├── category.table.ts
+└── product.table.ts
 ```
 
 ## Ejemplo completo
 
-```typescript usuarios.table.ts
-import { pgEnum, pgTable, serial, varchar, timestamp, text, index, uniqueIndex } from 'drizzle-orm/pg-core';
+```typescript user.table.ts
+import { pgTable, serial, text, varchar, timestamp, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
-export const usuariosRol = pgEnum('usuarios_rol', ['empleado', 'admin']);
+const userRoleEnum = pgEnum('user_role', ['admin', 'employee', 'viewer']);
 
-export const usuarios = pgTable(
-  'usuarios',
+export const user = pgTable(
+  'user',
   {
     id: serial('id').primaryKey(),
-    nombres: varchar('nombres', { length: 100 }).notNull(),
-    apellidos: varchar('apellidos', { length: 100 }).notNull(),
-    nombreCompleto: varchar('nombre_completo', { length: 200 }).notNull(),
-    email: varchar('email', { length: 100 }).notNull(),
-    contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
-    roles: usuariosRol('roles').array().default(['empleado']).notNull(),
-    empresa: varchar('empresa', { length: 200 }).notNull().default('TRANSPORTES LINEA S.A.'),
-    asignatura: varchar('asignatura', { length: 200 }),
-    fotocheck: text('fotocheck').array().default([]),
-    creadoEn: timestamp('creado_en').defaultNow().notNull(),
-    actualizadoEn: timestamp('actualizado_en').defaultNow().notNull(),
-    notificacionesEliminadasDesde: timestamp('notificaciones_eliminadas_desde'),
-    notificacionesLeidasDesde: timestamp('notificaciones_leidas_desde'),
-    eliminadoEn: timestamp('eliminado_en'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    deletedAt: timestamp('deleted_at'),
+    email: varchar('email', { length: 255 }).notNull(),
+    password: text('password').notNull(),
+    firstName: varchar('first_name', { length: 100 }).notNull(),
+    lastName: varchar('last_name', { length: 100 }).notNull(),
+    fullName: varchar('full_name', { length: 200 }).notNull(),
+    role: userRoleEnum('role').default('viewer').notNull(),
+    isActive: varchar('is_active', { length: 10 }).default('true').notNull(),
   },
   (t) => [
-    // Índices de búsqueda
-    index('usuarios_nombre_completo_idx').using('gin', t.nombreCompleto.op('gin_trgm_ops')),
-    index('usuarios_email_idx').on(t.email),
-    // Índice único parcial: solo cuando eliminadoEn IS NULL
-    uniqueIndex('usuarios_email_unique_active_idx')
+    // Search indexes
+    index('user_full_name_idx').using('gin', t.fullName.op('gin_trgm_ops')),
+    index('user_email_idx').on(t.email),
+    index('user_created_at_idx').on(t.createdAt),
+
+    // Unique partial indexes (Soft Delete)
+    uniqueIndex('user_email_unique_active_idx')
       .on(t.email)
-      .where(sql`${t.eliminadoEn} IS NULL`),
+      .where(sql`${t.deletedAt} IS NULL`),
   ],
 );
 
-export type UsuarioRol = (typeof usuariosRol.enumValues)[number];
-export type Usuario = typeof usuarios.$inferSelect;
-export type UsuarioDTO = typeof usuarios.$inferInsert;
+export type User = typeof user.$inferSelect;
+export type UserDTO = typeof user.$inferInsert;
 ```
 
 ## Convenciones de nombres y exportaciones
 
 | Elemento | Convención | Ejemplo |
 | --- | --- | --- |
-| Archivo de tabla | `nombre_tabla.table.ts` | `usuarios.table.ts` |
-| Enum | Tabla + columna (en singular si corresponde) | `usuariosRol`, `UsuarioRol` |
-| Tipo para SELECT | Nombre de entidad | `Usuario` |
-| Tipo para INSERT | Nombre de entidad + `DTO` | `UsuarioDTO` |
+| Archivo | Nombre de tabla + `.table.ts` | `user.table.ts` |
+| Tabla Drizzle | Exportar la definición para poder utilizarla desde queries y conexiones | `export const user` |
+| Enum interno | Nombre de tabla + columna + `Enum`; declararlo en el mismo archivo **sin exportarlo** | `const userRoleEnum` |
+| Tipo SELECT | Nombre de entidad | `export type User` |
+| Tipo INSERT | Nombre de entidad + `DTO` | `export type UserDTO` |
 
-Los **enums que pertenezcan a una tabla pueden definirse en el mismo archivo**. Exporta el enum y su tipo (por ejemplo, `usuariosRol` y `UsuarioRol`), junto con los tipos inferidos de Drizzle: `$inferSelect` para leer registros y `$inferInsert` para insertar nuevos.
+Los enums exclusivos de una tabla **se definen dentro de su archivo y no se exportan**. Sí se exportan la tabla y sus dos tipos inferidos por Drizzle: `$inferSelect` para lectura y `$inferInsert` para inserción. Si algún enum necesitara reutilizarse en otras tablas, habría que diseñar una definición compartida aparte.
 
-**Nota:** el índice `gin_trgm_ops` del ejemplo requiere la extensión PostgreSQL `pg_trgm` habilitada.
+**Nota:** el índice GIN con `gin_trgm_ops` requiere habilitar la extensión `pg_trgm` en PostgreSQL.

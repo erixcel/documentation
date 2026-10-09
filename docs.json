@@ -82,7 +82,8 @@
                       "desarrollo/nestjs/src/core/cors-core",
                       "desarrollo/nestjs/src/core/filters-core",
                       "desarrollo/nestjs/src/core/swagger-core",
-                      "desarrollo/nestjs/src/core/transform-core"
+                      "desarrollo/nestjs/src/core/transform-core",
+                      "desarrollo/nestjs/src/core/traceflow-core"
                     ]
                   },
                   {

@@ -1,0 +1,75 @@
+---
+title: "traceflow.core.ts"
+sidebarTitle: "traceflow.core.ts"
+---
+
+Inicializa TraceFlow y registra el middleware HTTP para capturar trazas durante el **desarrollo local**. Se integra desde `src/main.ts` y envía las trazas al Studio configurado en `TRACEFLOW_STUDIO_URL`.
+
+## Configuración
+
+| Variable | Propósito |
+| --- | --- |
+| `TRACEFLOW_SERVICE_NAME` | Nombre que identifica el backend en el Studio. |
+| `TRACEFLOW_STUDIO_URL` | Dirección local del Studio (por defecto `http://127.0.0.1:4789`). |
+| `TRACEFLOW_ENABLED` | Habilita TraceFlow cuando es `true` y `PROD` no es `true`. |
+| `TRACEFLOW_INSTRUMENT_HTTP` | Activa la instrumentación de HTTP. |
+| `TRACEFLOW_DEBUG` | Activa los registros de depuración. |
+
+## Archivo completo
+
+```typescript traceflow.core.ts
+import type { INestApplication } from '@nestjs/common';
+import { createTraceFlowHttpMiddleware, startTraceFlow } from 'traceflow';
+
+export function initializeTraceFlow(): void {
+  startTraceFlow({
+    serviceName: process.env.TRACEFLOW_SERVICE_NAME || 'nombre-backend',
+    studioUrl: process.env.TRACEFLOW_STUDIO_URL || 'http://127.0.0.1:4789',
+    enabled: process.env.TRACEFLOW_ENABLED?.toLowerCase() === 'true' && process.env.PROD !== 'true',
+    instrumentHttp: process.env.TRACEFLOW_INSTRUMENT_HTTP?.toLowerCase() === 'true',
+    debug: process.env.TRACEFLOW_DEBUG?.toLowerCase() === 'true',
+  });
+}
+
+export function setupTraceFlow(app: INestApplication): void {
+  // TraceFlow se utiliza únicamente en el entorno local de desarrollo.
+  if (process.env.PROD === 'true' || process.env.TRACEFLOW_ENABLED?.toLowerCase() !== 'true') {
+    return;
+  }
+
+  app.use(
+    createTraceFlowHttpMiddleware({
+      capture: {
+        query: true,
+        body: true,
+        formData: true,
+        cookies: true,
+        authorization: 'full',
+        headers: true,
+      },
+    }),
+  );
+}
+```
+
+**Importante:** esta configuración solo debe utilizarse en local. `authorization: 'full'`, `cookies: true` y `body: true` **pueden registrar tokens, credenciales o información sensible**. Utiliza únicamente datos de prueba; desactiva esas capturas si no las necesitas. El ejemplo también deshabilita el middleware cuando `PROD=true`.
+
+## Preparar TraceFlow local
+
+Con los paquetes locales ya compilados y el repositorio TraceFlow disponible, levanta su entorno de desarrollo:
+
+```bash Terminal — repositorio TraceFlow
+cd /ruta/absoluta/traceflow
+npm run dev
+```
+
+En otra terminal, desde el **backend consumidor**, enlaza los paquetes locales:
+
+```bash Terminal — backend NestJS
+cd /ruta/absoluta/mi-proyecto
+npm link traceflow traceflow-kit
+```
+
+Estos enlaces son para desarrollo local; no son una instrucción para instalar TraceFlow en producción. Tras enlazarlos, puedes compilar y levantar el backend con sus comandos habituales.
+
+En `src/main.ts`, llama `initializeTraceFlow()` antes de crear la aplicación y `setupTraceFlow(app)` después de `NestFactory.create(AppModule)`.

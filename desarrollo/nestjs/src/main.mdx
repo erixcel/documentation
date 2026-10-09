@@ -3,12 +3,13 @@ title: "main.ts"
 sidebarTitle: "main.ts"
 ---
 
-Punto de entrada de NestJS. Crea la aplicación, carga las variables de entorno, aplica las configuraciones globales de `src/core` e inicia el servidor con el puerto definido en `PORT` (predeterminado: `3000`).
+Punto de entrada de NestJS. Carga las variables de entorno, inicializa TraceFlow **solo para desarrollo local**, crea la aplicación, registra los middlewares y configuraciones globales e inicia el servidor.
 
 ```typescript main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { config } from 'dotenv';
+import { initializeTraceFlow, setupTraceFlow } from '@core/traceflow.core';
 import { setupSwagger } from '@core/swagger.core';
 import { setupTransform } from '@core/transform.core';
 import { setupCors } from '@core/cors.core';
@@ -17,16 +18,23 @@ import { setupGlobalFilters } from '@core/filters.core';
 config();
 
 async function bootstrap() {
+  // Inicializa trazabilidad antes de crear la aplicación.
+  initializeTraceFlow();
+
   const app = await NestFactory.create(AppModule);
 
   setupCors(app);
+  setupTraceFlow(app);
   setupTransform(app);
   setupSwagger(app);
   setupGlobalFilters(app);
 
   await app.listen(process.env.PORT || 3000);
 }
+
 bootstrap();
 ```
 
-Las funciones `setupCors`, `setupTransform`, `setupSwagger` y `setupGlobalFilters` se definen en los archivos de `src/core`. Este ejemplo **no registra interceptores globales**.
+`initializeTraceFlow()` utiliza `TRACEFLOW_ENABLED`, `TRACEFLOW_STUDIO_URL` y las demás variables del archivo `.env`. `setupTraceFlow(app)` agrega la captura HTTP únicamente si TraceFlow está habilitado y `PROD` no es `true`. Consulta `src/core/traceflow.core.ts` para ver los pasos de instalación local.
+
+Las otras funciones de configuración se encuentran en `src/core`. Este ejemplo no incluye interceptores globales.

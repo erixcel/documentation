@@ -5,6 +5,26 @@ sidebarTitle: "tables"
 
 Contiene las definiciones de las tablas PostgreSQL mediante **Drizzle ORM**. Usa **un archivo por tabla** con el nombre de la tabla y el sufijo `.table.ts`.
 
+## Campos obligatorios en absolutamente todas las tablas
+
+**Regla indispensable y sin excepciones:** cada tabla definida en `src/db/tables` debe incluir **exactamente estos tres campos de auditoría**, siempre con sus nombres de propiedad y de columna **en inglés**, incluso en tablas intermedias o de relaciones.
+
+```typescript nombre-tabla.table.ts
+createdAt: timestamp('created_at').defaultNow().notNull(),
+updatedAt: timestamp('updated_at').defaultNow().notNull(),
+deletedAt: timestamp('deleted_at'),
+```
+
+| Campo | Función |
+| --- | --- |
+| `createdAt` / `created_at` | Fecha y hora en que se crea el registro. |
+| `updatedAt` / `updated_at` | Fecha y hora de su última actualización. |
+| `deletedAt` / `deleted_at` | Marca de eliminación lógica (_soft delete_); permanece `null` mientras el registro está activo. |
+
+No los traduzcas a `creadoEn`, `actualizadoEn` o `eliminadoEn`, ni omitas ninguno al crear una tabla nueva.
+
+**Importante:** `defaultNow()` establece el valor inicial de `updatedAt`, pero **no lo actualiza automáticamente** cuando cambia el registro. La lógica de actualización debe asignar `updatedAt: new Date()` (o configurarse explícitamente para hacerlo).
+
 ## Ejemplo de estructura
 
 ```text src/db/tables

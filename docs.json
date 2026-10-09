@@ -103,6 +103,20 @@
                       "desarrollo/nestjs/src/db/seed-db"
                     ]
                   },
+                  {
+                    "group": "dto",
+                    "pages": [
+                      "desarrollo/nestjs/src/dto/http-error-dto",
+                      "desarrollo/nestjs/src/dto/pagination-meta-dto"
+                    ]
+                  },
+                  {
+                    "group": "functions",
+                    "pages": [
+                      "desarrollo/nestjs/src/functions/date-function",
+                      "desarrollo/nestjs/src/functions/db-error-function"
+                    ]
+                  },
                   "desarrollo/nestjs/src/queries-guia",
                   "desarrollo/nestjs/src/seeds-guia",
                   "desarrollo/nestjs/src/main"

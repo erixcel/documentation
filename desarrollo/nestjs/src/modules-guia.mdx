@@ -178,8 +178,8 @@ export class UserService {
 
   @Trace({ name: 'user', type: 'service' })
   async findAllPaginated(filters: UserListFiltersDto) {
-    const { page, limit } = filters;
-    const { data, total } = await this.userQuery.findAllPaginated(page, limit);
+    const { page = 1, limit = 10, search, role, isActive } = filters;
+    const { data, total } = await this.userQuery.findAllPaginated(page, limit, { search, role, isActive });
     const usuarios = data.map(({ password, ...usuario }) => usuario);
     return { data: usuarios, meta: PaginationFunction.createPaginationMeta(total, page, limit) };
   }
@@ -296,35 +296,91 @@ export class UserResultDto {
 
 ```typescript user-list.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { user } from '@db/tables/user.table';
+import { Trace } from 'traceflow';
 import { PaginationMetaDto } from 'src/dto/pagination-meta.dto';
-import { UserResultDto } from './user-result.dto';
 
+@Trace({ type: 'validation' })
 export class UserListFiltersDto {
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
+  @ApiPropertyOptional({ description: 'Page number', default: 1 })
   @Type(() => Number)
-  @IsInt()
+  @IsNumber()
   @Min(1)
-  page: number = 1;
+  @IsOptional()
+  page?: number = 1;
 
-  @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
+  @ApiPropertyOptional({ description: 'Items per page', default: 10 })
   @Type(() => Number)
-  @IsInt()
+  @IsNumber()
   @Min(1)
-  limit: number = 10;
+  @IsOptional()
+  limit?: number = 10;
+
+  @ApiPropertyOptional({ description: 'Search term for name or email' })
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({
+    enum: user.role.enumValues,
+    description: 'Filter by role',
+  })
+  @IsEnum(user.role.enumValues)
+  @IsOptional()
+  role?: (typeof user.role.enumValues)[number];
+
+  @ApiPropertyOptional({ description: 'Filter by active status' })
+  @IsString()
+  @IsOptional()
+  isActive?: string;
 }
 
+@Trace({ type: 'validation' })
+export class UserListItemDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'usuario@example.com' })
+  email: string;
+
+  @ApiProperty({ example: 'Usuario Ejemplo' })
+  fullName: string;
+
+  @ApiProperty({ example: 'admin', enum: user.role.enumValues })
+  role: (typeof user.role.enumValues)[number];
+
+  @ApiProperty({ example: 'true' })
+  isActive: string;
+
+  @ApiProperty({ example: '2025-01-01T00:00:00Z' })
+  createdAt: Date;
+}
+
+@Trace({ type: 'validation' })
 export class UserListDto {
-  @ApiProperty({ type: [UserResultDto] })
-  data: UserResultDto[];
+  @ApiProperty({ type: [UserListItemDto] })
+  data: UserListItemDto[];
 
   @ApiProperty({ type: PaginationMetaDto })
   meta: PaginationMetaDto;
 }
 ```
+
+### Enum en los DTO: una sola fuente de verdad
+
+**Regla:** cuando un campo use un enum de PostgreSQL, sus valores deben provenir de la **definición Drizzle de la tabla**, nunca de un enum nuevo, una lista duplicada ni valores escritos manualmente en el DTO.
+
+En `user.table.ts`, `userRoleEnum` sigue siendo **interno (sin `export`)**; como la tabla `user` sí se exporta, el DTO reutiliza sus valores mediante `user.role.enumValues`. Aplica la misma referencia en los tres lugares:
+
+| Uso | Expresión |
+| --- | --- |
+| Swagger | `@ApiPropertyOptional({ enum: user.role.enumValues })` o `@ApiProperty({ enum: user.role.enumValues })` |
+| Validación | `@IsEnum(user.role.enumValues)` |
+| Tipo TypeScript | `(typeof user.role.enumValues)[number]` |
+
+De este modo, cuando cambian los roles en el esquema de Drizzle, el tipado, la validación y la documentación de la API usan los mismos valores. **No se duplica el enum y tampoco es necesario exportarlo**.
 
 ## Ejemplo: auth (módulo pequeño)
 

@@ -64,6 +64,6 @@ export type UserDTO = typeof user.$inferInsert;
 | Tipo SELECT | Nombre de entidad | `export type User` |
 | Tipo INSERT | Nombre de entidad + `DTO` | `export type UserDTO` |
 
-Los enums exclusivos de una tabla **se definen dentro de su archivo y no se exportan**. Sí se exportan la tabla y sus dos tipos inferidos por Drizzle: `$inferSelect` para lectura y `$inferInsert` para inserción. Si algún enum necesitara reutilizarse en otras tablas, habría que diseñar una definición compartida aparte.
+Los enums exclusivos de una tabla **se definen dentro de su archivo y no se exportan**. Sí se exportan la tabla y sus dos tipos inferidos por Drizzle: `$inferSelect` para lectura y `$inferInsert` para inserción. Los DTO deben obtener los valores del enum desde la columna exportada: `user.role.enumValues` (para Swagger, `@IsEnum` y el tipo TypeScript), sin crear otro enum ni duplicar sus valores. Si un enum necesitara compartirse entre varias tablas, habría que diseñar una definición común.
 
 **Nota:** el índice GIN con `gin_trgm_ops` requiere habilitar la extensión `pg_trgm` en PostgreSQL.

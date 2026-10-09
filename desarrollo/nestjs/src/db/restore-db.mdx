@@ -14,7 +14,7 @@ import * as readline from 'readline';
 
 dotenv.config();
 
-const dbVersion = process.env.DB_VERSION;
+const dbVersion = process.env.DB_VERSION!;
 const backupDir = path.join(process.cwd(), 'src', 'db', 'backups');
 
 const getPreviousVersion = (current: string): string => {

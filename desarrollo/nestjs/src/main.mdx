@@ -13,7 +13,6 @@ import { initializeTraceFlow, setupTraceFlow } from '@core/traceflow.core';
 import { setupSwagger } from '@core/swagger.core';
 import { setupTransform } from '@core/transform.core';
 import { setupCors } from '@core/cors.core';
-import { setupGlobalFilters } from '@core/filters.core';
 
 config();
 
@@ -27,7 +26,6 @@ async function bootstrap() {
   setupTraceFlow(app);
   setupTransform(app);
   setupSwagger(app);
-  setupGlobalFilters(app);
 
   await app.listen(process.env.PORT || 3000);
 }

@@ -1,0 +1,71 @@
+---
+title: "tables"
+sidebarTitle: "tables"
+---
+
+Contiene las definiciones de tablas de PostgreSQL usando **Drizzle ORM**. Cada tabla debe estar en un archivo con el patrón `nombre_tabla.table.ts`.
+
+## Ejemplo de estructura
+
+```text src/db/tables
+tables/
+├── usuarios.table.ts
+├── clientes.table.ts
+└── productos.table.ts
+```
+
+## Ejemplo completo
+
+```typescript usuarios.table.ts
+import { pgEnum, pgTable, serial, varchar, timestamp, text, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+export const usuariosRol = pgEnum('usuarios_rol', ['empleado', 'admin']);
+
+export const usuarios = pgTable(
+  'usuarios',
+  {
+    id: serial('id').primaryKey(),
+    nombres: varchar('nombres', { length: 100 }).notNull(),
+    apellidos: varchar('apellidos', { length: 100 }).notNull(),
+    nombreCompleto: varchar('nombre_completo', { length: 200 }).notNull(),
+    email: varchar('email', { length: 100 }).notNull(),
+    contrasenia: varchar('contrasenia', { length: 255 }).notNull(),
+    roles: usuariosRol('roles').array().default(['empleado']).notNull(),
+    empresa: varchar('empresa', { length: 200 }).notNull().default('TRANSPORTES LINEA S.A.'),
+    asignatura: varchar('asignatura', { length: 200 }),
+    fotocheck: text('fotocheck').array().default([]),
+    creadoEn: timestamp('creado_en').defaultNow().notNull(),
+    actualizadoEn: timestamp('actualizado_en').defaultNow().notNull(),
+    notificacionesEliminadasDesde: timestamp('notificaciones_eliminadas_desde'),
+    notificacionesLeidasDesde: timestamp('notificaciones_leidas_desde'),
+    eliminadoEn: timestamp('eliminado_en'),
+  },
+  (t) => [
+    // Índices de búsqueda
+    index('usuarios_nombre_completo_idx').using('gin', t.nombreCompleto.op('gin_trgm_ops')),
+    index('usuarios_email_idx').on(t.email),
+    // Índice único parcial: solo cuando eliminadoEn IS NULL
+    uniqueIndex('usuarios_email_unique_active_idx')
+      .on(t.email)
+      .where(sql`${t.eliminadoEn} IS NULL`),
+  ],
+);
+
+export type UsuarioRol = (typeof usuariosRol.enumValues)[number];
+export type Usuario = typeof usuarios.$inferSelect;
+export type UsuarioDTO = typeof usuarios.$inferInsert;
+```
+
+## Convenciones de nombres y exportaciones
+
+| Elemento | Convención | Ejemplo |
+| --- | --- | --- |
+| Archivo de tabla | `nombre_tabla.table.ts` | `usuarios.table.ts` |
+| Enum | Tabla + columna (en singular si corresponde) | `usuariosRol`, `UsuarioRol` |
+| Tipo para SELECT | Nombre de entidad | `Usuario` |
+| Tipo para INSERT | Nombre de entidad + `DTO` | `UsuarioDTO` |
+
+Los **enums que pertenezcan a una tabla pueden definirse en el mismo archivo**. Exporta el enum y su tipo (por ejemplo, `usuariosRol` y `UsuarioRol`), junto con los tipos inferidos de Drizzle: `$inferSelect` para leer registros y `$inferInsert` para insertar nuevos.
+
+**Nota:** el índice `gin_trgm_ops` del ejemplo requiere la extensión PostgreSQL `pg_trgm` habilitada.

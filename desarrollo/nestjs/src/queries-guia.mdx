@@ -1,0 +1,147 @@
+---
+title: "queries"
+sidebarTitle: "queries"
+---
+
+Esta carpeta organiza el acceso a datos de **cada tabla por separado**. Crea una subcarpeta por tabla (por ejemplo, `producto`) y coloca **como máximo dos archivos** dentro de ella.
+
+## Estructura
+
+```text src/queries
+queries/
+├── producto/
+│   ├── producto.query.ts
+│   └── producto-join.query.ts
+└── categoria/
+    ├── categoria.query.ts
+    └── categoria-join.query.ts
+```
+
+## Reglas de separación
+
+| Archivo | Operaciones permitidas | Restricción |
+| --- | --- | --- |
+| `nombre-tabla.query.ts` | `SELECT`, `INSERT`, `UPDATE`, `DELETE` | Consultar y modificar **únicamente la tabla base**, sin importar ni mencionar otras tablas. |
+| `nombre-tabla-join.query.ts` | **Solo `SELECT`** | Puede utilizar `JOIN` con otras tablas relacionadas, pero nunca insertar, actualizar ni eliminar registros. |
+
+Ambos archivos pueden usar `@Injectable()` de NestJS, Drizzle ORM y la conexión exportada desde `@db/connection.db`.
+
+**Convención:** para la tabla `producto`, las clases serían `ProductoQuery` y `ProductoJoinQuery`. Los ejemplos de `producto` y `categoria` son genéricos: adapta los nombres de campos a tus esquemas reales.
+
+## Ejemplo: `producto.query.ts` (una sola tabla)
+
+Acceso a datos de **una sola tabla**. Este archivo permite leer, crear, actualizar y eliminar productos, pero no importa ni consulta tablas adicionales.
+
+```typescript producto.query.ts
+import { Injectable } from '@nestjs/common';
+import { count, eq, isNull, desc } from 'drizzle-orm';
+import { database } from '@db/connection.db';
+import { productos, type ProductoDTO } from '@db/tables/producto.table';
+
+@Injectable()
+export class ProductoQuery {
+  async findAllPaginated(page: number = 1, limit: number = 10) {
+    const offset = (page - 1) * limit;
+    const where = isNull(productos.eliminadoEn);
+
+    const [{ total }] = await database
+      .select({ total: count() })
+      .from(productos)
+      .where(where);
+
+    const data = await database
+      .select()
+      .from(productos)
+      .where(where)
+      .orderBy(desc(productos.id))
+      .limit(limit)
+      .offset(offset);
+
+    return { data, total: Number(total) };
+  }
+
+  async findOne(id: number) {
+    const [producto] = await database
+      .select()
+      .from(productos)
+      .where(eq(productos.id, id));
+
+    return producto;
+  }
+
+  async create(data: ProductoDTO) {
+    const [producto] = await database
+      .insert(productos)
+      .values(data)
+      .returning();
+
+    return producto;
+  }
+
+  async update(id: number, data: Partial<ProductoDTO>) {
+    const [producto] = await database
+      .update(productos)
+      .set(data)
+      .where(eq(productos.id, id))
+      .returning();
+
+    return producto;
+  }
+
+  async delete(id: number) {
+    // Eliminación lógica en la misma tabla.
+    const [producto] = await database
+      .update(productos)
+      .set({ eliminadoEn: new Date() })
+      .where(eq(productos.id, id))
+      .returning();
+
+    return producto;
+  }
+}
+```
+
+**Regla:** ninguna función de este archivo debe mencionar otra tabla, ni siquiera en un `SELECT`. El ejemplo presupone columnas `id` y `eliminadoEn` en `productos`; ajusta los campos a tu definición Drizzle.
+
+## Ejemplo: `producto-join.query.ts` (solo SELECT con JOIN)
+
+Consultas **exclusivamente de lectura** que combinan la tabla base `productos` con otras relacionadas. Aquí están permitidos los `JOIN`, pero no `INSERT`, `UPDATE` ni `DELETE`.
+
+```typescript producto-join.query.ts
+import { Injectable } from '@nestjs/common';
+import { desc, eq } from 'drizzle-orm';
+import { database } from '@db/connection.db';
+import { productos } from '@db/tables/producto.table';
+import { categorias } from '@db/tables/categoria.table';
+
+@Injectable()
+export class ProductoJoinQuery {
+  async findAllWithCategory() {
+    return database
+      .select({
+        id: productos.id,
+        nombre: productos.nombre,
+        categoria: categorias.nombre,
+      })
+      .from(productos)
+      .leftJoin(categorias, eq(productos.categoriaId, categorias.id))
+      .orderBy(desc(productos.id));
+  }
+
+  async findOneWithCategory(id: number) {
+    const [producto] = await database
+      .select({
+        id: productos.id,
+        nombre: productos.nombre,
+        categoria: categorias.nombre,
+      })
+      .from(productos)
+      .leftJoin(categorias, eq(productos.categoriaId, categorias.id))
+      .where(eq(productos.id, id));
+
+    return producto;
+  }
+}
+```
+
+**Regla:** este archivo contiene solamente consultas `SELECT` con relaciones. Los campos `categoriaId` y `nombre` son ilustrativos; adáptalos a tus tablas.

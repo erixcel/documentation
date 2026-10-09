@@ -1,0 +1,20 @@
+---
+title: "cors.core.ts"
+sidebarTitle: "cors.core.ts"
+---
+
+Configura CORS para permitir peticiones desde otros orígenes y exponer la cabecera `Content-Disposition`.
+
+```typescript cors.core.ts
+import { INestApplication } from '@nestjs/common';
+
+export function setupCors(app: INestApplication) {
+  app.enableCors({
+    origin: '*',
+    allowedHeaders: '*',
+    exposedHeaders: ['Content-Disposition'],
+  });
+}
+```
+
+**Seguridad:** `origin: '*'` permite cualquier origen. En producción, define los dominios autorizados si necesitas restringir el acceso.

@@ -1,0 +1,22 @@
+---
+title: ".env.example"
+sidebarTitle: ".env.example"
+description: "Variables de entorno de ejemplo para un backend NestJS con PostgreSQL y JWT."
+---
+
+Archivo de ejemplo para configurar las variables de entorno del backend. Créalo en la raíz del proyecto como `.env.example`.
+
+```dotenv .env.example
+PROD=false
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=nombre_base_de_datos
+DB_VERSION=version_002
+DB_CONTAINER_NAME=nombre_de_tu_contenedor
+JWT_SECRET=tu_clave_secreta
+```
+
+Copia `.env.example` a `.env` y reemplaza los valores de ejemplo según tu entorno. **No subas tu archivo `.env` real al repositorio ni utilices `JWT_SECRET=tu_clave_secreta` en producción.**

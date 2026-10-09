@@ -1,0 +1,53 @@
+Carga datos iniciales o de prueba desde `src/seeds`. Ejecuta primero las tablas independientes y después las que tienen claves foráneas.
+
+## Ejemplo de estructura
+
+```text src/seeds
+seeds/
+├── usuario.seed.ts
+├── categoria.seed.ts
+├── producto.seed.ts
+├── cliente.seed.ts
+└── pedido.seed.ts
+```
+
+## Ejemplo de implementación
+
+```typescript seed.db.ts
+import { seedUsuarios } from '@seeds/usuario.seed';
+import { seedCategorias } from '@seeds/categoria.seed';
+import { seedProductos } from '@seeds/producto.seed';
+import { seedClientes } from '@seeds/cliente.seed';
+import { seedPedidos } from '@seeds/pedido.seed';
+
+async function seed() {
+  try {
+    console.log('🚀 Iniciando carga de datos iniciales...');
+
+    // Primero las tablas que no dependen de otras.
+    await seedUsuarios();
+    const categorias = await seedCategorias();
+    const clientes = await seedClientes();
+
+    // Después las tablas con relaciones.
+    const productos = await seedProductos(categorias);
+    await seedPedidos(clientes, productos);
+
+    console.log('✅ Datos iniciales cargados correctamente.');
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error al cargar datos iniciales:', error);
+    process.exit(1);
+  }
+}
+
+seed();
+```
+
+Este ejemplo es **referencial**: las funciones `seedUsuarios`, `seedCategorias`, etc. deben implementarse en sus respectivos archivos. Los parámetros y los datos devueltos dependerán de sus relaciones.
+
+## Ejecutar
+
+```bash Terminal
+npm run db:seed
+```

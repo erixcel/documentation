@@ -1,0 +1,32 @@
+---
+title: "main.ts"
+sidebarTitle: "main.ts"
+---
+
+Punto de entrada de NestJS. Crea la aplicación, carga las variables de entorno, aplica las configuraciones globales de `src/core` e inicia el servidor con el puerto definido en `PORT` (predeterminado: `3000`).
+
+```typescript main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { config } from 'dotenv';
+import { setupSwagger } from '@core/swagger.core';
+import { setupTransform } from '@core/transform.core';
+import { setupCors } from '@core/cors.core';
+import { setupGlobalFilters } from '@core/filters.core';
+
+config();
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  setupCors(app);
+  setupTransform(app);
+  setupSwagger(app);
+  setupGlobalFilters(app);
+
+  await app.listen(process.env.PORT || 3000);
+}
+bootstrap();
+```
+
+Las funciones `setupCors`, `setupTransform`, `setupSwagger` y `setupGlobalFilters` se definen en los archivos de `src/core`. Este ejemplo **no registra interceptores globales**.

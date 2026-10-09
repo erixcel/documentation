@@ -1,0 +1,53 @@
+---
+title: "string.function.ts"
+sidebarTitle: "string.function.ts"
+---
+
+Normaliza strings de objetos y arreglos recursivamente: elimina espacios extremos, convierte a minúsculas y reduce espacios repetidos, exceptuando claves como `password`.
+
+```typescript string.function.ts
+import { Trace } from 'traceflow';
+
+export class StringFunction {
+  @Trace({ name: 'Sanitizar campos de texto', type: 'method' })
+  static sanitizeStringFields<T>(obj: T, exclude: string[] = ['password']): T {
+    return StringFunction.sanitizeValue(obj, exclude);
+  }
+
+  private static sanitizeValue<T>(obj: T, exclude: string[]): T {
+    if (typeof obj !== 'object' || obj === null) {
+      return obj;
+    }
+
+    if (obj instanceof Date) {
+      return obj;
+    }
+
+    // Handle arrays explicitly if we want to sanitize strings inside arrays
+    if (Array.isArray(obj)) {
+      return obj.map((item) => StringFunction.sanitizeValue(item, exclude)) as unknown as T;
+    }
+
+    const result: any = { ...obj };
+
+    for (const key of Object.keys(result)) {
+      // Skip excluded keys (case-sensitive check)
+      if (exclude.includes(key)) {
+        continue;
+      }
+
+      const value = result[key];
+
+      if (typeof value === 'string') {
+        // Apply transforms: trim, lowercase, replace multiple spaces with single space
+        result[key] = value.trim().toLowerCase().replace(/\s+/g, ' ');
+      } else if (typeof value === 'object' && value !== null) {
+        // Recursively sanitize nested objects without creating nested trace spans
+        result[key] = StringFunction.sanitizeValue(value, exclude);
+      }
+    }
+
+    return result;
+  }
+}
+```

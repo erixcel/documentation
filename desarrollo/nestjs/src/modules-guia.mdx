@@ -1,0 +1,411 @@
+---
+title: "modules"
+sidebarTitle: "modules"
+---
+
+La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo contiene como mínimo un `controller`, un `service`, un `module` y una carpeta `dto`. Los módulos sencillos, como `auth`, pueden guardar sus archivos directamente; los más grandes, como `admin`, se subdividen por funcionalidad.
+
+## Estructura recomendada
+
+```text src/modules
+modules/
+├── auth/
+│   ├── dto/
+│   │   ├── login.dto.ts
+│   │   └── login-response.dto.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.module.ts
+│   ├── jwt-auth.guard.ts
+│   └── jwt.strategy.ts
+└── admin/
+    ├── user/
+    │   ├── dto/
+    │   │   ├── user-create.dto.ts
+    │   │   ├── user-update.dto.ts
+    │   │   ├── user-list.dto.ts
+    │   │   └── user-result.dto.ts
+    │   ├── user.controller.ts
+    │   ├── user.service.ts
+    │   └── user.module.ts
+    └── producto/
+        ├── dto/
+        ├── producto.controller.ts
+        ├── producto.service.ts
+        └── producto.module.ts
+```
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| `*.controller.ts` | Define rutas, métodos HTTP, guards y documentación Swagger. **Sin lógica de negocio**. |
+| `*.service.ts` | Implementa validaciones, reglas de negocio, sanitización y coordinación de queries. |
+| `*.module.ts` | Registra controllers, providers e imports/exports de NestJS. |
+| `dto/*.dto.ts` | Tipos de petición y respuesta, validaciones y documentación Swagger de los endpoints. |
+
+## Reglas obligatorias para controllers
+
+1. **Un endpoint = una línea dentro del método:** `return this.servicio.metodo(...)`. No ejecutar consultas, conversiones, validaciones ni otras operaciones dentro del controller. Esas tareas corresponden al service.
+2. **Todo el tipado en los DTO**: usa `CreateDto`, `UpdateDto`, `FiltersDto` y `ResultDto` en lugar de definir objetos de tipos complejos dentro del controller.
+3. **Orden de decoradores:** método HTTP → `@ApiOperation` → `@ApiParam` (solo si aplica) → `@ApiResponse` exitoso → `@ApiResponse` de error → `@TraceNode`.
+4. Los **dos `@ApiResponse` son obligatorios** para cada endpoint, aunque los códigos HTTP específicos puedan cambiar según la operación. Usa siempre el DTO del resultado y `HttpErrorDto` para los errores.
+5. `@TraceNode` es obligatorio, conciso y con **solo `name` y `type: 'controller'`**.
+6. Si el endpoint requiere Swagger multipart, interceptores u otros decoradores, agrégalos entre los anteriores según su necesidad, dejando `@TraceNode` al final.
+
+### Orden de los decoradores
+
+```typescript user.controller.ts
+@Delete('delete/:id')
+@ApiOperation({ summary: 'Eliminar usuario' })
+@ApiParam({ name: 'id', type: 'number', description: 'ID del usuario' })
+@ApiResponse({ status: 200, type: UserResultDto })
+@ApiResponse({ status: 400, type: HttpErrorDto })
+@TraceNode({ name: 'Eliminar usuario', type: 'controller' })
+remove(@Param('id', ParseIntPipe) id: number) {
+  return this.userService.delete(id);
+}
+```
+
+Cuando no existe un parámetro de ruta, omite únicamente `@ApiParam`. Si hay anotaciones adicionales (por ejemplo, para subir archivos), puedes incluirlas:
+
+```typescript external.controller.ts
+@Post('upload')
+@ApiOperation({ summary: 'Subir una imagen' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({ type: UploadFileDto })
+@ApiResponse({ status: 200, type: UploadResultDto })
+@ApiResponse({ status: 400, type: HttpErrorDto })
+@UseInterceptors(FileInterceptor('file'))
+@TraceNode({ name: 'Subir imagen', type: 'controller' })
+uploadFile(@UploadedFile() file: Express.Multer.File) {
+  return this.externalService.uploadImage(file);
+}
+```
+
+## Ejemplo: admin → user
+
+### user.controller.ts
+
+Controller deliberadamente plano: **todos** los endpoints delegan directamente al servicio con una única instrucción `return`. Los DTO concentran la documentación de los cuerpos, filtros y respuestas.
+
+```typescript user.controller.ts
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { TraceNode } from 'traceflow';
+import { HttpErrorDto } from 'src/dto/http-error.dto';
+import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { UserService } from './user.service';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserUpdateDto } from './dto/user-update.dto';
+import { UserListDto, UserListFiltersDto } from './dto/user-list.dto';
+import { UserResultDto } from './dto/user-result.dto';
+
+@ApiTags('user')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('admin/user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Get('find-all')
+  @ApiOperation({ summary: 'Listar usuarios paginados' })
+  @ApiResponse({ status: 200, type: UserListDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Listar usuarios', type: 'controller' })
+  findAll(@Query() filters: UserListFiltersDto) {
+    return this.userService.findAllPaginated(filters);
+  }
+
+  @Get('find-one/:id')
+  @ApiOperation({ summary: 'Obtener un usuario' })
+  @ApiParam({ name: 'id', type: 'number', description: 'ID del usuario' })
+  @ApiResponse({ status: 200, type: UserResultDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Obtener usuario', type: 'controller' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.findOne(id);
+  }
+
+  @Post('create')
+  @ApiOperation({ summary: 'Crear usuario' })
+  @ApiResponse({ status: 200, type: UserResultDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Crear usuario', type: 'controller' })
+  create(@Body() data: UserCreateDto) {
+    return this.userService.create(data);
+  }
+
+  @Patch('update/:id')
+  @ApiOperation({ summary: 'Actualizar usuario' })
+  @ApiParam({ name: 'id', type: 'number', description: 'ID del usuario' })
+  @ApiResponse({ status: 200, type: UserResultDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Actualizar usuario', type: 'controller' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: UserUpdateDto) {
+    return this.userService.update(id, data);
+  }
+
+  @Delete('delete/:id')
+  @ApiOperation({ summary: 'Eliminar usuario' })
+  @ApiParam({ name: 'id', type: 'number', description: 'ID del usuario' })
+  @ApiResponse({ status: 200, type: UserResultDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Eliminar usuario', type: 'controller' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.delete(id);
+  }
+}
+```
+
+### user.service.ts
+
+Aquí sí se coloca la **lógica de negocio**: verificar existencia, preparar datos, procesar errores y llamar al query de su tabla. `@Trace({ name: 'user', type: 'service' })` identifica cada operación del servicio.
+
+```typescript user.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Trace } from 'traceflow';
+import * as bcrypt from 'bcrypt';
+import { UserQuery } from '@queries/user/user.query';
+import { PaginationFunction } from '@functions/pagination.function';
+import { StringFunction } from '@functions/string.function';
+import { DbErrorFunction } from '@functions/db-error.function';
+import { UserCreateDto } from './dto/user-create.dto';
+import { UserUpdateDto } from './dto/user-update.dto';
+import { UserListFiltersDto } from './dto/user-list.dto';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly userQuery: UserQuery) {}
+
+  @Trace({ name: 'user', type: 'service' })
+  async findAllPaginated(filters: UserListFiltersDto) {
+    const { page, limit } = filters;
+    const { data, total } = await this.userQuery.findAllPaginated(page, limit);
+    const usuarios = data.map(({ password, ...usuario }) => usuario);
+    return { data: usuarios, meta: PaginationFunction.createPaginationMeta(total, page, limit) };
+  }
+
+  @Trace({ name: 'user', type: 'service' })
+  async findOne(id: number) {
+    const usuario = await this.userQuery.findOne(id);
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    const { password, ...resultado } = usuario;
+    return resultado;
+  }
+
+  @Trace({ name: 'user', type: 'service' })
+  async create(dto: UserCreateDto) {
+    try {
+      const data = StringFunction.sanitizeStringFields(dto);
+      const password = await bcrypt.hash(data.password, 10);
+      const usuario = await this.userQuery.create({ ...data, password });
+      const { password: hash, ...resultado } = usuario;
+      return resultado;
+    } catch (error) {
+      DbErrorFunction.handleDbError(error);
+    }
+  }
+
+  @Trace({ name: 'user', type: 'service' })
+  async update(id: number, dto: UserUpdateDto) {
+    await this.findOne(id);
+    try {
+      const data = StringFunction.sanitizeStringFields(dto);
+      const changes = {
+        ...data,
+        ...(data.password ? { password: await bcrypt.hash(data.password, 10) } : {}),
+      };
+      const usuario = await this.userQuery.update(id, changes);
+      const { password, ...resultado } = usuario;
+      return resultado;
+    } catch (error) {
+      DbErrorFunction.handleDbError(error);
+    }
+  }
+
+  @Trace({ name: 'user', type: 'service' })
+  async delete(id: number) {
+    await this.findOne(id);
+    const usuario = await this.userQuery.delete(id);
+    const { password, ...resultado } = usuario;
+    return resultado;
+  }
+}
+```
+
+### user.module.ts
+
+```typescript user.module.ts
+import { Module } from '@nestjs/common';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+import { UserQuery } from '@queries/user/user.query';
+
+@Module({
+  controllers: [UserController],
+  providers: [UserService, UserQuery],
+  exports: [UserService],
+})
+export class UserModule {}
+```
+
+### Carpeta dto
+
+Estos DTO son **ejemplos mínimos**; cada módulo puede tener los necesarios. `@ApiProperty` documenta campos en Swagger y los decoradores de `class-validator` validan el contenido recibido.
+
+```typescript user-create.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength } from 'class-validator';
+
+export class UserCreateDto {
+  @ApiProperty({ example: 'Ana' })
+  @IsString()
+  firstName: string;
+
+  @ApiProperty({ example: 'ana@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'claveSegura123' })
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
+```
+
+```typescript user-update.dto.ts
+import { PartialType } from '@nestjs/swagger';
+import { UserCreateDto } from './user-create.dto';
+
+export class UserUpdateDto extends PartialType(UserCreateDto) {}
+```
+
+```typescript user-result.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+
+export class UserResultDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'Ana' })
+  firstName: string;
+
+  @ApiProperty({ example: 'ana@example.com' })
+  email: string;
+}
+```
+
+```typescript user-list.dto.ts
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, Min } from 'class-validator';
+import { PaginationMetaDto } from 'src/dto/pagination-meta.dto';
+import { UserResultDto } from './user-result.dto';
+
+export class UserListFiltersDto {
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page: number = 1;
+
+  @ApiPropertyOptional({ example: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit: number = 10;
+}
+
+export class UserListDto {
+  @ApiProperty({ type: [UserResultDto] })
+  data: UserResultDto[];
+
+  @ApiProperty({ type: PaginationMetaDto })
+  meta: PaginationMetaDto;
+}
+```
+
+## Ejemplo: auth (módulo pequeño)
+
+`auth` puede contener sus archivos directamente, sin subdividirse por entidad. Los archivos `jwt-auth.guard.ts` y `jwt.strategy.ts` son complementarios para proteger rutas, no reemplazan a los tres archivos mínimos ni la carpeta `dto`.
+
+```typescript auth.controller.ts
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { TraceNode } from 'traceflow';
+import { HttpErrorDto } from 'src/dto/http-error.dto';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  @ApiOperation({ summary: 'Iniciar sesión' })
+  @ApiResponse({ status: 200, type: LoginResponseDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'Iniciar sesión', type: 'controller' })
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+}
+```
+
+```typescript auth.module.ts
+import { Module } from '@nestjs/common';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  exports: [AuthService],
+})
+export class AuthModule {}
+```
+
+```typescript auth.service.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Trace } from 'traceflow';
+import { LoginDto } from './dto/login.dto';
+
+@Injectable()
+export class AuthService {
+  @Trace({ name: 'auth', type: 'service' })
+  async login(dto: LoginDto) {
+    // Implementar búsqueda de usuario, verificación de contraseña
+    // y emisión de JWT según el proyecto.
+    throw new UnauthorizedException('Implementar autenticación');
+  }
+}
+```
+
+```typescript login.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString } from 'class-validator';
+
+export class LoginDto {
+  @ApiProperty({ example: 'ana@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'claveSegura123' })
+  @IsString()
+  password: string;
+}
+```
+
+```typescript login-response.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+
+export class LoginResponseDto {
+  @ApiProperty({ description: 'Token JWT de acceso' })
+  accessToken: string;
+}
+```
+
+**Nota:** el `AuthService` mostrado es un esqueleto ilustrativo; no implementa un inicio de sesión real. En ambos casos, registra los módulos necesarios en el módulo padre para exponer sus rutas.

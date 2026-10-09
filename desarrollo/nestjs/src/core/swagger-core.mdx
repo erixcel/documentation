@@ -1,0 +1,30 @@
+---
+title: "swagger.core.ts"
+sidebarTitle: "swagger.core.ts"
+---
+
+Configura Swagger/OpenAPI para documentar los endpoints de tu backend.
+
+```typescript swagger.core.ts
+import { INestApplication, Logger } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+export function setupSwagger(app: INestApplication) {
+  const config = new DocumentBuilder()
+    .setTitle('API Documentation')
+    .setDescription('API endpoints for backend-transporte<br><a href="/api-json" target="_blank">Download Swagger JSON</a>')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      docExpansion: 'none',
+      filter: true,
+    },
+  });
+}
+```
+
+**Personaliza:** cambia `backend-transporte` por el nombre de tu proyecto. Con esta configuración, la interfaz se muestra en `/api` y el documento JSON en `/api-json`. Necesitas tener instalado `@nestjs/swagger`.

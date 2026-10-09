@@ -1,0 +1,35 @@
+---
+title: "commands"
+sidebarTitle: "commands"
+---
+
+Contiene archivos SQL para **modificar datos existentes**, como actualizaciones o eliminaciones masivas. A diferencia de `migrations`, esta carpeta no se utiliza para alterar la estructura de las tablas.
+
+Los comandos se organizan por la versión `DB_VERSION` definida en `.env` y los ejecuta el script personalizado `src/db/command.db.ts`.
+
+## Ejemplo de estructura
+
+```text src/db/commands
+commands/
+├── version_002/
+│   ├── v002_001_normalizar_correos.sql
+│   └── v002_002_desactivar_cuentas.sql
+└── version_003/
+    └── v003_001_actualizar_estados.sql
+```
+
+## Ejemplo SQL
+
+```sql v002_001_normalizar_correos.sql
+UPDATE clientes
+SET email = LOWER(email)
+WHERE email IS NOT NULL;
+```
+
+## Ejecución
+
+```bash Terminal
+npm run db:command
+```
+
+**Precaución:** haz un respaldo antes de los cambios masivos. El orden de ejecución, la selección de versión y el control de comandos ya ejecutados dependen de tu script.

@@ -1,0 +1,70 @@
+---
+title: "Scripts"
+---
+
+Ubicación en `package.json`:
+
+```jsonc package.json
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "",
+  // ... otras propiedades
+  "scripts": {
+    "build": "nest build",
+    "deploy": "nest deploy",
+    // ... otros scripts
+    // Coloca aquí los nuevos scripts
+  }
+}
+```
+
+## Formato e indentación (Prettier)
+
+| Script | Función |
+| --- | --- |
+| `format` | Alias para formatear todo. |
+| `format:all` | Aplica Prettier al proyecto. |
+| `format:all:check` | Comprueba el formato sin modificar archivos. |
+| `format:check` | Alias de la verificación. |
+
+```json package.json
+"format": "npm run format:all",
+"format:all": "prettier --write --ignore-path .gitignore .",
+"format:all:check": "prettier --check --ignore-path .gitignore .",
+"format:check": "npm run format:all:check"
+```
+
+## Base de datos (PostgreSQL y Drizzle)
+
+| Script | Función |
+| --- | --- |
+| `db:create` | Ejecuta el script de creación de la base de datos. |
+| `db:seed` | Ejecuta la carga de datos iniciales. |
+| `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
+| `db:migrate` | Ejecuta el script personalizado de migraciones. |
+| `db:command` | Ejecuta comandos de base de datos definidos en el proyecto. |
+| `db:backup` | Ejecuta el script de respaldo de la base de datos. |
+| `db:restore` | Ejecuta el script de restauración de la base de datos. |
+| `db:studio` | Abre Drizzle Studio para explorar los datos. |
+
+```json package.json
+"db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
+"db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
+"db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+"db:migrate": "ts-node -r tsconfig-paths/register src/db/migrate.db.ts",
+"db:command": "ts-node -r tsconfig-paths/register src/db/command.db.ts",
+"db:backup": "ts-node -r tsconfig-paths/register src/db/backup.db.ts",
+"db:restore": "ts-node -r tsconfig-paths/register src/db/restore.db.ts",
+"db:studio": "drizzle-kit studio"
+```
+
+## Documentación y tipos de API
+
+| Script | Función |
+| --- | --- |
+| `generate:types` | Ejecuta un generador personalizado de tipos de API. El resultado concreto depende del contenido de `generate-api-types.ts`. |
+
+```json package.json
+"generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
+```

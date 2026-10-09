@@ -1,0 +1,27 @@
+---
+title: "date.function.ts"
+sidebarTitle: "date.function.ts"
+---
+
+Métodos compartidos para obtener una fecha u hora con un desplazamiento de días.
+
+```typescript date.function.ts
+import { Trace } from 'traceflow';
+
+export class DateFunction {
+  @Trace({ name: 'Obtener fecha', type: 'method' })
+  static getDate(daysOffset: number): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    return date;
+  }
+
+  @Trace({ name: 'Obtener fecha y hora', type: 'method' })
+  static getDateTime(daysOffset: number, hour: number, minute: number = 0): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    date.setHours(hour, minute, 0, 0);
+    return date;
+  }
+}
+```

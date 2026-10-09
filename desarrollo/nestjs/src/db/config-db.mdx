@@ -1,0 +1,23 @@
+---
+title: "config.db.ts"
+sidebarTitle: "config.db.ts"
+---
+
+Centraliza la conexión de PostgreSQL utilizando las variables del archivo `.env`. Se exporta como `dbConfig` para utilizarla en `pg` y en herramientas de base de datos.
+
+```typescript config.db.ts
+import { config } from 'dotenv';
+
+config();
+
+export const dbConfig = {
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: process.env.PROD === 'true',
+};
+```
+
+**Nota:** `DB_PORT` debe estar definido con un número válido. `PROD=true` activa SSL; en producción la configuración exacta del certificado depende del servidor.

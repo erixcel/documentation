@@ -66,7 +66,78 @@
           {
             "group": "NestJS",
             "pages": [
-              "desarrollo/nestjs/creacion-proyecto"
+              "desarrollo/nestjs/creacion-proyecto",
+              {
+                "group": "scripts",
+                "pages": [
+                  "desarrollo/nestjs/scripts/generate-api-types"
+                ]
+              },
+              {
+                "group": "src",
+                "pages": [
+                  {
+                    "group": "core",
+                    "pages": [
+                      "desarrollo/nestjs/src/core/cors-core",
+                      "desarrollo/nestjs/src/core/filters-core",
+                      "desarrollo/nestjs/src/core/swagger-core",
+                      "desarrollo/nestjs/src/core/transform-core"
+                    ]
+                  },
+                  {
+                    "group": "db",
+                    "pages": [
+                      "desarrollo/nestjs/src/db/backups",
+                      "desarrollo/nestjs/src/db/commands",
+                      "desarrollo/nestjs/src/db/migrations",
+                      "desarrollo/nestjs/src/db/tables",
+                      "desarrollo/nestjs/src/db/backup-db",
+                      "desarrollo/nestjs/src/db/command-db",
+                      "desarrollo/nestjs/src/db/config-db",
+                      "desarrollo/nestjs/src/db/connection-db",
+                      "desarrollo/nestjs/src/db/create-db",
+                      "desarrollo/nestjs/src/db/migrate-db",
+                      "desarrollo/nestjs/src/db/reset-db",
+                      "desarrollo/nestjs/src/db/restore-db",
+                      "desarrollo/nestjs/src/db/seed-db"
+                    ]
+                  },
+                  {
+                    "group": "dto",
+                    "pages": [
+                      "desarrollo/nestjs/src/dto/http-error-dto",
+                      "desarrollo/nestjs/src/dto/pagination-meta-dto"
+                    ]
+                  },
+                  {
+                    "group": "functions",
+                    "pages": [
+                      "desarrollo/nestjs/src/functions/date-function",
+                      "desarrollo/nestjs/src/functions/db-error-function",
+                      "desarrollo/nestjs/src/functions/pagination-function",
+                      "desarrollo/nestjs/src/functions/string-function"
+                    ]
+                  },
+                  "desarrollo/nestjs/src/modules-guia",
+                  "desarrollo/nestjs/src/queries-guia",
+                  "desarrollo/nestjs/src/seeds-guia",
+                  "desarrollo/nestjs/src/main"
+                ]
+              },
+              "desarrollo/nestjs/env-example",
+              "desarrollo/nestjs/.prettierrc",
+              "desarrollo/nestjs/dockerfile",
+              "desarrollo/nestjs/drizzle-config",
+              {
+                "group": "package.json",
+                "pages": [
+                  "desarrollo/nestjs/package-json/scripts",
+                  "desarrollo/nestjs/package-json/dependencias",
+                  "desarrollo/nestjs/package-json/devdependencias"
+                ]
+              },
+              "desarrollo/nestjs/tsconfig"
             ]
           },
           {

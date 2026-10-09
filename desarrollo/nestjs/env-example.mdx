@@ -17,6 +17,15 @@ DB_NAME=nombre_base_de_datos
 DB_VERSION=version_002
 DB_CONTAINER_NAME=nombre_de_tu_contenedor
 JWT_SECRET=tu_clave_secreta
+
+# TraceFlow — trazabilidad local de desarrollo
+TRACEFLOW_SERVICE_NAME=nombre-backend
+TRACEFLOW_STUDIO_URL=http://127.0.0.1:4789
+TRACEFLOW_ENABLED=true
+TRACEFLOW_INSTRUMENT_HTTP=true
+TRACEFLOW_DEBUG=true
 ```
+
+Las variables `TRACEFLOW_*` son **solo para desarrollo local**. Para entornos donde no ejecutes TraceFlow configura `TRACEFLOW_ENABLED=false` y no enlacies los paquetes locales. Evita recopilar credenciales reales: el middleware de ejemplo puede capturar autorización, cookies y cuerpos de petición.
 
 Copia `.env.example` a `.env` y reemplaza los valores de ejemplo según tu entorno. **No subas tu archivo `.env` real al repositorio ni utilices `JWT_SECRET=tu_clave_secreta` en producción.**

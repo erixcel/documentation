@@ -25,3 +25,50 @@ npm run start:dev
 ```
 
 Por defecto queda en `http://localhost:3000`.
+
+## Prompt para Codex
+
+Con el proyecto ya creado, copia este prompt y pégalo en Codex para tomar la documentación como referencia y adaptar su estructura al proyecto que estés desarrollando.
+
+```text Prompt para Codex
+El proyecto NestJS YA ESTÁ CREADO. No vuelvas a ejecutar Nest CLI ni generes un proyecto nuevo.
+
+Usa como referencia la documentación pública de ERIXCEL:
+https://docs.erixcel.com/desarrollo/nestjs/creacion-proyecto
+
+Recorre la sección NestJS del menú lateral y consulta las páginas relacionadas antes de modificar el código. Esa documentación es una PLANTILLA GENERAL, no una implementación que debas copiar literalmente: adapta estructuras, nombres, tablas, módulos, DTO, rutas, integraciones, dependencias y configuraciones a las necesidades REALES de este proyecto.
+
+Qué debes revisar:
+1. package.json: scripts, dependencies y devDependencies. Agrega solo lo necesario y mantén versiones compatibles.
+2. Archivos raíz: .env.example, .prettierrc (Prettier), Dockerfile, drizzle.config.ts y tsconfig.json; especialmente los alias de compilerOptions.paths.
+3. scripts/generate-api-types.ts: generación de cliente/tipos desde Swagger. Personaliza SWAGGER_URL y OUTPUT_DIR; úsalo solo si el proyecto lo requiere.
+4. src/core y main.ts: arranque y configuración global de CORS, validación/transformación, Swagger, filtros y TraceFlow. Crea/ajusta traceflow.core.ts e inicializa TraceFlow antes de NestFactory.create, luego registra setupTraceFlow(app). No copies servicios específicos de otros proyectos.
+5. src/db: config, connection, tablas Drizzle, creación, backups, migrations, commands, seeds y restauración. Adapta los esquemas y archivos SQL. No ejecutes reset, restore, push, migrations ni comandos destructivos sin autorización explícita.
+6. src/queries: una carpeta por tabla, con máximo dos archivos: nombre.query.ts para CRUD/SELECT de la tabla base solamente, y nombre-join.query.ts exclusivamente para SELECT con JOIN.
+7. src/seeds: un archivo .seed.ts por tabla y ejecución en orden de dependencias.
+8. src/modules: organiza las funcionalidades en módulos sencillos o submódulos; cada módulo lleva como mínimo controller, service, module y carpeta dto. Los controllers deben ser planos: cada endpoint contiene UNA sola instrucción return al servicio; los DTO definen el tipado. Mantén @ApiOperation, @ApiResponse de éxito y error y @TraceNode({ name, type: 'controller' }); agrega @ApiParam y otros decoradores cuando correspondan. La lógica de negocio va en el service.
+9. src/dto y src/functions: clases reutilizables para errores, paginación, fechas, strings y manejo de errores de base de datos, solo si resultan relevantes.
+10. TraceFlow: actualmente se ejecuta ÚNICAMENTE EN DESARROLLO LOCAL. No lo implementes ni lo instales para producción. Consulta la página src/core/traceflow.core.ts y configura estas variables de .env.example:
+    TRACEFLOW_SERVICE_NAME=nombre-backend
+    TRACEFLOW_STUDIO_URL=http://127.0.0.1:4789
+    TRACEFLOW_ENABLED=true
+    TRACEFLOW_INSTRUMENT_HTTP=true
+    TRACEFLOW_DEBUG=true
+   Personaliza TRACEFLOW_SERVICE_NAME al nombre del backend y mantén TRACEFLOW_ENABLED=false cuando no haya Studio local; PROD=true debe impedir que se active. No incluyas valores sensibles reales.
+   Para preparar el entorno, con el repositorio y paquetes TraceFlow previamente compilados, abre una terminal:
+    cd /ruta/absoluta/traceflow
+    npm run dev
+   Luego, desde otra terminal, en el proyecto backend consumidor (una vez preparado/compilado, según el flujo de desarrollo), enlaza ambos paquetes LOCALES:
+    cd /ruta/absoluta/mi-proyecto
+    npm link traceflow traceflow-kit
+   Compila o vuelve a levantar el backend tras enlazarlos y verifica la conexión al Studio. No ejecutes estos comandos en el despliegue de producción ni dependas de estos enlaces para publicar.
+   Importante: si el middleware captura authorization: 'full', cookies o body, puede guardar JWT y otros secretos. Úsalo solo con datos de prueba; minimiza o desactiva estas capturas si hay información sensible. Si los paquetes locales aún no están disponibles, informa qué falta antes de enlazarlos.
+
+Forma de trabajar:
+- Primero inspecciona el repositorio existente e identifica qué ya está implementado y qué falta.
+- Presenta un plan breve y luego aplica los cambios pertinentes, conservando el código útil y evitando duplicados.
+- Los ejemplos de usuarios, productos, categorías, autenticación o PostgreSQL de la documentación son ilustrativos. No agregues funcionalidades ajenas al proyecto.
+- Si alguna página de la documentación no está accesible, indícalo; no inventes su contenido.
+- No incluyas secretos reales ni subas .env al repositorio.
+- Al terminar, ejecuta las verificaciones no destructivas disponibles (build, lint o tests), resume qué cambiaste y señala qué queda pendiente.
+```

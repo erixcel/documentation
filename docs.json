@@ -119,6 +119,7 @@
                       "desarrollo/nestjs/src/functions/string-function"
                     ]
                   },
+                  "desarrollo/nestjs/src/modules-guia",
                   "desarrollo/nestjs/src/queries-guia",
                   "desarrollo/nestjs/src/seeds-guia",
                   "desarrollo/nestjs/src/main"

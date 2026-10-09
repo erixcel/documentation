@@ -28,7 +28,7 @@ async function migrate() {
     `);
 
     // Leer archivos de migración
-    const versionDir = process.env.DB_VERSION || '';
+    const versionDir = process.env.DB_VERSION!;
     const migrationsDir = path.join(__dirname, 'migrations', versionDir);
 
     if (!fs.existsSync(migrationsDir)) {

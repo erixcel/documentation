@@ -1,11 +1,47 @@
 ---
 title: "Functions"
 sidebarTitle: "functions"
-description: "Funciones y utilidades reutilizables del backend NestJS."
+description: "Convenciones para clases de utilidades reutilizables en NestJS."
 ---
 
-La carpeta `src/functions` contiene funciones reutilizables que ayudan a mantener la lógica auxiliar fuera de los controladores y servicios cuando corresponde.
+`src/functions` concentra utilidades compartidas que pueden usarse desde distintos módulos sin mezclar responsabilidades con controllers o queries. Los archivos de esta carpeta reúnen **métodos utilitarios por propósito**.
 
-En esta sección se documentan utilidades para **fechas**, **cadenas de texto**, **errores de base de datos** y **paginación**.
+## Convenciones obligatorias
 
-Consulta las páginas para conocer los parámetros, tipos y ejemplos de implementación.
+1. **Nombres de archivo:** utiliza `[nombre].function.ts` en `kebab-case`: `date.function.ts`, `pagination.function.ts`, `string.function.ts`.
+2. **Nombre de clase:** exporta `[Nombre]Function` en PascalCase, por ejemplo `DateFunction` o `PaginationFunction`.
+3. **Métodos estáticos:** las operaciones reutilizables se exponen como métodos `static`; se invocan sin instanciar la clase, como `PaginationFunction.createPaginationMeta(...)`.
+4. **Responsabilidad única por clase:** agrupa operaciones relacionadas (fechas, cadenas, paginación, errores). Evita convertir una clase de utilidades en un conjunto de funciones sin relación.
+5. **Trazabilidad:** los métodos públicos instrumentados usan `@Trace({ name: '...', type: 'method' })` de `traceflow`, siguiendo los ejemplos. Evita generar spans redundantes en cada paso interno recursivo.
+6. **Tipos explícitos:** declara los parámetros y resultados; prefiere tipos concretos o genéricos frente a `any` al crear nuevos métodos. Mantén la misma estructura de retorno que esperan los DTO.
+7. **Sin responsabilidades de módulo:** no declares rutas HTTP, no registres providers NestJS y no ejecutes consultas de tablas desde estas utilidades. El acceso a datos pertenece a `src/queries`.
+
+## Ejemplo mínimo
+
+```typescript pagination.function.ts
+import { Trace } from 'traceflow';
+
+export class PaginationFunction {
+  @Trace({ name: 'Crear paginación', type: 'method' })
+  static createPaginationMeta(total: number, page: number, limit: number) {
+    // Devuelve la estructura del DTO de metadatos.
+  }
+}
+```
+
+El ejemplo de arriba muestra el **patrón de nombre, clase y decorador**, no una implementación ejecutable. Consulta la página de [`pagination.function.ts`](/desarrollo/nestjs/src/functions/pagination-function) para el código completo.
+
+## Utilidades documentadas
+
+| Archivo | Responsabilidad |
+| --- | --- |
+| [`date.function.ts`](/desarrollo/nestjs/src/functions/date-function) | Cálculo de fechas y horas con desplazamientos. |
+| [`db-error.function.ts`](/desarrollo/nestjs/src/functions/db-error-function) | Traducción de errores conocidos de PostgreSQL a excepciones HTTP. |
+| [`pagination.function.ts`](/desarrollo/nestjs/src/functions/pagination-function) | Metadatos de páginas: total, límite y navegación. |
+| [`string.function.ts`](/desarrollo/nestjs/src/functions/string-function) | Sanitización recursiva de cadenas con exclusiones. |
+
+## Uso en módulos
+
+Los services pueden apoyarse en estas clases para **sanitizar entradas**, crear `meta` de paginación o normalizar errores. En una operación de negocio, el service decide cuándo llamarlas; la utility solo resuelve su tarea concreta.
+
+**No confundas esta convención con `src/core`:** los archivos `*.function.ts` pueden tener varios métodos estáticos de la misma clase. La regla de una sola función `setupX(app)` corresponde **exclusivamente** a `*.core.ts`.

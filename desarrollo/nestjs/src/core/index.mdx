@@ -1,11 +1,48 @@
 ---
 title: "Core"
 sidebarTitle: "core"
-description: "Configuraciones compartidas de arranque de una aplicación NestJS."
+description: "Convenciones estrictas para los archivos de inicialización global de NestJS."
 ---
 
-La carpeta `src/core` concentra configuraciones generales utilizadas durante la inicialización de NestJS.
+`src/core` reúne configuraciones globales que preparan una aplicación NestJS: **CORS**, **Swagger/OpenAPI**, **validación y transformación** y **middleware de trazabilidad**. No contiene controllers, services, queries ni lógica de negocio.
 
-Aquí encontrarás la configuración de **CORS**, la documentación **Swagger/OpenAPI**, las **transformaciones globales** y la **trazabilidad** de la aplicación.
+## Reglas obligatorias
 
-Consulta cada página para revisar el código y los ajustes correspondientes antes de incorporarlos a tu proyecto.
+1. **Nomenclatura:** todos los archivos de esta carpeta deben terminar en `.core.ts`, en `kebab-case`: `cors.core.ts`, `swagger.core.ts`, `transform.core.ts` y `traceflow.core.ts`.
+2. **Una función por archivo:** cada archivo `*.core.ts` declara y exporta **una sola función de configuración**. No declares funciones auxiliares adicionales dentro de estos archivos.
+3. **Nombre obligatorio:** `setup` + nombre del archivo convertido a PascalCase, sin el sufijo `.core.ts`. Ejemplos: `cors.core.ts` → `setupCors`; `traceflow.core.ts` → `setupTraceFlow`.
+4. **Un único parámetro:** la función recibe exclusivamente `app: INestApplication`. No agregues otros parámetros.
+5. **Separación de responsabilidades:** cada función configura una sola característica global sobre `app`. No inicies el servidor, no crees `NestFactory` ni registres endpoints dentro del archivo.
+6. **Integración centralizada:** importa y llama a estas funciones desde `src/main.ts`, después de crear la aplicación y **antes de** `app.listen(...)`.
+7. **Sin duplicar implementaciones:** los ejemplos completos y los ajustes concretos viven en las páginas hijas. Este índice define las convenciones.
+
+## Plantilla de un archivo core
+
+```typescript ejemplo.core.ts
+import type { INestApplication } from '@nestjs/common';
+
+export function setupEjemplo(app: INestApplication): void {
+  // Configura exclusivamente esta característica.
+}
+```
+
+## Archivos y responsabilidades
+
+| Archivo | Función pública | Responsabilidad |
+| --- | --- | --- |
+| [`cors.core.ts`](/desarrollo/nestjs/src/core/cors-core) | `setupCors(app)` | Configura orígenes, headers y CORS. |
+| [`swagger.core.ts`](/desarrollo/nestjs/src/core/swagger-core) | `setupSwagger(app)` | Documenta y expone la API con Swagger. |
+| [`transform.core.ts`](/desarrollo/nestjs/src/core/transform-core) | `setupTransform(app)` | Registra `ValidationPipe` global. |
+| [`traceflow.core.ts`](/desarrollo/nestjs/src/core/traceflow-core) | `setupTraceFlow(app)` | Registra el middleware HTTP de trazabilidad en desarrollo. |
+
+## Inicialización previa a la aplicación
+
+Si una librería **necesita inicializarse antes de** `NestFactory.create(AppModule)` —por ejemplo, la instrumentación de TraceFlow— ejecuta ese arranque en `src/main.ts` o en una fase de bootstrap previa, **no** creando una segunda función dentro de `*.core.ts`. `setupTraceFlow(app)` solo se encarga del middleware una vez que existe la aplicación.
+
+## Seguridad y comprobaciones
+
+- No uses `origin: '*'` indiscriminadamente en producción; configura los orígenes autorizados según la política del proyecto.
+- Usa la captura de bodies, cookies y cabeceras sensibles de TraceFlow **solo en local con datos de prueba**.
+- Al modificar un `*.core.ts`, comprueba que conserva la única función `setup...` y que `main.ts` la invoca correctamente.
+
+Consulta cada página hija para el código fuente y sus opciones actualizadas.

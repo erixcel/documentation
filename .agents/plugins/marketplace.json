@@ -1,0 +1,20 @@
+{
+  "name": "erixcel-tools",
+  "interface": {
+    "displayName": "Erixcel Developer Tools"
+  },
+  "plugins": [
+    {
+      "name": "erixcel-demo",
+      "source": {
+        "source": "local",
+        "path": "./plugins/erixcel-demo"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

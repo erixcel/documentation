@@ -1,11 +1,75 @@
 ---
 title: "Base de datos"
 sidebarTitle: "db"
-description: "Conexión, estructura y operaciones de base de datos en NestJS."
+description: "Convenciones de PostgreSQL y Drizzle ORM, tablas, versiones, migraciones y respaldos."
 ---
 
-La carpeta `src/db` organiza los archivos y las operaciones relacionadas con la base de datos del backend.
+`src/db` centraliza la configuración y los procesos operativos de **PostgreSQL + Drizzle ORM**. Separa las definiciones de tablas de los scripts administrativos. Las consultas de negocio se implementan en `src/queries` y los datos iniciales por entidad en `src/seeds`.
 
-Esta documentación incluye **conexión y configuración**, definiciones de **tablas con Drizzle ORM**, **migraciones**, **semillas de datos (seeds)**, **comandos** y procesos de **respaldo y restauración**.
+## Organización recomendada
 
-Abre la página correspondiente para consultar sus convenciones, implementaciones y comandos.
+```text
+src/
+├── db/
+│   ├── tables/           # Definiciones Drizzle: *.table.ts
+│   ├── backups/          # Respaldos SQL por DB_VERSION
+│   ├── migrations/       # Cambios de estructura SQL
+│   ├── commands/         # Cambios masivos de datos SQL
+│   ├── config.db.ts      # Variables y configuración de PostgreSQL
+│   ├── connection.db.ts  # Pool y esquema de Drizzle
+│   └── *.db.ts           # Scripts de administración de la BD
+├── queries/
+│   └── [tabla]/
+│       ├── [tabla].query.ts
+│       └── [tabla]-join.query.ts
+└── seeds/
+    └── [tabla].seed.ts
+```
+
+## Reglas para las tablas
+
+1. **Un archivo por tabla:** usa `[nombre].table.ts` dentro de `src/db/tables`. Define el esquema con Drizzle ORM y exporta la tabla y los tipos necesarios.
+2. **Tres campos indispensables en absolutamente todas las tablas**, incluso las tablas intermedias y de relaciones. Los nombres deben estar **en inglés**, tanto en TypeScript como en PostgreSQL:
+
+   ```typescript
+   createdAt: timestamp('created_at').defaultNow().notNull(),
+   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+   deletedAt: timestamp('deleted_at'),
+   ```
+
+3. **Borrado lógico:** `deletedAt` indica cuándo se eliminó un registro. Excluye registros eliminados de las consultas normales con `isNull(tabla.deletedAt)` cuando corresponda.
+4. **Actualización:** `defaultNow()` solo inicializa `updatedAt`; al actualizar un registro, asigna explícitamente la nueva fecha o configura el mecanismo que lo haga.
+5. **Integridad y rendimiento:** declara relaciones, índices y restricciones según las necesidades reales; cuando la unicidad dependa del borrado lógico, evalúa índices únicos parciales.
+6. **Una sola fuente para enums:** deriva los valores utilizados por los DTO de los enums definidos en las tablas Drizzle; evita duplicar manualmente las listas de valores.
+
+Consulta [`tables`](/desarrollo/nestjs/src/db/tables) para ejemplos completos.
+
+## Acceso a datos: capa queries
+
+- `[tabla].query.ts` contiene operaciones **atómicas de una tabla** (CRUD, filtros, paginación, conteos).
+- `[tabla]-join.query.ts` contiene consultas **relacionales**, utilizando la tabla principal como base.
+- Los services inyectan estas clases para acceder a la BD; no escriben consultas SQL ni instancian directamente la conexión.
+- Registra en `connection.db.ts` las tablas que realmente existen en tu proyecto. No importes tablas de ejemplo que no estén implementadas.
+
+## Configuración y scripts
+
+| Página | Función |
+| --- | --- |
+| [`config.db.ts`](/desarrollo/nestjs/src/db/config-db) | Lee la configuración desde `.env`. |
+| [`connection.db.ts`](/desarrollo/nestjs/src/db/connection-db) | Crea el pool y la instancia Drizzle. |
+| [`create.db.ts`](/desarrollo/nestjs/src/db/create-db) | Prepara/crea la base y sus tablas. |
+| [`migrate.db.ts`](/desarrollo/nestjs/src/db/migrate-db) | Ejecuta cambios de estructura. |
+| [`command.db.ts`](/desarrollo/nestjs/src/db/command-db) | Ejecuta operaciones SQL de datos. |
+| [`seed.db.ts`](/desarrollo/nestjs/src/db/seed-db) | Orquesta los seeds respetando dependencias. |
+| [`backup.db.ts`](/desarrollo/nestjs/src/db/backup-db) | Genera el respaldo SQL de la versión actual. |
+| [`restore.db.ts`](/desarrollo/nestjs/src/db/restore-db) | Restaura la versión anterior documentada. |
+| [`reset.db.ts`](/desarrollo/nestjs/src/db/reset-db) | Reinicia la base según las salvaguardas del script. |
+
+## Versionado y seguridad
+
+- `DB_VERSION` identifica versiones de respaldos, migraciones y comandos en los scripts que lo utilizan. Consulta [`backups`](/desarrollo/nestjs/src/db/backups), [`migrations`](/desarrollo/nestjs/src/db/migrations) y [`commands`](/desarrollo/nestjs/src/db/commands).
+- Mantén **separados los cambios de esquema** (`migrations`) de las **actualizaciones masivas de datos** (`commands`).
+- Realiza y **verifica** un respaldo antes de migrar, restaurar, reiniciar o ejecutar comandos destructivos; las operaciones sobre esquemas pueden destruir datos.
+- Nunca incluyas credenciales reales ni archivos de respaldo sensibles en la documentación pública o commits de Git.
+
+El detalle de ejecución y el código fuente pertenecen a cada página específica; este índice contiene las reglas comunes.

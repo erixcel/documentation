@@ -71,7 +71,9 @@
                 "group": "scripts",
                 "pages": [
                   "desarrollo/nestjs/scripts/generate-api-types"
-                ]
+                ],
+                "root": "desarrollo/nestjs/scripts/index",
+                "directory": "card"
               },
               {
                 "group": "src",
@@ -83,7 +85,9 @@
                       "desarrollo/nestjs/src/core/swagger-core",
                       "desarrollo/nestjs/src/core/transform-core",
                       "desarrollo/nestjs/src/core/traceflow-core"
-                    ]
+                    ],
+                    "root": "desarrollo/nestjs/src/core/index",
+                    "directory": "card"
                   },
                   {
                     "group": "db",
@@ -101,7 +105,9 @@
                       "desarrollo/nestjs/src/db/reset-db",
                       "desarrollo/nestjs/src/db/restore-db",
                       "desarrollo/nestjs/src/db/seed-db"
-                    ]
+                    ],
+                    "root": "desarrollo/nestjs/src/db/index",
+                    "directory": "card"
                   },
                   {
                     "group": "dto",
@@ -117,9 +123,18 @@
                       "desarrollo/nestjs/src/functions/db-error-function",
                       "desarrollo/nestjs/src/functions/pagination-function",
                       "desarrollo/nestjs/src/functions/string-function"
+                    ],
+                    "root": "desarrollo/nestjs/src/functions/index",
+                    "directory": "card"
+                  },
+                  {
+                    "group": "modules",
+                    "root": "desarrollo/nestjs/src/modules/index",
+                    "directory": "card",
+                    "pages": [
+                      "desarrollo/nestjs/src/modules-guia"
                     ]
                   },
-                  "desarrollo/nestjs/src/modules-guia",
                   "desarrollo/nestjs/src/queries-guia",
                   "desarrollo/nestjs/src/seeds-guia",
                   "desarrollo/nestjs/src/main"

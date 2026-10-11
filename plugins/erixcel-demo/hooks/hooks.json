@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/test_hook.py\"",
+            "timeout": 10,
+            "statusMessage": "Probando hook Erixcel"
+          }
+        ]
+      }
+    ]
+  }
+}

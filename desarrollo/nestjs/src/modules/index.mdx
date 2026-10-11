@@ -1,11 +1,77 @@
 ---
 title: "Modules"
 sidebarTitle: "modules"
-description: "Organización de funcionalidades mediante módulos en NestJS."
+description: "Arquitectura por funcionalidades: controllers, services, modules y DTOs."
 ---
 
-La carpeta `src/modules` agrupa las funcionalidades del backend por módulo. Una funcionalidad puede reunir sus **controllers**, **services**, **DTOs** y su archivo **module**.
+La carpeta `src/modules` organiza la aplicación NestJS por funcionalidades. Cada módulo agrupa **HTTP, lógica de negocio, inyección de dependencias y DTOs** sin mezclar estas responsabilidades con las consultas de base de datos.
 
-En la **Guía de módulos** encontrarás la estructura recomendada para módulos sencillos y módulos más grandes, así como las convenciones de arquitectura para cada tipo de archivo.
+## Estructura y nombres
 
-Abre la guía para consultar todas las reglas y ejemplos, sin duplicarlos en esta introducción.
+Usa archivos con nombre `[entidad].[tipo].ts` y el sufijo que identifica su responsabilidad:
+
+```text
+src/modules/
+├── auth/                        # Módulo sencillo
+│   ├── dto/
+│   │   └── login.dto.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   └── auth.module.ts
+└── admin/                       # Módulo con funcionalidades
+    └── user/
+        ├── dto/
+        │   ├── user-create.dto.ts
+        │   ├── user-update.dto.ts
+        │   ├── user-list.dto.ts
+        │   └── user-result.dto.ts
+        ├── user.controller.ts
+        ├── user.service.ts
+        └── user.module.ts
+```
+
+El conjunto mínimo de una funcionalidad incluye `*.controller.ts`, `*.service.ts`, `*.module.ts` y una carpeta `dto/` con los DTO necesarios. Los guards y estrategias pueden agregarse si la funcionalidad lo requiere.
+
+## Separación estricta de responsabilidades
+
+| Archivo | Debe hacer | No debe hacer |
+| --- | --- | --- |
+| `*.controller.ts` | Definir endpoints, guards, parámetros, DTOs y Swagger. | Consultas de BD, validaciones manuales, transformaciones o lógica de negocio. |
+| `*.service.ts` | Implementar reglas de negocio, sanitización, coordinación de queries y construcción de resultados. | Acceso SQL o Drizzle directo: debe utilizar la capa `queries`. |
+| `*.module.ts` | Registrar controllers, providers, imports y exports de NestJS. | Lógica de endpoints o consultas. |
+| `dto/*.dto.ts` | Declarar datos de entrada/salida, validaciones y Swagger. | Consultas, lógica de negocio o dependencias de servicios. |
+
+## Controllers: reglas obligatorias
+
+1. **Métodos de un solo retorno:** cada handler delega directamente al service con `return this.servicio.metodo(...)`; la conversión de rutas numéricas se realiza con pipes (por ejemplo `ParseIntPipe`).
+2. **Documentación Swagger completa:** cada endpoint incluye método HTTP, `@ApiOperation` y respuestas `@ApiResponse` de éxito y error (`HttpErrorDto`).
+3. **Orden de decoradores:** método HTTP → `@ApiOperation` → `@ApiParam` (si aplica) → `@ApiResponse` de éxito → `@ApiResponse` de error → `@TraceNode`.
+4. **Trazabilidad obligatoria:** `@TraceNode({ name: 'Acción legible', type: 'controller' })` cierra la lista de decoradores del handler.
+5. **Parámetros y resultados tipados:** usa DTOs en lugar de `any` y no dupliques definiciones complejas dentro del controller.
+6. **Rutas protegidas:** aplica `@UseGuards` y `@ApiBearerAuth` donde la ruta requiera autenticación; no expongas rutas públicas o privadas por accidente.
+
+## Services: reglas obligatorias
+
+1. Inyecta las clases `Query` pertinentes; toda lectura/escritura a PostgreSQL se efectúa en `src/queries`.
+2. Los métodos invocados directamente por controllers utilizan `@Trace({ name: '...', type: 'service' })`.
+3. Los métodos auxiliares se instrumentan con `type: 'method'` o `type: 'transformation'` cuando corresponda.
+4. Sanitiza campos de texto en `create` y `update` con `StringFunction` según la necesidad del dato; preserva secretos y campos excluidos.
+5. La paginación estándar devuelve `{ data, meta: PaginationFunction.createPaginationMeta(total, page, limit) }`.
+6. Para evitar consultas **N+1**, agrupa identificadores, consulta en lote y relaciona resultados con `Map` cuando sea posible.
+7. Maneja los errores de negocio y **no expongas contraseñas, hashes ni datos sensibles** en el resultado.
+
+## DTOs y modules
+
+- Coloca los DTOs por funcionalidad; para entidades múltiples, subdivide `dto/` por entidad.
+- Documenta propiedades con `@ApiProperty` o `@ApiPropertyOptional` y valida entradas con `class-validator` y `class-transformer`.
+- Usa `@Trace({ type: 'validation' })` para clases de DTO con validación, siguiendo la convención de trazabilidad.
+- Para DTOs de actualización, utiliza `PartialType(CreateDto)` cuando corresponda.
+- Reutiliza los enums de las tablas Drizzle —por ejemplo, `user.role.enumValues`— en el tipo, la validación y Swagger; **no dupliques listas de valores**.
+- Registra controllers, services y queries en `@Module`. Exporta solo los providers que otros módulos necesiten.
+- Los DTO compartidos de error y paginación en la estructura actual están en `src/dto` (no en el antiguo `src/models`).
+
+## Guía y ejemplos de implementación
+
+Consulta [**Guía de módulos**](/desarrollo/nestjs/src/modules-guia) para ver ejemplos completos de un módulo simple (`auth`), otro con subfuncionalidades (`admin/user`), los decoradores de controllers y los DTOs de respuesta.
+
+Esta página describe las **convenciones comunes**; los archivos concretos y sus ejemplos mantienen el detalle de implementación.

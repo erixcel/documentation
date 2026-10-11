@@ -1,11 +1,42 @@
 ---
 title: "Scripts"
 sidebarTitle: "scripts"
-description: "Automatizaciones y utilidades para los proyectos NestJS de Erixcel."
+description: "Convenciones para automatizaciones y generadores de código de un proyecto NestJS."
 ---
 
-La carpeta `scripts` reúne herramientas que automatizan tareas habituales de desarrollo y generación de código.
+La carpeta `scripts/` contiene programas auxiliares que se ejecutan **fuera del ciclo de peticiones HTTP** de NestJS: generación de tipos, automatización de tareas y herramientas de desarrollo. No es una capa de controllers ni de servicios.
 
-En esta sección se documenta cómo generar el cliente y los tipos TypeScript del frontend a partir de la especificación Swagger/OpenAPI del backend, incluyendo las rutas que debes adaptar a tu proyecto.
+## Responsabilidad de la carpeta
 
-Explora las páginas de esta sección para consultar las instrucciones y los ejemplos completos.
+- **Una finalidad identificable por archivo:** cada script debe resolver una tarea concreta y exponer sus parámetros de configuración.
+- **No colocar lógica de negocio aquí:** la lógica de aplicación pertenece a `src/modules` y el acceso a datos a `src/queries`. Los scripts de administración de PostgreSQL tienen su propia ubicación en `src/db/*.db.ts`.
+- **Evitar rutas rígidas de otra máquina o repositorio:** resuelve rutas desde una base conocida (`__dirname` o `process.cwd()`, según el modo de ejecución), con `path.resolve`.
+- **Validar los requisitos antes de escribir:** comprueba URLs, rutas de salida y dependencias; si una tarea falla, finaliza con un error visible en vez de aparentar éxito.
+- **No incluir credenciales ni tokens en el código:** utiliza variables de entorno cuando la tarea lo requiera.
+- **Evitar sobrescrituras inesperadas:** conoce qué archivos genera cada script antes de ejecutarlo y mantén los archivos generados separados del código fuente escrito a mano.
+
+## Convención de nombres
+
+Usa nombres descriptivos en `kebab-case` con extensión `.ts`. Por ejemplo:
+
+```text
+scripts/
+└── generate-api-types.ts
+```
+
+No hace falta imponer el sufijo `.script.ts`: el ejemplo actual utiliza `generate-api-types.ts`.
+
+## Generación de cliente Swagger/OpenAPI
+
+La página [`generate-api-types.ts`](/desarrollo/nestjs/scripts/generate-api-types) documenta el generador de tipos para el frontend. Antes de ejecutarlo:
+
+1. Ajusta `SWAGGER_URL` para que apunte al OpenAPI JSON del backend; el servidor debe ser accesible.
+2. Ajusta `OUTPUT_DIR` a la carpeta real de salida de tu frontend.
+3. Comprueba que la herramienta `swagger-typescript-api` esté instalada y que la ruta de salida sea correcta.
+4. Revisa los archivos resultantes para evitar sobrescribir cambios manuales.
+
+## Criterio de revisión
+
+Un script está listo cuando se entiende **qué hace, qué necesita, cómo se ejecuta, qué genera y cómo informa los errores**. Consulta la página específica para el código completo, en lugar de copiarlo en esta introducción.
+
+Estas convenciones describen el directorio `scripts/`, no crean ni instalan Skills de agentes.

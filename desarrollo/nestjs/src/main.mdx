@@ -3,13 +3,16 @@ title: "main.ts"
 sidebarTitle: "main.ts"
 ---
 
-Punto de entrada de NestJS. Carga las variables de entorno, inicializa TraceFlow **solo para desarrollo local**, crea la aplicación, registra los middlewares y configuraciones globales e inicia el servidor.
+Punto de entrada de NestJS. Carga las variables de entorno, inicializa TraceFlow **solo para desarrollo local**, crea la aplicación, registra las configuraciones globales e inicia el servidor.
+
+Por convención, **cada archivo `src/core/*.core.ts` exporta únicamente una función `setupNombre(app: INestApplication)`**. La inicialización anticipada de TraceFlow se hace aquí para conservar el orden correcto de arranque sin agregar otra función a `traceflow.core.ts`.
 
 ```typescript main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { config } from 'dotenv';
-import { initializeTraceFlow, setupTraceFlow } from '@core/traceflow.core';
+import { startTraceFlow } from 'traceflow';
+import { setupTraceFlow } from '@core/traceflow.core';
 import { setupSwagger } from '@core/swagger.core';
 import { setupTransform } from '@core/transform.core';
 import { setupCors } from '@core/cors.core';
@@ -18,7 +21,13 @@ config();
 
 async function bootstrap() {
   // Inicializa trazabilidad antes de crear la aplicación.
-  initializeTraceFlow();
+  startTraceFlow({
+    serviceName: process.env.TRACEFLOW_SERVICE_NAME || 'nombre-backend',
+    studioUrl: process.env.TRACEFLOW_STUDIO_URL || 'http://127.0.0.1:4789',
+    enabled: process.env.TRACEFLOW_ENABLED?.toLowerCase() === 'true' && process.env.PROD !== 'true',
+    instrumentHttp: process.env.TRACEFLOW_INSTRUMENT_HTTP?.toLowerCase() === 'true',
+    debug: process.env.TRACEFLOW_DEBUG?.toLowerCase() === 'true',
+  });
 
   const app = await NestFactory.create(AppModule);
 
@@ -33,6 +42,8 @@ async function bootstrap() {
 bootstrap();
 ```
 
-`initializeTraceFlow()` utiliza `TRACEFLOW_ENABLED`, `TRACEFLOW_STUDIO_URL` y las demás variables del archivo `.env`. `setupTraceFlow(app)` agrega la captura HTTP únicamente si TraceFlow está habilitado y `PROD` no es `true`. Consulta `src/core/traceflow.core.ts` para ver los pasos de instalación local.
+`startTraceFlow(...)` utiliza `TRACEFLOW_ENABLED`, `TRACEFLOW_STUDIO_URL` y las demás variables del archivo `.env`. El arranque instrumental se realiza antes de crear la aplicación; `setupTraceFlow(app)` instala el middleware HTTP solo cuando TraceFlow está habilitado y `PROD` no es `true`.
 
-Las otras funciones de configuración se encuentran en `src/core`. Este ejemplo no incluye interceptores globales.
+Las demás funciones `setup...` se encuentran en `src/core` y se invocan con el único parámetro `app`. Consulta [`traceflow.core.ts`](/desarrollo/nestjs/src/core/traceflow-core) para la configuración del middleware y las recomendaciones de seguridad.
+
+**Seguridad:** la captura de tokens, cookies o contenido de peticiones debe limitarse a entornos locales con datos de prueba.

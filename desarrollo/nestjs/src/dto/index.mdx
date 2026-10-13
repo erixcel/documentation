@@ -1,0 +1,44 @@
+---
+title: "DTO globales"
+sidebarTitle: "dto"
+description: "Convenciones de DTO compartidos para respuestas y estructuras comunes de NestJS."
+---
+
+La carpeta `src/dto` contiene **DTO globales que pueden utilizar varios módulos**, sin depender de una funcionalidad particular. Aquí se documentan estructuras transversales como los errores HTTP y los metadatos de paginación.
+
+## ¿Cuándo colocar un DTO aquí?
+
+- **Global (`src/dto`):** una respuesta o estructura común que se utiliza desde diferentes módulos, como `HttpErrorDto` o `PaginationMetaDto`.
+- **De módulo (`src/modules/[modulo]/dto`):** datos de entrada, filtros y respuestas específicos de una entidad o endpoint. Consulta [DTO de módulos](/desarrollo/nestjs/src/modules/dto).
+
+Evita duplicar un DTO global dentro de cada módulo. Tampoco muevas a `src/dto` un DTO que solo sirve para una funcionalidad concreta.
+
+## Convenciones
+
+1. **Nombres:** cada archivo debe terminar en `.dto.ts`, usando `kebab-case`. Por ejemplo, `http-error.dto.ts` y `pagination-meta.dto.ts`.
+2. **Clases exportadas:** nombra las clases en PascalCase con el sufijo `Dto`, como `HttpErrorDto` y `PaginationMetaDto`.
+3. **Trazabilidad:** sigue el patrón `@Trace({ type: 'validation' })` de `traceflow` mostrado en los DTO globales existentes.
+4. **Swagger:** documenta las propiedades con `@ApiProperty` o `@ApiPropertyOptional`, especificando tipos, descripciones y ejemplos representativos. Una clase utilizada solo como respuesta describe la estructura: no necesita validadores de entrada innecesarios.
+5. **Tipado:** declara tipos TypeScript específicos; evita `any` y los modelos genéricos que oculten la estructura.
+6. **Responsabilidad:** los DTO describen contratos de datos; no consultan la base de datos, no acceden a variables de entorno y no implementan lógica de negocio.
+7. **Compatibilidad:** si cambias un DTO compartido, comprueba los controllers, services y DTOs de módulos que lo importan.
+
+## DTOs disponibles
+
+| Archivo | Uso |
+| --- | --- |
+| [`http-error.dto.ts`](/desarrollo/nestjs/src/dto/http-error-dto) | Respuesta común de error HTTP para Swagger, con `message`, `error` y `statusCode`. |
+| [`pagination-meta.dto.ts`](/desarrollo/nestjs/src/dto/pagination-meta-dto) | Metadatos de paginación: `total`, `page`, `limit`, `totalPages`, `hasNextPage` y `hasPreviousPage`. |
+
+## Integración con los módulos
+
+Los DTO globales **se importan y reutilizan** desde los módulos; no se redefinen por cada entidad.
+
+```typescript
+import { HttpErrorDto } from 'src/dto/http-error.dto';
+import { PaginationMetaDto } from 'src/dto/pagination-meta.dto';
+```
+
+Por ejemplo, `@ApiResponse({ status: 400, type: HttpErrorDto })` documenta un error HTTP en un controller y `PaginationMetaDto` forma parte de una respuesta paginada.
+
+Para convenciones de `CreateDto`, `UpdateDto`, filtros y respuestas específicas de una entidad, consulta [DTO de módulos](/desarrollo/nestjs/src/modules/dto).

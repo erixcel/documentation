@@ -1,0 +1,87 @@
+---
+title: "DTO de módulos"
+sidebarTitle: "DTO de módulos"
+description: "Convenciones para DTO de entrada, filtros y respuestas de cada módulo de NestJS."
+---
+
+Los DTO de módulos definen **el contrato de datos de una funcionalidad**: entradas, actualizaciones, filtros, respuestas de detalle y listados. Deben permanecer junto al módulo al que pertenecen, en lugar de mezclarse con los [DTO globales](/desarrollo/nestjs/src/dto/index).
+
+## Ubicación y organización
+
+Cada funcionalidad mantiene sus DTO dentro de su propia carpeta `dto/`. Si el módulo contiene varias entidades, puedes subdividir esa carpeta por entidad.
+
+```text
+src/modules/
+├── auth/
+│   └── dto/
+│       ├── login.dto.ts
+│       └── login-response.dto.ts
+└── admin/
+    └── user/
+        └── dto/
+            ├── user-create.dto.ts
+            ├── user-update.dto.ts
+            ├── user-list.dto.ts
+            └── user-result.dto.ts
+```
+
+## Convenciones obligatorias
+
+1. **Nombre de archivo:** usa `[entidad]-[proposito].dto.ts` en `kebab-case` y clases `[Entidad][Proposito]Dto` en PascalCase. Mantén los nombres existentes cuando ya haya una convención consistente en el módulo.
+2. **Trazabilidad:** decora las clases DTO siguiendo `@Trace({ type: 'validation' })` de `traceflow`.
+3. **Validación de entrada:** utiliza `class-validator` para las entradas recibidas de clientes (`@IsString`, `@IsInt`, `@IsOptional`, etc.) y `class-transformer` cuando debas convertir números o fechas con `@Type(...)`.
+4. **Swagger sincronizado:** documenta campos obligatorios con `@ApiProperty` y campos opcionales con `@ApiPropertyOptional`, manteniendo coherencia con el tipo y las validaciones.
+5. **Tipado estricto:** define propiedades y resultados explícitos; evita `any` y evita declarar contratos complejos directamente dentro de los controllers.
+6. **Sin lógica de negocio:** los DTO no ejecutan queries, no sanitizan datos por su cuenta y no conocen el estado de la base de datos; esa lógica pertenece a las capas correspondientes.
+7. **Enumeraciones sin duplicación:** si un campo procede de un enum Drizzle, reutiliza sus valores desde la tabla, por ejemplo `user.role.enumValues`, para Swagger, validación y tipo TypeScript.
+
+## Tipos habituales
+
+| Tipo | Archivo ilustrativo | Responsabilidad |
+| --- | --- | --- |
+| **Create** | `user-create.dto.ts` | Validar los campos necesarios para crear una entidad. |
+| **Update** | `user-update.dto.ts` | Permitir modificaciones parciales, normalmente con `PartialType(CreateDto)`. |
+| **Filters / ListFilters** | `user-list.dto.ts` | Tipar filtros, búsqueda y paginación; convertir los parámetros recibidos por query. |
+| **Result** | `user-result.dto.ts` | Especificar la respuesta de un elemento sin exponer campos sensibles. |
+| **List** | `user-list.dto.ts` | Especificar una lista `data` y metadatos compartidos `PaginationMetaDto`. |
+
+## Ejemplo mínimo de Create y Update
+
+```typescript user-create.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { Trace } from 'traceflow';
+
+@Trace({ type: 'validation' })
+export class UserCreateDto {
+  @ApiProperty({ description: 'Nombre del usuario', example: 'Ana' })
+  @IsNotEmpty()
+  @IsString()
+  firstName: string;
+}
+```
+
+```typescript user-update.dto.ts
+import { PartialType } from '@nestjs/swagger';
+import { Trace } from 'traceflow';
+import { UserCreateDto } from './user-create.dto';
+
+@Trace({ type: 'validation' })
+export class UserUpdateDto extends PartialType(UserCreateDto) {}
+```
+
+El ejemplo es mínimo y **no reemplaza** la definición real de las entidades de tu proyecto. Cuando corresponda, alinea la entrada de creación con el tipo de inserción de Drizzle, excluyendo los campos que gestiona el backend, como `id`, `createdAt`, `updatedAt` y `deletedAt`.
+
+## Contratos de respuesta y reutilización
+
+- Reutiliza [`HttpErrorDto`](/desarrollo/nestjs/src/dto/http-error-dto) al documentar errores HTTP.
+- Reutiliza [`PaginationMetaDto`](/desarrollo/nestjs/src/dto/pagination-meta-dto) para la propiedad `meta` en listados paginados.
+- Para los filtros de paginación, documenta `page` y `limit` y conviértelos a número mediante `@Type(() => Number)`.
+- Para campos con enums Drizzle, utiliza los mismos `enumValues` en `@ApiProperty`, `@IsEnum` y el tipo TypeScript.
+- En DTO de respuesta, omite `password`, hashes, tokens internos y otros datos que no deban entregarse al cliente.
+
+## Relación con controllers y services
+
+El **controller** recibe y devuelve estructuras tipadas con DTOs, pero debe delegar directamente al **service**. El service ejecuta las reglas de negocio, utiliza las queries y prepara los resultados.
+
+Consulta la [Guía de módulos](/desarrollo/nestjs/src/modules-guia) para ejemplos completos de controllers, services y DTOs por funcionalidad.

@@ -119,7 +119,11 @@ Las **Skills de Erixcel** son instrucciones reutilizables para agentes de progra
 
 <Steps>
   <Step title="Agregar el marketplace">
-    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y agrega `erixcel/documentation` si aún no lo tienes.
+    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y pega lo siguiente en **Source**:
+
+    ```text Marketplace de Erixcel
+    erixcel/documentation
+    ```
   </Step>
 
   <Step title="Instalar Erixcel NestJS">
@@ -159,7 +163,11 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
 
 <Steps>
   <Step title="Agregar el marketplace">
-    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y agrega `erixcel/documentation` si no aparece.
+    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y pega lo siguiente en **Source**, si todavía no agregaste el repositorio:
+
+    ```text Marketplace de Erixcel
+    erixcel/documentation
+    ```
   </Step>
 
   <Step title="Instalar un plugin con Hooks">

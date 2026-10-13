@@ -83,6 +83,59 @@ def render_cards(items, icon):
     return "<Columns cols={1}>\n" + "\n".join(cards) + "\n</Columns>\n"
 
 
+
+def hook_filename(command):
+    """Extract the source script name for the lifecycle tree."""
+    match = re.search(r"([\w-]+\.(?:py|js|ts|sh))\b", command or "")
+    return match.group(1) if match else "hook"
+
+
+def describe_hook(item):
+    filename = hook_filename(item["command"])
+    plugin = item["description"]
+    if filename == "detect-changes.py":
+        detail = "Guarda un registro inicial de los archivos Query y Core."
+    elif filename == "validate-query.py":
+        detail = "Valida los archivos .query.ts modificados: una sola tabla por query simple y sin escrituras en -join.query.ts."
+    elif filename == "validate-core.py":
+        detail = "Valida los archivos .core.ts modificados: función setup, firma y uso desde main.ts."
+    else:
+        detail = f'Evento {item["event"]}: comando {filename}.'
+    return plugin + " · " + detail
+
+
+def render_hook_groups(items):
+    if not items:
+        return "No hay Hooks publicados por ahora.\n"
+
+    groups = {}
+    for item in items:
+        groups.setdefault(item["event"], []).append(item)
+
+    priority = {"UserPromptSubmit": 0, "Stop": 1}
+    parts = []
+    for event in sorted(groups, key=lambda value: (priority.get(value, 2), value)):
+        entries = groups[event]
+        label = {"UserPromptSubmit": "Antes de comenzar", "Stop": "Al terminar"}.get(event, "Evento")
+        intro = {
+            "UserPromptSubmit": "Se ejecuta **cuando envías un mensaje**, antes de que Codex modifique archivos. Registra su estado inicial para identificar los cambios del turno.",
+            "Stop": "Se ejecuta **cuando Codex finaliza su intervención**. Cada validador comprueba únicamente los archivos de su tipo que hayan cambiado.",
+        }.get(event, "Hooks registrados para este evento de Codex.")
+        tree = [event]
+        for i, item in enumerate(entries):
+            branch = "└──" if i == len(entries) - 1 else "├──"
+            tree.append(f'{branch} {hook_filename(item["command"])}')
+        tree_code = "```text\n" + "\n".join(tree) + "\n```"
+        cards = render_cards([
+            {
+                "title": item["title"],
+                "description": describe_hook(item),
+                "url": item["url"],
+            } for item in entries
+        ], "workflow")
+        parts.append(f'### {label} — {event}\n\n{intro}\n\n{tree_code}\n\n{cards}')
+    return "\n\n".join(parts)
+
 def generate():
     skills = []
     hooks = []
@@ -104,7 +157,9 @@ def generate():
                         title = hook.get("statusMessage") or f'{event} · {hook.get("type", "hook")}'
                         hooks.append({
                             "title": title,
-                            "description": f'{plugin["name"]} (v{plugin["version"]}) · Evento {event}. Tipo: {hook.get("type", "command")}.',
+                            "event": event,
+                            "command": hook.get("command") or "",
+                            "description": f'{plugin["name"]} (v{plugin["version"]})',
                             "url": f'{REPO_URL}/{file.relative_to(ROOT).as_posix()}',
                         })
     skill_page = f'''---
@@ -189,9 +244,9 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
 Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizados, activos o instalados en tu Mac. Consulta **Codex Desktop → Settings → Hooks** para ver el estado real. Los hooks pueden ejecutar comandos fuera del sandbox: revisa su contenido antes de autorizarlos.
 </Warning>
 
-## Hooks disponibles ({len(hooks)})
+## Hooks por evento ({len(hooks)})
 
-{render_cards(hooks, "workflow")}
+{render_hook_groups(hooks)}
 
 ## Sincronización
 

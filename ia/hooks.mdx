@@ -37,20 +37,41 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
 Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizados, activos o instalados en tu Mac. Consulta **Codex Desktop → Settings → Hooks** para ver el estado real. Los hooks pueden ejecutar comandos fuera del sandbox: revisa su contenido antes de autorizarlos.
 </Warning>
 
-## Hooks disponibles (3)
+## Hooks por evento (3)
+
+### Antes de comenzar — UserPromptSubmit
+
+Se ejecuta **cuando envías un mensaje**, antes de que Codex modifique archivos. Registra su estado inicial para identificar los cambios del turno.
+
+```text
+UserPromptSubmit
+└── detect-changes.py
+```
 
 <Columns cols={1}>
 <Card title="Detect Changes - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Evento UserPromptSubmit. Tipo: command.
-</Card>
-<Card title="Query Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Evento Stop. Tipo: command.
-</Card>
-<Card title="Core Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Evento Stop. Tipo: command.
+Erixcel NestJS Validators (v0.3.0) · Guarda un registro inicial de los archivos Query y Core.
 </Card>
 </Columns>
 
+### Al terminar — Stop
+
+Se ejecuta **cuando Codex finaliza su intervención**. Cada validador comprueba únicamente los archivos de su tipo que hayan cambiado.
+
+```text
+Stop
+├── validate-query.py
+└── validate-core.py
+```
+
+<Columns cols={1}>
+<Card title="Query Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
+Erixcel NestJS Validators (v0.3.0) · Valida los archivos .query.ts modificados: una sola tabla por query simple y sin escrituras en -join.query.ts.
+</Card>
+<Card title="Core Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
+Erixcel NestJS Validators (v0.3.0) · Valida los archivos .core.ts modificados: función setup, firma y uso desde main.ts.
+</Card>
+</Columns>
 
 ## Sincronización
 

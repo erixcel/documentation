@@ -1,0 +1,25 @@
+---
+title: "Hooks"
+sidebarTitle: "Hooks"
+description: "Catálogo de Hooks publicados en los plugins de Erixcel."
+---
+
+Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de Codex. Este catálogo se obtiene de los archivos `hooks/hooks.json` de los plugins registrados en [Erixcel Developer Tools](https://github.com/erixcel/documentation/blob/main/.agents/plugins/marketplace.json).
+
+<Warning>
+Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizados, activos o instalados en tu Mac. Consulta **Codex Desktop → Settings → Hooks** para ver el estado real. Los hooks pueden ejecutar comandos fuera del sandbox: revisa su contenido antes de autorizarlos.
+</Warning>
+
+## Hooks disponibles (1)
+
+<Columns cols={2}>
+<Card title="Probando hook Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/erixcel-demo/hooks/hooks.json">
+Erixcel Demo (v0.1.0) · Evento Stop. Tipo: command.
+</Card>
+</Columns>
+
+## Cómo comprobar su ejecución
+
+Después de instalar un plugin, abre **Settings → Hooks**, revisa el comando y autorízalo si es de confianza. Un hook detectado no necesariamente está habilitado.
+
+Los hooks pueden agruparse en plugins y distribuirse desde GitHub. El catálogo se sincroniza automáticamente con su configuración versionada, **no** con el estado de ejecución local.

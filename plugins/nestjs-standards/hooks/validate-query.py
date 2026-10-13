@@ -18,7 +18,7 @@ def validate_query(path):
     code = re.sub(r"/\*[\s\S]*?\*/|(?m:^[ \t]*//[^\n]*)", "", source)
     modules = [m.group(1) for m in IMPORT_RE.finditer(code)]
     tables = sorted(set(m for m in modules if m.endswith((".table", ".table.ts", ".table.js"))))
-    issues = validate_one_class(content)
+    issues = validate_one_class(source)
     if path.name.endswith("-join.query.ts"):
         for match in WRITE_RE.finditer(code):
             line = code.count("\n", 0, match.start()) + 1

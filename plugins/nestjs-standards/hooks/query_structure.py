@@ -182,7 +182,28 @@ def validate_one_class(source):
             "Mueve constantes y funciones al interior de la clase y ajusta sus referencias "
             "(por ejemplo, this.fields / this.visible), sin cambiar el comportamiento."
         )
-        break
+        # Continue through further top-level statements to report every violation.
+        i += 1
+        nesting = 0
+        while i < n:
+            value, current_line = all_tokens[i]
+            if value == ";" and nesting == 0:
+                i += 1
+                break
+            if (
+                nesting == 0
+                and current_line > line
+                and value in (
+                    "const", "let", "var", "export", "class", "@",
+                    "function", "type", "interface", "enum"
+                )
+            ):
+                break
+            if value in ("{", "(", "["):
+                nesting += 1
+            elif value in ("}", ")", "]"):
+                nesting -= 1
+            i += 1
     if classes != 1 and not errors:
         errors.append(
             f"El archivo .query.ts debe declarar exactamente una clase (encontradas {classes})."

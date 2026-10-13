@@ -125,6 +125,8 @@ export class AdministratorsQuery {
         result = self.invoke("validate-query.py", "Stop")
         self.assertEqual(result.get("decision"), "block")
         self.assertIn("fuera de la clase", result.get("reason", ""))
+        self.assertIn("Línea 2", result.get("reason", ""))
+        self.assertIn("Línea 3", result.get("reason", ""))
         self.assertIn("this.fields", result.get("reason", ""))
         self.query.write_text("""import { administrators } from '@db/tables/administrators.table';
 @Injectable()

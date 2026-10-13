@@ -60,15 +60,13 @@ El conjunto mínimo de una funcionalidad incluye `*.controller.ts`, `*.service.t
 6. Para evitar consultas **N+1**, agrupa identificadores, consulta en lote y relaciona resultados con `Map` cuando sea posible.
 7. Maneja los errores de negocio y **no expongas contraseñas, hashes ni datos sensibles** en el resultado.
 
-## DTOs y modules
+## DTOs de cada módulo y registro de providers
 
-- Coloca los DTOs por funcionalidad; para entidades múltiples, subdivide `dto/` por entidad.
-- Documenta propiedades con `@ApiProperty` o `@ApiPropertyOptional` y valida entradas con `class-validator` y `class-transformer`.
-- Usa `@Trace({ type: 'validation' })` para clases de DTO con validación, siguiendo la convención de trazabilidad.
-- Para DTOs de actualización, utiliza `PartialType(CreateDto)` cuando corresponda.
-- Reutiliza los enums de las tablas Drizzle —por ejemplo, `user.role.enumValues`— en el tipo, la validación y Swagger; **no dupliques listas de valores**.
-- Registra controllers, services y queries en `@Module`. Exporta solo los providers que otros módulos necesiten.
-- Los DTO compartidos de error y paginación en la estructura actual están en `src/dto` (no en el antiguo `src/models`).
+Los DTO de cada funcionalidad viven en su carpeta `dto/`. Sus contratos de creación, actualización, filtros y respuesta se documentan de manera independiente en [**DTO de módulos**](/desarrollo/nestjs/src/modules/dto). Esa página define los nombres, decoradores de trazabilidad, validación, documentación Swagger y reutilización de enums Drizzle.
+
+Los DTO compartidos entre funcionalidades —como errores HTTP y metadatos de paginación— pertenecen a [**DTO globales**](/desarrollo/nestjs/src/dto/index). Evita duplicarlos dentro de los módulos.
+
+Los archivos `*.module.ts` registran controllers, services y queries en `@Module`; exporta únicamente los providers que necesitan otros módulos.
 
 ## Guía y ejemplos de implementación
 

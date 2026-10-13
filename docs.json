@@ -129,15 +129,7 @@
                     "root": "desarrollo/nestjs/src/functions/index",
                     "directory": "card"
                   },
-                  {
-                    "group": "modules",
-                    "root": "desarrollo/nestjs/src/modules/index",
-                    "directory": "card",
-                    "pages": [
-                      "desarrollo/nestjs/src/modules/dto",
-                      "desarrollo/nestjs/src/modules-guia"
-                    ]
-                  },
+                  "desarrollo/nestjs/src/modules-guia",
                   "desarrollo/nestjs/src/queries-guia",
                   "desarrollo/nestjs/src/seeds-guia",
                   "desarrollo/nestjs/src/main"

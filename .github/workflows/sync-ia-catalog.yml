@@ -1,0 +1,37 @@
+name: Sync IA catalogs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - '.agents/plugins/marketplace.json'
+      - '.github/scripts/sync_ia_catalog.py'
+      - '.github/workflows/sync-ia-catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-ia-catalog-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate catalogs from registered plugins
+        run: python3 .github/scripts/sync_ia_catalog.py
+      - name: Commit catalogs if changed
+        run: |
+          git add ia/skills.mdx ia/hooks.mdx
+          if git diff --cached --quiet; then
+            echo 'Catalogs already up to date.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(ia): sync published skill and hook catalogs'
+          git push

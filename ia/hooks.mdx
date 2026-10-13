@@ -17,7 +17,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y tres Hooks: uno detecta cambios y dos validan Query y Core al terminar Codex.
+    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y doce Hooks: uno detecta cambios y once revisan las convenciones de NestJS al terminar Codex.
   </Step>
 
   <Step title="Revisar los Hooks">
@@ -42,7 +42,7 @@ Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al env
 
 <Columns cols={1}>
 <Card title="Detect Changes" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Registra el estado inicial de Query y Core.
+Registra el estado inicial de todos los archivos NestJS vigilados.
 </Card>
 </Columns>
 
@@ -53,37 +53,37 @@ Evento **`Stop`**: revisa los archivos modificados cuando Codex termina.
 
 <Columns cols={1}>
 <Card title="Query Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Exige una sola clase sin constantes externas y revisa las reglas de `.query.ts`.
+Una clase por `.query.ts`; separa consultas simples y JOIN.
 </Card>
 <Card title="Core Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Revisa las reglas de los `.core.ts` modificados.
+Valida las funciones setup de `.core.ts` y su integración.
 </Card>
 <Card title="Controller Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-controller.py del evento Stop.
+Revisa decoradores HTTP, Swagger y delegación directa al Service.
 </Card>
 <Card title="Service Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-service.py del evento Stop.
+Verifica servicios Injectable y consultas mediante Queries.
 </Card>
 <Card title="Module Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-module.py del evento Stop.
+Revisa módulos, clases y registro de dependencias.
 </Card>
-<Card title="Dto Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-dto.py del evento Stop.
+<Card title="DTO Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Comprueba contratos DTO, trazabilidad y separación de capas.
 </Card>
 <Card title="Function Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-function.py del evento Stop.
+Verifica clases utilitarias con métodos estáticos.
 </Card>
 <Card title="Table Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-table.py del evento Stop.
+Revisa tablas Drizzle y los tres campos de auditoría.
 </Card>
 <Card title="Seed Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-seed.py del evento Stop.
+Exige una función seed y una tabla base por archivo.
 </Card>
 <Card title="Script Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-script.py del evento Stop.
+Detecta nombres inválidos, secretos y rutas locales fijas.
 </Card>
-<Card title="Tsconfig Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
-Comando validate-tsconfig.py del evento Stop.
+<Card title="TSConfig Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida JSONC, módulo NodeNext y alias de TypeScript.
 </Card>
 </Columns>
 

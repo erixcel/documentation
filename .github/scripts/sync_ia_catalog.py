@@ -117,15 +117,25 @@ def hook_filename(command):
     return match.group(1) if match else "hook"
 
 
+HOOK_DESCRIPTIONS = {
+    "detect-changes.py": "Registra el estado inicial de todos los archivos NestJS vigilados.",
+    "validate-query.py": "Una clase por `.query.ts`; separa consultas simples y JOIN.",
+    "validate-core.py": "Valida las funciones setup de `.core.ts` y su integración.",
+    "validate-controller.py": "Revisa decoradores HTTP, Swagger y delegación directa al Service.",
+    "validate-service.py": "Verifica servicios Injectable y consultas mediante Queries.",
+    "validate-module.py": "Revisa módulos, clases y registro de dependencias.",
+    "validate-dto.py": "Comprueba contratos DTO, trazabilidad y separación de capas.",
+    "validate-function.py": "Verifica clases utilitarias con métodos estáticos.",
+    "validate-table.py": "Revisa tablas Drizzle y los tres campos de auditoría.",
+    "validate-seed.py": "Exige una función seed y una tabla base por archivo.",
+    "validate-script.py": "Detecta nombres inválidos, secretos y rutas locales fijas.",
+    "validate-tsconfig.py": "Valida JSONC, módulo NodeNext y alias de TypeScript."
+}
+
+
 def describe_hook(item):
     filename = hook_filename(item["command"])
-    if filename == "detect-changes.py":
-        return "Registra el estado inicial de Query y Core."
-    if filename == "validate-query.py":
-        return "Exige una sola clase sin constantes externas y revisa las reglas de `.query.ts`."
-    if filename == "validate-core.py":
-        return "Revisa las reglas de los `.core.ts` modificados."
-    return f'Comando {filename} del evento {item["event"]}.'
+    return HOOK_DESCRIPTIONS.get(filename, f'Hook del evento {item["event"]}.')
 
 
 def render_hook_groups(items):
@@ -201,7 +211,7 @@ Las **Skills de Erixcel** son instrucciones reutilizables para agentes de progra
   </Step>
 
   <Step title="Instalar Erixcel NestJS">
-    Tras agregar el marketplace, abre su catálogo de plugins, busca **Erixcel NestJS** e instálalo. El plugin incluye las ocho Skills y tres Hooks de validación.
+    Tras agregar el marketplace, abre su catálogo de plugins, busca **Erixcel NestJS** e instálalo. El plugin incluye las ocho Skills y doce Hooks de validación.
   </Step>
 
   <Step title="Comprobar las Skills">
@@ -241,7 +251,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y tres Hooks: uno detecta cambios y dos validan Query y Core al terminar Codex.
+    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y doce Hooks: uno detecta cambios y once revisan las convenciones de NestJS al terminar Codex.
   </Step>
 
   <Step title="Revisar los Hooks">

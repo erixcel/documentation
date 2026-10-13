@@ -7,23 +7,28 @@ Plugin de Codex Desktop que agrupa **8 Skills** y **12 Hooks de validación** en
 ```text
 plugins/nestjs-standards/
 ├── .codex-plugin/plugin.json
-├── skills/
-│   ├── nestjs-core/
-│   ├── nestjs-db/
-│   ├── nestjs-functions/
-│   ├── nestjs-global-dto/
-│   ├── nestjs-module-dto/
-│   ├── nestjs-modules/
-│   ├── nestjs-scripts/
-│   └── nestjs-tsconfig/
+├── skills/                       # 8 Skills
 ├── hooks/
 │   ├── hooks.json
-│   ├── detect-changes.py
-│   ├── validate-query.py
+│   ├── detect-changes.py          # UserPromptSubmit
+│   ├── validate-query.py         # Stop
 │   ├── validate-core.py
+│   ├── validate-controller.py
+│   ├── validate-service.py
+│   ├── validate-module.py
+│   ├── validate-dto.py
+│   ├── validate-function.py
+│   ├── validate-table.py
+│   ├── validate-seed.py
+│   ├── validate-script.py
+│   ├── validate-tsconfig.py
+│   ├── validator_common.py
 │   ├── core_validator.py
-│   └── validator_common.py
-└── tests/test_hooks.py
+│   ├── query_structure.py
+│   └── extra_rules.py
+└── tests/
+    ├── test_hooks.py
+    └── test_extended_hooks.py
 ```
 
 Las Skills consultan las páginas de [documentación de Erixcel](https://docs.erixcel.com/desarrollo/nestjs/creacion-proyecto) como fuente de verdad.

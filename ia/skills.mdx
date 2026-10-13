@@ -6,6 +6,26 @@ description: "Catálogo de Skills publicadas en los plugins de Erixcel."
 
 Las **Skills de Erixcel** son instrucciones reutilizables para agentes de programación. Este catálogo se genera a partir de los archivos `SKILL.md` de los plugins registrados en [Erixcel Developer Tools](https://github.com/erixcel/documentation/blob/main/.agents/plugins/marketplace.json).
 
+## Cómo instalarlas
+
+<Steps>
+  <Step title="Agregar el marketplace">
+    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y agrega `erixcel/documentation` si aún no lo tienes.
+  </Step>
+
+  <Step title="Instalar Erixcel NestJS">
+    En la pestaña **Personal**, busca **Erixcel Developer Tools** e instala **Erixcel NestJS**, que contiene las ocho Skills.
+  </Step>
+
+  <Step title="Comprobar las Skills">
+    Entra a **Codex Desktop → Customize → Skills** y confirma que aparezcan las ocho Skills.
+  </Step>
+
+  <Step title="Utilizarlas">
+    Abre tu proyecto NestJS y solicita, por ejemplo: «Usa la Skill `nestjs-core` para revisar `cors.core.ts` y consulta primero la documentación de Erixcel».
+  </Step>
+</Steps>
+
 <Note>
 Aquí se muestran **Skills publicadas en GitHub**, no necesariamente instaladas en tu equipo. Para comprobar las Skills realmente instaladas, abre **Codex Desktop → Customize → Skills** o revisa los plugins instalados.
 </Note>
@@ -39,8 +59,6 @@ Erixcel NestJS (v1.0.0) · Usar al crear, revisar o actualizar tsconfig.json y l
 </Card>
 </Columns>
 
-## Cómo instalarlas
-
-En **Codex Desktop → Customize → Plugins → Add → Add a marketplace**, agrega `erixcel/documentation` si aún no lo has agregado. Después instala el plugin que contiene la Skill deseada.
+## Actualizaciones
 
 Las instrucciones de cada Skill siguen teniendo su fuente original en GitHub. Si cambia un `SKILL.md`, este catálogo se regenera automáticamente en el repositorio; actualizar la instalación local del plugin sigue siendo un proceso independiente.

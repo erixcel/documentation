@@ -115,6 +115,26 @@ description: "Catálogo de Skills publicadas en los plugins de Erixcel."
 
 Las **Skills de Erixcel** son instrucciones reutilizables para agentes de programación. Este catálogo se genera a partir de los archivos `SKILL.md` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
 
+## Cómo instalarlas
+
+<Steps>
+  <Step title="Agregar el marketplace">
+    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y agrega `erixcel/documentation` si aún no lo tienes.
+  </Step>
+
+  <Step title="Instalar Erixcel NestJS">
+    En la pestaña **Personal**, busca **Erixcel Developer Tools** e instala **Erixcel NestJS**, que contiene las ocho Skills.
+  </Step>
+
+  <Step title="Comprobar las Skills">
+    Entra a **Codex Desktop → Customize → Skills** y confirma que aparezcan las ocho Skills.
+  </Step>
+
+  <Step title="Utilizarlas">
+    Abre tu proyecto NestJS y solicita, por ejemplo: «Usa la Skill `nestjs-core` para revisar `cors.core.ts` y consulta primero la documentación de Erixcel».
+  </Step>
+</Steps>
+
 <Note>
 Aquí se muestran **Skills publicadas en GitHub**, no necesariamente instaladas en tu equipo. Para comprobar las Skills realmente instaladas, abre **Codex Desktop → Customize → Skills** o revisa los plugins instalados.
 </Note>
@@ -122,9 +142,8 @@ Aquí se muestran **Skills publicadas en GitHub**, no necesariamente instaladas 
 ## Skills disponibles ({len(skills)})
 
 {render_cards(skills, "book-open")}
-## Cómo instalarlas
 
-En **Codex Desktop → Customize → Plugins → Add → Add a marketplace**, agrega `erixcel/documentation` si aún no lo has agregado. Después instala el plugin que contiene la Skill deseada.
+## Actualizaciones
 
 Las instrucciones de cada Skill siguen teniendo su fuente original en GitHub. Si cambia un `SKILL.md`, este catálogo se regenera automáticamente en el repositorio; actualizar la instalación local del plugin sigue siendo un proceso independiente.
 '''
@@ -136,6 +155,30 @@ description: "Catálogo de Hooks publicados en los plugins de Erixcel."
 
 Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de Codex. Este catálogo se obtiene de los archivos `hooks/hooks.json` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
 
+## Cómo instalarlos y activarlos
+
+<Steps>
+  <Step title="Agregar el marketplace">
+    Abre **Codex Desktop → Customize → Plugins → Add → Add a marketplace** y agrega `erixcel/documentation` si no aparece.
+  </Step>
+
+  <Step title="Instalar un plugin con Hooks">
+    En **Personal**, instala el plugin que contenga el Hook que necesites. Actualmente no hay Hooks publicados en el catálogo de Erixcel.
+  </Step>
+
+  <Step title="Revisar los Hooks">
+    Abre **Codex Desktop → Settings → Hooks** y verifica los Hooks detectados desde tus plugins o proyectos.
+  </Step>
+
+  <Step title="Autorizar y activar">
+    Inspecciona el comando que ejecutará cada Hook, presiona **Trust** solo si confías en él y activa su interruptor.
+  </Step>
+
+  <Step title="Probar la ejecución">
+    Realiza una interacción que desencadene el evento configurado (por ejemplo, **Stop**) y comprueba el resultado o el registro del Hook.
+  </Step>
+</Steps>
+
 <Warning>
 Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizados, activos o instalados en tu Mac. Consulta **Codex Desktop → Settings → Hooks** para ver el estado real. Los hooks pueden ejecutar comandos fuera del sandbox: revisa su contenido antes de autorizarlos.
 </Warning>
@@ -143,11 +186,10 @@ Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizad
 ## Hooks disponibles ({len(hooks)})
 
 {render_cards(hooks, "workflow")}
-## Cómo comprobar su ejecución
 
-Después de instalar un plugin, abre **Settings → Hooks**, revisa el comando y autorízalo si es de confianza. Un hook detectado no necesariamente está habilitado.
+## Sincronización
 
-Los hooks pueden agruparse en plugins y distribuirse desde GitHub. El catálogo se sincroniza automáticamente con su configuración versionada, **no** con el estado de ejecución local.
+Los Hooks pueden agruparse en plugins y distribuirse desde GitHub. El catálogo se sincroniza automáticamente con su configuración versionada, **no** con el estado de ejecución local.
 '''
     for name, content in [("skills", skill_page), ("hooks", hook_page)]:
         output = ROOT / "ia" / f"{name}.mdx"

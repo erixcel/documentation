@@ -185,11 +185,10 @@
         "tab": "IA",
         "groups": [
           {
-            "group": "Agent Skills",
+            "group": "Catálogo",
             "pages": [
-              "skills/antigravity",
-              "skills/codex",
-              "skills/claude-code"
+              "ia/skills",
+              "ia/hooks"
             ]
           }
         ]

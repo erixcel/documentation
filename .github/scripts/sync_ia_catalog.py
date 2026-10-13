@@ -201,7 +201,7 @@ Las **Skills de Erixcel** son instrucciones reutilizables para agentes de progra
   </Step>
 
   <Step title="Instalar Erixcel NestJS">
-    Tras agregar el marketplace, abre su catálogo de plugins, busca **Erixcel NestJS** e instálalo. El plugin contiene las ocho Skills.
+    Tras agregar el marketplace, abre su catálogo de plugins, busca **Erixcel NestJS** e instálalo. El plugin incluye las ocho Skills y tres Hooks de validación.
   </Step>
 
   <Step title="Comprobar las Skills">
@@ -241,7 +241,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Una vez agregado el marketplace, instala desde su catálogo el plugin que contenga el Hook que necesites. Instala **Erixcel NestJS Validators** desde **Erixcel Developer Tools**. Incluye tres Hooks independientes: uno registra los cambios y dos validan Query y Core al terminar Codex.
+    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y tres Hooks: uno detecta cambios y dos validan Query y Core al terminar Codex.
   </Step>
 
   <Step title="Revisar los Hooks">

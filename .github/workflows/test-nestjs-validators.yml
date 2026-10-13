@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "plugins/nestjs-query-validator/**"
+      - "plugins/nestjs-standards/**"
       - ".github/workflows/test-nestjs-validators.yml"
   workflow_dispatch:
 
@@ -20,6 +20,6 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile hook scripts
-        run: python3 -m compileall -q plugins/nestjs-query-validator/hooks
+        run: python3 -m compileall -q plugins/nestjs-standards/hooks
       - name: Execute lifecycle tests
-        run: python3 -m unittest discover -s plugins/nestjs-query-validator/tests -p "test_*.py" -v
+        run: python3 -m unittest discover -s plugins/nestjs-standards/tests -p "test_*.py" -v

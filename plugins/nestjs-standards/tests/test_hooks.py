@@ -89,10 +89,19 @@ class LifecycleTests(unittest.TestCase):
         joined = self.query.with_name("administrators-join.query.ts")
         joined.write_text("""import { administrators } from '@db/tables/administrators.table';
 import { users } from '@db/tables/users.table';
-await database.select().from(administrators).innerJoin(users, eq(administrators.userId, users.id));
+@Injectable()
+export class AdministratorsJoinQuery {
+  async list() {
+    return database.select().from(administrators)
+      .innerJoin(users, eq(administrators.userId, users.id));
+  }
+}
 """)
         self.assertEqual(self.invoke("validate-query.py", "Stop"), {})
-        joined.write_text(joined.read_text() + "await database.update(users).set({ active: false });\n")
+        joined.write_text(joined.read_text().replace(
+            "return database.select()",
+            "await database.update(users).set({ active: false });\n    return database.select()"
+        ))
         self.assertEqual(self.invoke("validate-query.py", "Stop").get("decision"), "block")
 
     def test_core_main_integration(self):
@@ -102,6 +111,66 @@ await database.select().from(administrators).innerJoin(users, eq(administrators.
         out = self.invoke("validate-core.py", "Stop")
         self.assertEqual(out.get("decision"), "block")
         self.assertIn("main.ts", out.get("reason", ""))
+
+    def test_top_level_constants_request_correction(self):
+        self.begin()
+        self.query.write_text("""import { administrators } from '@db/tables/administrators.table';
+const fields = { id: administrators.id };
+const visible = () => true;
+@Injectable()
+export class AdministratorsQuery {
+  async list() { return database.select(fields).from(administrators).where(visible()); }
+}
+""")
+        result = self.invoke("validate-query.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        self.assertIn("fuera de la clase", result.get("reason", ""))
+        self.assertIn("this.fields", result.get("reason", ""))
+        self.query.write_text("""import { administrators } from '@db/tables/administrators.table';
+@Injectable()
+export class AdministratorsQuery {
+  private readonly fields = { id: administrators.id };
+  private readonly visible = () => true;
+  async list() {
+    const local = 1;
+    return database.select(this.fields).from(administrators).where(this.visible());
+  }
+}
+""")
+        self.assertEqual(self.invoke("validate-query.py", "Stop"), {})
+
+    def test_only_one_class(self):
+        self.begin()
+        self.query.write_text(QUERY + "export class AnotherQuery {}\n")
+        result = self.invoke("validate-query.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        self.assertIn("exactamente una clase", result.get("reason", ""))
+
+    def test_outside_function_or_variable_after_class(self):
+        self.begin()
+        self.query.write_text(QUERY + "export function helper() { return 1; }\n")
+        self.assertEqual(self.invoke("validate-query.py", "Stop").get("decision"), "block")
+        self.begin()
+        self.query.write_text(QUERY + "const foo = 1;\n")
+        self.assertEqual(self.invoke("validate-query.py", "Stop").get("decision"), "block")
+
+    def test_join_query_class_allows_internal_constants(self):
+        self.begin()
+        joined = self.query.with_name("administrators-join.query.ts")
+        joined.write_text("""import { administrators } from '@db/tables/administrators.table';
+import { users } from '@db/tables/users.table';
+@Injectable()
+export class AdministratorsJoinQuery {
+  async list() {
+    const fields = { id: administrators.id };
+    const visible = () => true;
+    const brace = /[{}]/;
+    return database.select(fields).from(administrators)
+      .innerJoin(users, eq(administrators.userId, users.id));
+  }
+}
+""")
+        self.assertEqual(self.invoke("validate-query.py", "Stop"), {})
 
     def test_no_snapshot_only_warns(self):
         out = self.invoke("validate-core.py", "Stop")

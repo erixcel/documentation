@@ -122,7 +122,7 @@ def describe_hook(item):
     if filename == "detect-changes.py":
         return "Registra el estado inicial de Query y Core."
     if filename == "validate-query.py":
-        return "Revisa las reglas de los `.query.ts` modificados."
+        return "Exige una sola clase sin constantes externas y revisa las reglas de `.query.ts`."
     if filename == "validate-core.py":
         return "Revisa las reglas de los `.core.ts` modificados."
     return f'Comando {filename} del evento {item["event"]}.'

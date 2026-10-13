@@ -1,6 +1,6 @@
 {
   "name": "nestjs-standards",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Ocho Skills NestJS vinculadas a la documentación de Erixcel y tres Hooks para validar cambios en Query y Core.",
   "skills": "./skills/",
   "interface": {

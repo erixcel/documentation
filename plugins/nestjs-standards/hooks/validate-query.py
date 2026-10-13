@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 from validator_common import run
+from query_structure import validate_one_class
 
 JOIN_RE = re.compile(r"\.\s*(?:leftJoin|rightJoin|innerJoin|fullJoin|crossJoin)\s*\(")
 WRITE_RE = re.compile(r"\.\s*(?:insert|update|delete)\s*\(")
@@ -17,7 +18,7 @@ def validate_query(path):
     code = re.sub(r"/\*[\s\S]*?\*/|(?m:^[ \t]*//[^\n]*)", "", source)
     modules = [m.group(1) for m in IMPORT_RE.finditer(code)]
     tables = sorted(set(m for m in modules if m.endswith((".table", ".table.ts", ".table.js"))))
-    issues = []
+    issues = validate_one_class(content)
     if path.name.endswith("-join.query.ts"):
         for match in WRITE_RE.finditer(code):
             line = code.count("\n", 0, match.start()) + 1

@@ -17,6 +17,18 @@ queries/
     └── categoria-join.query.ts
 ```
 
+## Regla de encapsulación
+
+**Nueva regla: encapsulación de Query.**
+
+Los archivos `*.query.ts` y `*-join.query.ts` deben contener **solo imports, decoradores (por ejemplo, `@Injectable()`) y exactamente una clase** en el nivel superior.
+
+No declares `const`, `let`, `var`, funciones, tipos ni otras clases **fuera de esa clase**. Las constantes locales **dentro de métodos** sí están permitidas.
+
+Cuando necesites compartir configuraciones como `fields` o filtros como `visible`, colócalas como propiedades o métodos privados de la clase y actualiza sus referencias (`this.fields`, `this.visible`) sin alterar el resultado de las consultas.
+
+El Hook **Query Validator** verifica esta regla al terminar una interacción que haya creado o modificado archivos Query, y solicita corregir los incumplimientos antes de finalizar.
+
 ## Reglas de separación
 
 | Archivo | Operaciones permitidas | Restricción |

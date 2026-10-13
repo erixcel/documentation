@@ -31,7 +31,7 @@ Las Skills consultan las páginas de [documentación de Erixcel](https://docs.er
 ## Hooks
 
 - **UserPromptSubmit — Detect Changes:** registra el estado inicial de archivos `.query.ts` y `.core.ts`.
-- **Stop — Query Validator:** comprueba los archivos `.query.ts` modificados. Las consultas normales usan una tabla y no hacen JOIN; `-join.query.ts` permite varias tablas y es de solo lectura.
+- **Stop — Query Validator:** comprueba los archivos `.query.ts` modificados. Los archivos Query solo admiten imports, decoradores y **una única clase**: no se permiten constantes ni funciones fuera de ella. Las consultas normales usan una tabla y no hacen JOIN; `-join.query.ts` permite varias tablas y es de solo lectura.
 - **Stop — Core Validator:** comprueba los archivos `.core.ts` modificados, sus funciones `setup...` y su integración en `main.ts`.
 
 El plugin no modifica código por sí solo. El validador es **estático y heurístico**: no ejecuta el backend, PostgreSQL, TypeScript ni pruebas de integración. Los logs se guardan en `~/.codex/erixcel-query-validator/query-validator.log` para conservar compatibilidad.

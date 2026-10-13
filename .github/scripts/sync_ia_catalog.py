@@ -11,35 +11,27 @@ REPO_URL = "https://github.com/erixcel/documentation/blob/main"
 
 SKILL_CARD_DETAILS = {
     "nestjs-core": {
-        "icon": "settings-2",
         "description": "Configura archivos `.core.ts` y su integración con `main.ts`."
     },
     "nestjs-db": {
-        "icon": "database",
         "description": "Organiza PostgreSQL, Drizzle y las operaciones de base de datos."
     },
     "nestjs-functions": {
-        "icon": "braces",
         "description": "Define utilidades reutilizables en archivos `.function.ts`."
     },
     "nestjs-global-dto": {
-        "icon": "file-check-2",
         "description": "Define los DTO compartidos por diferentes módulos."
     },
     "nestjs-module-dto": {
-        "icon": "file-code-2",
         "description": "Define los DTO de entrada, filtros y salida de cada módulo."
     },
     "nestjs-modules": {
-        "icon": "layers",
         "description": "Organiza controllers, services y módulos de NestJS."
     },
     "nestjs-scripts": {
-        "icon": "terminal",
         "description": "Organiza scripts y generadores de automatización."
     },
     "nestjs-tsconfig": {
-        "icon": "file-json",
         "description": "Configura `tsconfig.json` y los alias de TypeScript."
     }
 }
@@ -112,19 +104,12 @@ def render_cards(items, icon, horizontal=False):
     cards = []
     layout = " horizontal" if horizontal else ""
     for item in items:
-        card_icon = safe_attr(item.get("icon") or icon)
-        description = safe_text(item["description"])
-        # Horizontal Card's icon is not visible in the deployed theme.
-        # A real Icon component inside the body keeps it visible and compact.
-        body = f'<Icon icon="{card_icon}" size={18} /> {description}' if horizontal else description
         cards.append(
-            f'<Card title="{safe_attr(item["title"])}" icon="{card_icon}" href="{safe_attr(item["url"])}"{layout}>\n'
-            f'{body}\n'
+            f'<Card title="{safe_attr(item["title"])}" icon="{safe_attr(icon)}" href="{safe_attr(item["url"])}"{layout}>\n'
+            f'{safe_text(item["description"])}\n'
             "</Card>"
         )
     return "<Columns cols={1}>\n" + "\n".join(cards) + "\n</Columns>\n"
-
-
 
 def hook_filename(command):
     """Extract the source script name for the lifecycle tree."""
@@ -141,14 +126,6 @@ def describe_hook(item):
     if filename == "validate-core.py":
         return "Revisa las reglas de los `.core.ts` modificados."
     return f'Comando {filename} del evento {item["event"]}.'
-
-
-def hook_icon(item):
-    return {
-        "detect-changes.py": "scan-search",
-        "validate-query.py": "database",
-        "validate-core.py": "shield-check",
-    }.get(hook_filename(item["command"]), "workflow")
 
 
 def render_hook_groups(items):
@@ -172,10 +149,9 @@ def render_hook_groups(items):
             {
                 "title": item["title"].removesuffix(" - Erixcel"),
                 "description": describe_hook(item),
-                "icon": hook_icon(item),
                 "url": item["url"],
             } for item in entries
-        ], "workflow", horizontal=True)
+        ], "shield-check", horizontal=True)
         parts.append(f'### {label}\n\n{intro}\n\n{cards}')
     return "\n\n".join(parts)
 
@@ -190,7 +166,6 @@ def generate():
             skills.append({
                 "title": data["name"],
                 "description": presentation.get("description") or data["description"],
-                "icon": presentation.get("icon") or "book-open",
                 "url": f'{REPO_URL}/{path.relative_to(ROOT).as_posix()}',
             })
         file = root / "hooks/hooks.json"

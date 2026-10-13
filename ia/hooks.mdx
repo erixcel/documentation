@@ -39,9 +39,9 @@ Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizad
 
 ## Hooks por evento (3)
 
-### Antes de comenzar — UserPromptSubmit
+### Antes de comenzar
 
-Se ejecuta **cuando envías un mensaje**, antes de que Codex modifique archivos. Registra su estado inicial para identificar los cambios del turno.
+Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al enviar tu mensaje.
 
 ```text
 UserPromptSubmit
@@ -49,15 +49,15 @@ UserPromptSubmit
 ```
 
 <Columns cols={1}>
-<Card title="Detect Changes - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Guarda un registro inicial de los archivos Query y Core.
+<Card title="Detect Changes" icon="workflow" horizontal href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
+Registra el estado inicial de Query y Core.
 </Card>
 </Columns>
 
 
-### Al terminar — Stop
+### Al terminar
 
-Se ejecuta **cuando Codex finaliza su intervención**. Cada validador comprueba únicamente los archivos de su tipo que hayan cambiado.
+Evento **`Stop`**: revisa los archivos modificados cuando Codex termina.
 
 ```text
 Stop
@@ -66,11 +66,11 @@ Stop
 ```
 
 <Columns cols={1}>
-<Card title="Query Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Valida los archivos .query.ts modificados: una sola tabla por query simple y sin escrituras en -join.query.ts.
+<Card title="Query Validator" icon="workflow" horizontal href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
+Revisa las reglas de los `.query.ts` modificados.
 </Card>
-<Card title="Core Validator - Erixcel" icon="workflow" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
-Erixcel NestJS Validators (v0.3.0) · Valida los archivos .core.ts modificados: función setup, firma y uso desde main.ts.
+<Card title="Core Validator" icon="workflow" horizontal href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-query-validator/hooks/hooks.json">
+Revisa las reglas de los `.core.ts` modificados.
 </Card>
 </Columns>
 

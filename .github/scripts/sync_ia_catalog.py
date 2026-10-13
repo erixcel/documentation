@@ -70,13 +70,14 @@ def load_plugins():
     return sorted(plugins, key=lambda x: x["name"].lower())
 
 
-def render_cards(items, icon):
+def render_cards(items, icon, horizontal=False):
     if not items:
         return "No hay elementos publicados de este tipo.\n"
     cards = []
+    layout = " horizontal" if horizontal else ""
     for item in items:
         cards.append(
-            f'<Card title="{safe_attr(item["title"])}" icon="{icon}" href="{safe_attr(item["url"])}">\n'
+            f'<Card title="{safe_attr(item["title"])}" icon="{icon}" href="{safe_attr(item["url"])}"{layout}>\n'
             f'{safe_text(item["description"])}\n'
             "</Card>"
         )
@@ -92,16 +93,13 @@ def hook_filename(command):
 
 def describe_hook(item):
     filename = hook_filename(item["command"])
-    plugin = item["description"]
     if filename == "detect-changes.py":
-        detail = "Guarda un registro inicial de los archivos Query y Core."
-    elif filename == "validate-query.py":
-        detail = "Valida los archivos .query.ts modificados: una sola tabla por query simple y sin escrituras en -join.query.ts."
-    elif filename == "validate-core.py":
-        detail = "Valida los archivos .core.ts modificados: función setup, firma y uso desde main.ts."
-    else:
-        detail = f'Evento {item["event"]}: comando {filename}.'
-    return plugin + " · " + detail
+        return "Registra el estado inicial de Query y Core."
+    if filename == "validate-query.py":
+        return "Revisa las reglas de los `.query.ts` modificados."
+    if filename == "validate-core.py":
+        return "Revisa las reglas de los `.core.ts` modificados."
+    return f'Comando {filename} del evento {item["event"]}.'
 
 
 def render_hook_groups(items):
@@ -118,8 +116,8 @@ def render_hook_groups(items):
         entries = groups[event]
         label = {"UserPromptSubmit": "Antes de comenzar", "Stop": "Al terminar"}.get(event, "Evento")
         intro = {
-            "UserPromptSubmit": "Se ejecuta **cuando envías un mensaje**, antes de que Codex modifique archivos. Registra su estado inicial para identificar los cambios del turno.",
-            "Stop": "Se ejecuta **cuando Codex finaliza su intervención**. Cada validador comprueba únicamente los archivos de su tipo que hayan cambiado.",
+            "UserPromptSubmit": "Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al enviar tu mensaje.",
+            "Stop": "Evento **`Stop`**: revisa los archivos modificados cuando Codex termina.",
         }.get(event, "Hooks registrados para este evento de Codex.")
         tree = [event]
         for i, item in enumerate(entries):
@@ -128,12 +126,12 @@ def render_hook_groups(items):
         tree_code = "```text\n" + "\n".join(tree) + "\n```"
         cards = render_cards([
             {
-                "title": item["title"],
+                "title": item["title"].removesuffix(" - Erixcel"),
                 "description": describe_hook(item),
                 "url": item["url"],
             } for item in entries
-        ], "workflow")
-        parts.append(f'### {label} — {event}\n\n{intro}\n\n{tree_code}\n\n{cards}')
+        ], "workflow", horizontal=True)
+        parts.append(f'### {label}\n\n{intro}\n\n{tree_code}\n\n{cards}')
     return "\n\n".join(parts)
 
 def generate():

@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/query_validator.py\"",
+            "timeout": 30,
+            "statusMessage": "Registrando archivos Query del turno"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/query_validator.py\"",
+            "timeout": 45,
+            "statusMessage": "Validando arquitectura Query de Erixcel"
+          }
+        ]
+      }
+    ]
+  }
+}

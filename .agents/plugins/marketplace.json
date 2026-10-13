@@ -3,5 +3,18 @@
   "interface": {
     "displayName": "Erixcel Developer Tools"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "nestjs-standards",
+      "source": {
+        "source": "local",
+        "path": "./plugins/nestjs-standards"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
 }

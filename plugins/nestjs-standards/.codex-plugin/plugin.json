@@ -1,0 +1,12 @@
+{
+  "name": "nestjs-standards",
+  "version": "1.0.0",
+  "description": "Ocho Skills de convenciones NestJS vinculadas a la documentacion viva de Erixcel.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Erixcel NestJS",
+    "shortDescription": "Convenciones NestJS desde docs.erixcel.com",
+    "developerName": "Erixcel",
+    "category": "Developer Tools"
+  }
+}

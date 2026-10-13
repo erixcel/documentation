@@ -5,3 +5,6 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Executable agent plugins: catalogued separately under IA
+plugins/

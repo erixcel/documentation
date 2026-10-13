@@ -1,36 +1,48 @@
-# Erixcel NestJS Validator
+# Erixcel NestJS Validators
 
-Plugin de Codex Desktop con **dos Hooks de ciclo de vida**: `UserPromptSubmit` registra las huellas SHA-256 y `Stop` valida los archivos creados o modificados durante el turno. Sin dependencias adicionales ni escrituras al código.
+Plugin de Codex Desktop: **tres Hooks registrados**, dos validadores independientes.
 
-## Validación de Query
+```text
+UserPromptSubmit
+└── detect-changes.py
 
-Fuente: https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia
-
-- `nombre.query.ts`: exactamente un import de tabla `*.table` y sin JOIN.
-- `nombre-join.query.ts`: puede importar múltiples tablas, pero solo permite SELECT (sin `.insert()`, `.update()` ni `.delete()`).
-
-## Validación de Core
-
-Fuente: https://docs.erixcel.com/desarrollo/nestjs/src/core/index
-
-- Nombre `kebab-case.core.ts`.
-- Exactamente una función declarada y exportada: `setupNombre(app: INestApplication)`.
-- No inicializar `NestFactory`, iniciar `app.listen()` ni declarar rutas HTTP aquí.
-- `src/main.ts` debe importar e invocar la función después de `NestFactory.create` y antes de `app.listen()`.
-- Para `traceflow.core.ts` el nombre esperado es `setupTraceFlow`.
-
-## Instalación
-
-Actualiza el marketplace `erixcel/documentation`, instala **Erixcel NestJS Validator** y autoriza ambos Hooks en **Codex Desktop → Settings → Hooks**.
-
-## Comprobación manual
-
-Desde la raíz del plugin ejecuta:
-
-```bash
-python3 hooks/query_validator.py --check /ruta/a/src/queries/administrators/administrators.query.ts /ruta/a/src/core/cors.core.ts
+Stop
+├── validate-query.py
+└── validate-core.py
 ```
 
-Log local: `~/.codex/erixcel-query-validator/query-validator.log`.
+- **Detect Changes** calcula un snapshot SHA-256 de `src/queries/**/*.query.ts` y `src/core/*.core.ts` al enviar el prompt.
+- **Query Validator** comprueba solo archivos `.query.ts` creados o modificados durante el turno.
+- **Core Validator** comprueba solo archivos `.core.ts` creados o modificados durante el turno.
 
-**Límites:** validación estática con patrones. No ejecuta TypeScript, no verifica tipado, no hace queries a PostgreSQL y no sustituye tests. Solo examina archivos de `src/queries` y `src/core` creados o editados durante el turno. Si falta el snapshot inicial, devuelve un aviso.
+Los validadores `Stop` leen **el mismo snapshot** y pueden ejecutarse en paralelo. No escriben sobre archivos del proyecto. Sus lógicas están separadas para poder confiar, activar o desactivar cada Hook individualmente.
+
+## Convenciones que se aplican
+
+[Query](https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia):
+- `nombre.query.ts`: solo una tabla importada; sin JOIN.
+- `nombre-join.query.ts`: múltiples tablas permitidas, sin escrituras.
+
+[Core](https://docs.erixcel.com/desarrollo/nestjs/src/core/index):
+- archivo `kebab-case.core.ts`;
+- única función exportada `setupNombre(app: INestApplication)`;
+- sin inicialización NestFactory ni escucha HTTP;
+- importación y llamada desde `src/main.ts` antes de escuchar.
+- caso especial: `traceflow.core.ts` → `setupTraceFlow`.
+
+## Instalar y probar
+
+Desde **Codex Desktop → Settings → Plugins**, actualiza tu marketplace `erixcel/documentation` e instala o actualiza **Erixcel NestJS Validators**. En **Settings → Hooks**, revisa y autoriza individualmente los tres comandos.
+
+Para una prueba manual, en la carpeta raíz de este plugin:
+
+```bash
+python3 hooks/validate-query.py --check /ruta/src/queries/administrators/administrators.query.ts
+python3 hooks/validate-core.py --check /ruta/src/core/cors.core.ts
+```
+
+Los eventos deben compartir `session_id`, `turn_id` y `cwd` para detectar cambios en una misma interacción. Sin snapshot, las validaciones avisan y no bloquean.
+
+Log local: `~/.codex/erixcel-query-validator/query-validator.log` (compatibilidad con versión anterior).
+
+**Limitaciones:** son comprobaciones estáticas y heurísticas, no compilación de TypeScript, ESLint ni pruebas de ejecución o base de datos. Por defecto solo se examinan los archivos modificados desde el comienzo del turno.

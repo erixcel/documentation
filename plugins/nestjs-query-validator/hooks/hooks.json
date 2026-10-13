@@ -5,9 +5,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${PLUGIN_ROOT}/hooks/query_validator.py\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/detect-changes.py\"",
             "timeout": 30,
-            "statusMessage": "Registrando Queries y Core del turno"
+            "statusMessage": "Detect Changes - Erixcel"
           }
         ]
       }
@@ -17,9 +17,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${PLUGIN_ROOT}/hooks/query_validator.py\"",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-query.py\"",
             "timeout": 45,
-            "statusMessage": "Validando Queries y Core de Erixcel"
+            "statusMessage": "Query Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-core.py\"",
+            "timeout": 45,
+            "statusMessage": "Core Validator - Erixcel"
           }
         ]
       }

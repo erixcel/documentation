@@ -80,7 +80,7 @@ def render_cards(items, icon):
             f'{safe_text(item["description"])}\n'
             "</Card>"
         )
-    return "<Columns cols={2}>\n" + "\n".join(cards) + "\n</Columns>\n"
+    return "<Columns cols={1}>\n" + "\n".join(cards) + "\n</Columns>\n"
 
 
 def generate():

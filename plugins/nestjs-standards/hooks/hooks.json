@@ -26,6 +26,60 @@
             "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-core.py\"",
             "timeout": 45,
             "statusMessage": "Core Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-controller.py\"",
+            "timeout": 45,
+            "statusMessage": "Controller Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-service.py\"",
+            "timeout": 45,
+            "statusMessage": "Service Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-module.py\"",
+            "timeout": 45,
+            "statusMessage": "Module Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-dto.py\"",
+            "timeout": 45,
+            "statusMessage": "Dto Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-function.py\"",
+            "timeout": 45,
+            "statusMessage": "Function Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-table.py\"",
+            "timeout": 45,
+            "statusMessage": "Table Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-seed.py\"",
+            "timeout": 45,
+            "statusMessage": "Seed Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-script.py\"",
+            "timeout": 45,
+            "statusMessage": "Script Validator - Erixcel"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-tsconfig.py\"",
+            "timeout": 45,
+            "statusMessage": "Tsconfig Validator - Erixcel"
           }
         ]
       }

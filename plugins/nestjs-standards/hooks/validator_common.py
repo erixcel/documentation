@@ -21,23 +21,69 @@ def workspace_for(payload):
 
 
 def source_files(root):
-    """Find monitored files inside NestJS src directories, including monorepos."""
+    """Discover files only inside NestJS packages, skipping unrelated workspaces."""
     found = {}
-    for dirname, dirs, _files in os.walk(root, followlinks=False):
+    checked = {}
+
+    def get_project(src):
+        if src in checked:
+            return checked[src]
+        checked[src] = (
+            (src / "main.ts").exists()
+            or (src / "app.module.ts").exists()
+            or (src.parent / "nest-cli.json").exists()
+        )
+        return checked[src]
+
+    def monitored(path):
+        name = path.name
+        parts = path.parts
+        if name == "tsconfig.json":
+            src = path.parent / "src"
+            return get_project(src) if src.is_dir() else False
+        if name.endswith(".ts") and "scripts" in parts and "src" not in parts:
+            # Only root-level scripts for a recognized NestJS package.
+            script_index = parts.index("scripts")
+            if script_index + 1 == len(parts) - 1:
+                src = Path(*parts[:script_index]) / "src"
+                return get_project(src) if src.is_dir() else False
+        candidates = [a for a in path.parents if a.name == "src"]
+        if not candidates:
+            return False
+        src = candidates[0]
+        if not get_project(src):
+            return False
+        tail = path.relative_to(src).parts
+        if len(tail) < 2:
+            return name.endswith(".module.ts") and name == "app.module.ts"
+        section = tail[0]
+        if section == "queries":
+            return name.endswith(".query.ts") and len(tail) >= 3
+        if section == "core":
+            return name.endswith(".core.ts") and len(tail) == 2
+        if section == "modules":
+            if name.endswith((".controller.ts", ".service.ts", ".module.ts")):
+                return True
+            if name.endswith(".dto.ts"):
+                return "dto" in tail
+        if section == "dto":
+            return name.endswith(".dto.ts")
+        if section == "functions":
+            return name.endswith(".function.ts")
+        if section == "db" and len(tail) >= 3 and tail[1] == "tables":
+            return name.endswith(".table.ts")
+        if section == "seeds":
+            return name.endswith(".seed.ts")
+        return False
+
+    for dirname, dirs, names in os.walk(root, followlinks=False):
         dirs[:] = [d for d in dirs if d not in SKIP and not d.startswith(".")]
         folder = Path(dirname)
-        if folder.parent.name != "src":
-            continue
-        if folder.name == "queries":
-            candidates = folder.rglob("*.query.ts")
-        elif folder.name == "core":
-            candidates = folder.glob("*.core.ts")
-        else:
-            continue
-        dirs[:] = []
-        for path in candidates:
-            if path.is_file() and not path.is_symlink():
-                found[path.relative_to(root).as_posix()] = path
+        for name in names:
+            path = folder / name
+            if not path.is_file() or path.is_symlink() or not monitored(path):
+                continue
+            found[path.relative_to(root).as_posix()] = path
     return found
 
 
@@ -110,7 +156,7 @@ def check_turn(payload, kind, suffix, validator, documentation):
     after = hashes(current)
     modified = sorted(
         name for name, sha in after.items()
-        if name.endswith(suffix) and before.get(name) != sha
+        if name.endswith(suffix) and (kind != "Script" or "/scripts/" in "/" + name) and before.get(name) != sha
     )
     issues = []
     for name in modified:

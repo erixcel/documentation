@@ -1,6 +1,6 @@
 # Erixcel NestJS
 
-Plugin de Codex Desktop que agrupa **8 Skills** y **3 Hooks de validación** en una sola instalación.
+Plugin de Codex Desktop que agrupa **8 Skills** y **12 Hooks de validación** en una sola instalación.
 
 ## Contenido
 
@@ -30,15 +30,31 @@ Las Skills consultan las páginas de [documentación de Erixcel](https://docs.er
 
 ## Hooks
 
-- **UserPromptSubmit — Detect Changes:** registra el estado inicial de archivos `.query.ts` y `.core.ts`.
-- **Stop — Query Validator:** comprueba los archivos `.query.ts` modificados. Los archivos Query solo admiten imports, decoradores y **una única clase**: no se permiten constantes ni funciones fuera de ella. Las consultas normales usan una tabla y no hacen JOIN; `-join.query.ts` permite varias tablas y es de solo lectura.
-- **Stop — Core Validator:** comprueba los archivos `.core.ts` modificados, sus funciones `setup...` y su integración en `main.ts`.
+### Antes de comenzar (1)
+- **Detect Changes** (`UserPromptSubmit`): registra archivos vigilados de NestJS al iniciar cada turno.
+
+### Al terminar (11)
+- **Query Validator** (`*.query.ts`): una sola clase por archivo; separación de consultas normales y con JOIN.
+- **Core Validator** (`*.core.ts`): función única `setupNombre(app)` e integración en `main.ts`.
+- **Controller Validator** (`*.controller.ts`): clases Controller, decoradores Swagger/TraceNode y delegación directa al Service.
+- **Service Validator** (`*.service.ts`): clase Injectable y acceso a datos a través de Queries.
+- **Module Validator** (`*.module.ts`): clase Module y metadatos de dependencias.
+- **DTO Validator** (`*.dto.ts`): clases Dto, trazabilidad y ausencia de lógica de BD.
+- **Function Validator** (`*.function.ts`): una clase utilitaria con métodos `static`.
+- **Table Validator** (`*.table.ts`): Drizzle `pgTable`, tres campos de auditoría y tipos inferidos.
+- **Seed Validator** (`*.seed.ts`): función de seed para una única tabla.
+- **Script Validator** (`scripts/*.ts`): nombres y prevención básica de secretos/rutas absolutas.
+- **TSConfig Validator** (`tsconfig.json`): JSONC válido y coherencia básica de `compilerOptions`.
+
+Cada Hook se activa o desactiva de forma independiente en **Codex Desktop → Settings → Hooks**. Los comandos `Stop` leen el mismo snapshot; un incumplimiento devuelve `decision: "block"` e instrucciones para que Codex intente corregirlo automáticamente.
+
+Estas comprobaciones son **heurísticas** y no sustituyen el compilador, ESLint ni las pruebas. Se aplican únicamente a los archivos creados o modificados durante el turno. No se aplican a proyectos ajenos a NestJS ni a archivos preexistentes sin cambios.
 
 El plugin no modifica código por sí solo. El validador es **estático y heurístico**: no ejecuta el backend, PostgreSQL, TypeScript ni pruebas de integración. Los logs se guardan en `~/.codex/erixcel-query-validator/query-validator.log` para conservar compatibilidad.
 
 ## Instalación / actualización
 
-En **Codex Desktop → Settings → Plugins**, actualiza el marketplace `erixcel/documentation` y después **actualiza o reinstala Erixcel NestJS**. Abre **Settings → Hooks** para revisar, confiar y activar individualmente los tres comandos.
+En **Codex Desktop → Settings → Plugins**, actualiza el marketplace `erixcel/documentation` y después **actualiza o reinstala Erixcel NestJS**. Abre **Settings → Hooks** para revisar, confiar y activar individualmente los doce comandos.
 
 Si instalaste por separado el antiguo **Erixcel NestJS Validators**, desinstálalo para que sus Hooks no se ejecuten dos veces.
 

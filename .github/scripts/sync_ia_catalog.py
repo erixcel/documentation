@@ -110,7 +110,6 @@ def generate():
     skill_page = f'''---
 title: "Skills"
 sidebarTitle: "Skills"
-description: "Catálogo de Skills publicadas en los plugins de Erixcel."
 ---
 
 Las **Skills de Erixcel** son instrucciones reutilizables para agentes de programación. Este catálogo se genera a partir de los archivos `SKILL.md` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
@@ -154,7 +153,6 @@ Las instrucciones de cada Skill siguen teniendo su fuente original en GitHub. Si
     hook_page = f'''---
 title: "Hooks"
 sidebarTitle: "Hooks"
-description: "Catálogo de Hooks publicados en los plugins de Erixcel."
 ---
 
 Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de Codex. Este catálogo se obtiene de los archivos `hooks/hooks.json` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).

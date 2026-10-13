@@ -1,6 +1,6 @@
 ---
 title: "modules"
-sidebarTitle: "Guía de módulos"
+sidebarTitle: "modules"
 ---
 
 La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo contiene como mínimo un `controller`, un `service`, un `module` y una carpeta `dto`. Los módulos sencillos, como `auth`, pueden guardar sus archivos directamente; los más grandes, como `admin`, se subdividen por funcionalidad.
@@ -249,6 +249,9 @@ export class UserModule {}
 ```
 
 ### Carpeta dto
+
+Para una referencia específica de convenciones y validaciones consulta [**DTO de módulos**](/desarrollo/nestjs/src/modules/dto). Esta guía conserva los ejemplos completos de la arquitectura del módulo.
+
 
 Estos DTO son **ejemplos mínimos**; cada módulo puede tener los necesarios. `@ApiProperty` documenta campos en Swagger y los decoradores de `class-validator` validan el contenido recibido.
 

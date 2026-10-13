@@ -1,23 +1,36 @@
-# Erixcel Query Validator
+# Erixcel NestJS Validator
 
-Plugin independiente para Codex Desktop. Contiene **dos hooks**, sin Skill duplicada:
+Plugin de Codex Desktop con **dos Hooks de ciclo de vida**: `UserPromptSubmit` registra las huellas SHA-256 y `Stop` valida los archivos creados o modificados durante el turno. Sin dependencias adicionales ni escrituras al código.
 
-- `UserPromptSubmit`: calcula un snapshot SHA-256 de `src/queries/**/*.query.ts` dentro del workspace.
-- `Stop`: compara el snapshot con los archivos actuales y valida **solo archivos creados o modificados durante ese turno**.
+## Validación de Query
 
-Reglas documentadas: https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia
+Fuente: https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia
 
-- `nombre.query.ts`: exactamente un import desde `*.table`; JOINs prohibidos.
-- `nombre-join.query.ts`: imports de múltiples tablas permitidos; no `.insert()`, `.update()` ni `.delete()`.
+- `nombre.query.ts`: exactamente un import de tabla `*.table` y sin JOIN.
+- `nombre-join.query.ts`: puede importar múltiples tablas, pero solo permite SELECT (sin `.insert()`, `.update()` ni `.delete()`).
 
-Si falla, `Stop` devuelve `{"decision":"block","reason":"..."}` para solicitar una corrección (máximo una continuación automática por turno).
+## Validación de Core
 
-## Prueba manual
+Fuente: https://docs.erixcel.com/desarrollo/nestjs/src/core/index
+
+- Nombre `kebab-case.core.ts`.
+- Exactamente una función declarada y exportada: `setupNombre(app: INestApplication)`.
+- No inicializar `NestFactory`, iniciar `app.listen()` ni declarar rutas HTTP aquí.
+- `src/main.ts` debe importar e invocar la función después de `NestFactory.create` y antes de `app.listen()`.
+- Para `traceflow.core.ts` el nombre esperado es `setupTraceFlow`.
+
+## Instalación
+
+Actualiza el marketplace `erixcel/documentation`, instala **Erixcel NestJS Validator** y autoriza ambos Hooks en **Codex Desktop → Settings → Hooks**.
+
+## Comprobación manual
+
+Desde la raíz del plugin ejecuta:
 
 ```bash
-python3 hooks/query_validator.py --check backend/src/queries/administrators/administrators.query.ts backend/src/queries/administrators/administrators-join.query.ts
+python3 hooks/query_validator.py --check /ruta/a/src/queries/administrators/administrators.query.ts /ruta/a/src/core/cors.core.ts
 ```
 
-Log local: `~/.codex/erixcel-query-validator/query-validator.log`. No se escribe ni modifica código de tu proyecto ni se accede a la BD.
+Log local: `~/.codex/erixcel-query-validator/query-validator.log`.
 
-La comprobación es estática y basada en patrones; **no sustituye** `tsc --noEmit`, ESLint, tests ni ejecución real del backend. Al comenzar un nuevo chat instala/habilita el plugin y autoriza ambos hooks en **Settings → Hooks**. Si no se dispara `UserPromptSubmit`, no se valida el turno y se muestra un aviso.
+**Límites:** validación estática con patrones. No ejecuta TypeScript, no verifica tipado, no hace queries a PostgreSQL y no sustituye tests. Solo examina archivos de `src/queries` y `src/core` creados o editados durante el turno. Si falta el snapshot inicial, devuelve un aviso.

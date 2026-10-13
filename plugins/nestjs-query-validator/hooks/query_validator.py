@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Erixcel NestJS query guard (Python stdlib only).
 
-UserPromptSubmit snapshots query files. Stop validates only created/changed queries.
+UserPromptSubmit snapshots Query/Core files. Stop validates only files changed during this turn.
 No database, network, project-file writes, or shell commands are performed.
 """
 import hashlib
@@ -11,6 +11,8 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+from core_validator import validate_core
 
 STATE_ROOT = Path.home() / ".codex" / "erixcel-query-validator"
 SKIP_DIRS = {".git", ".codex", "node_modules", "dist", "build", ".next", "coverage", ".turbo"}
@@ -25,20 +27,23 @@ def is_table_module(module):
     return module.endswith((".table", ".table.ts", ".table.js"))
 
 
-def query_files(workspace):
-    """Only src/queries directories within the current workspace (monorepo-safe)."""
+def monitored_files(workspace):
+    """Find src/queries/**/*.query.ts and src/core/*.core.ts (including monorepos)."""
     found = {}
-    for parent, dirs, files in os.walk(workspace, followlinks=False):
+    for parent, dirs, filenames in os.walk(workspace, followlinks=False):
         dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")]
         folder = Path(parent)
         if folder.name == "queries" and folder.parent.name == "src":
-            for p in folder.rglob("*.query.ts"):
-                if p.is_file() and not p.is_symlink():
-                    try:
-                        found[p.relative_to(workspace).as_posix()] = p
-                    except ValueError:
-                        continue
-            dirs[:] = []  # We already traversed this subtree.
+            candidates = folder.rglob("*.query.ts")
+            dirs[:] = []
+        elif folder.name == "core" and folder.parent.name == "src":
+            candidates = folder.glob("*.core.ts")
+            dirs[:] = []
+        else:
+            continue
+        for path in candidates:
+            if path.is_file() and not path.is_symlink():
+                found[path.relative_to(workspace).as_posix()] = path
     return found
 
 
@@ -61,7 +66,7 @@ def state_path(payload, workspace):
     return STATE_ROOT / "snapshots" / (hashlib.sha256(key.encode()).hexdigest() + ".json")
 
 
-def validate(path):
+def validate_query(path):
     """Return actionable diagnostic strings; heuristic, not a TS parser."""
     try:
         content = path.read_text(encoding="utf-8")
@@ -89,6 +94,10 @@ def validate(path):
     return errors
 
 
+def validate_file(path):
+    return validate_core(path) if path.name.endswith(".core.ts") else validate_query(path)
+
+
 def write_log(event, workspace, changed, problems):
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
     with (STATE_ROOT / "query-validator.log").open("a", encoding="utf-8") as log:
@@ -104,34 +113,34 @@ def write_log(event, workspace, changed, problems):
 def handler(payload):
     cwd = payload.get("cwd")
     if not isinstance(cwd, str) or not Path(cwd).is_dir():
-        return {"systemMessage": "Erixcel Query Validator: cwd no disponible; no se validó."}
+        return {"systemMessage": "Erixcel NestJS Validator: cwd no disponible; no se validó."}
     workspace = Path(cwd).resolve()
     event = payload.get("hook_event_name")
     state = state_path(payload, workspace)
     if event == "UserPromptSubmit":
         state.parent.mkdir(parents=True, exist_ok=True)
-        snapshot = fingerprints(query_files(workspace))
+        snapshot = fingerprints(monitored_files(workspace))
         state.write_text(json.dumps(snapshot), encoding="utf-8")
         return {}
     if event != "Stop":
         return {}
     if not state.exists():
-        return {"systemMessage": "Erixcel Query Validator: no hubo snapshot de inicio para este turno; validación omitida. Inicia otra interacción."}
+        return {"systemMessage": "Erixcel NestJS Validator: no hubo snapshot de inicio para este turno; validación omitida. Inicia otra interacción."}
     before = json.loads(state.read_text(encoding="utf-8"))
-    current = query_files(workspace)
+    current = monitored_files(workspace)
     after = fingerprints(current)
     changed = sorted(name for name, hash_value in after.items() if before.get(name) != hash_value)
     issues = []
     for name in changed:
-        for problem in validate(current[name]):
+        for problem in validate_file(current[name]):
             issues.append(f"{name}: {problem}")
     write_log(event, workspace, changed, issues)
     if not issues:
         return {}
     message = (
-        "Erixcel Query Validator detectó violaciones en archivos de este turno:\n"
+        "Erixcel NestJS Validator encontró incumplimientos en archivos Query/Core editados este turno:\n"
         + "\n".join(f"- {msg}" for msg in issues[:20])
-        + "\nConsulta https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia "
+        + "\nConsulta https://docs.erixcel.com/desarrollo/nestjs/src/queries-guia y https://docs.erixcel.com/desarrollo/nestjs/src/core/index "
         + "y corrige solo esos archivos, sin modificar otros. Después vuelve a comprobarlos."
     )
     # A Stop continuation may run Stop again; never trigger infinite repair loops.
@@ -145,21 +154,21 @@ def main():
         failures = []
         for name in sys.argv[2:]:
             path = Path(name)
-            if not path.is_file() or not path.name.endswith(".query.ts"):
-                failures.append(f"{name}: archivo .query.ts inexistente")
+            if not path.is_file() or not path.name.endswith((".query.ts", ".core.ts")):
+                failures.append(f"{name}: archivo .query.ts/.core.ts inexistente")
                 continue
-            failures.extend(f"{name}: {err}" for err in validate(path))
+            failures.extend(f"{name}: {err}" for err in validate_file(path))
         if failures:
             print("\n".join(failures))
             return 1
-        print("Erixcel Query Validator: OK")
+        print("Erixcel NestJS Validator: OK")
         return 0
     try:
         payload = json.load(sys.stdin)
         print(json.dumps(handler(payload), ensure_ascii=False))
     except Exception as exc:
         # Stop expects JSON stdout. Avoid exposing any file contents.
-        print(json.dumps({"systemMessage": f"Erixcel Query Validator: error al validar ({type(exc).__name__})."}))
+        print(json.dumps({"systemMessage": f"Erixcel NestJS Validator: error al validar ({type(exc).__name__})."}))
     return 0
 
 

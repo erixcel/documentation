@@ -1,10 +1,10 @@
 {
   "name": "nestjs-query-validator",
-  "version": "0.1.0",
-  "description": "Hook que valida queries de NestJS editadas en el turno siguiendo las convenciones de Erixcel.",
+  "version": "0.2.0",
+  "description": "Valida archivos Query y Core de NestJS modificados durante el turno siguiendo las convenciones de Erixcel.",
   "interface": {
-    "displayName": "Erixcel Query Validator",
-    "shortDescription": "Valida queries de una tabla y joins al terminar Codex",
+    "displayName": "Erixcel NestJS Validator",
+    "shortDescription": "Valida src/queries y src/core al terminar Codex",
     "developerName": "Erixcel",
     "category": "Developer Tools"
   }

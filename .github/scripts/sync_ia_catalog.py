@@ -169,7 +169,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Una vez agregado el marketplace, instala desde su catálogo el plugin que contenga el Hook que necesites. Instala **Erixcel Query Validator** desde **Erixcel Developer Tools**. Este plugin contiene dos eventos: uno registra los archivos al enviar el prompt y otro los valida cuando Codex termina.
+    Una vez agregado el marketplace, instala desde su catálogo el plugin que contenga el Hook que necesites. Instala **Erixcel NestJS Validator** desde **Erixcel Developer Tools**. Este plugin contiene dos eventos: uno registra los archivos al enviar el prompt y otro los valida cuando Codex termina.
   </Step>
 
   <Step title="Revisar los Hooks">

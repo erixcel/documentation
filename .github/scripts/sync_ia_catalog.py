@@ -213,9 +213,6 @@ Las **Skills de Erixcel** son instrucciones reutilizables para agentes de progra
   </Step>
 </Steps>
 
-<Note>
-Aquí se muestran **Skills publicadas en GitHub**, no necesariamente instaladas en tu equipo. Para comprobar las Skills realmente instaladas, consulta las **Skills** o revisa los plugins instalados en Codex Desktop.
-</Note>
 
 ## Skills disponibles ({len(skills)})
 
@@ -260,9 +257,6 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 </Steps>
 
-<Warning>
-Este listado muestra **Hooks publicados en GitHub**, no cuáles están autorizados, activos o instalados en tu Mac. Consulta **Codex Desktop → Settings → Hooks** para ver el estado real. Los hooks pueden ejecutar comandos fuera del sandbox: revisa su contenido antes de autorizarlos.
-</Warning>
 
 ## Hooks por evento ({len(hooks)})
 

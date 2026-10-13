@@ -114,7 +114,9 @@
                     "pages": [
                       "desarrollo/nestjs/src/dto/http-error-dto",
                       "desarrollo/nestjs/src/dto/pagination-meta-dto"
-                    ]
+                    ],
+                    "root": "desarrollo/nestjs/src/dto/index",
+                    "directory": "card"
                   },
                   {
                     "group": "functions",
@@ -132,6 +134,7 @@
                     "root": "desarrollo/nestjs/src/modules/index",
                     "directory": "card",
                     "pages": [
+                      "desarrollo/nestjs/src/modules/dto",
                       "desarrollo/nestjs/src/modules-guia"
                     ]
                   },

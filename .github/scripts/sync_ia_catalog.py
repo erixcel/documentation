@@ -121,15 +121,15 @@ HOOK_DESCRIPTIONS = {
     "detect-changes.py": "Registra el estado inicial de todos los archivos NestJS vigilados.",
     "validate-query.py": "Una clase por `.query.ts`; separa consultas simples y JOIN.",
     "validate-core.py": "Valida las funciones setup de `.core.ts` y su integración.",
-    "validate-controller.py": "Revisa decoradores HTTP, Swagger y delegación directa al Service.",
-    "validate-service.py": "Verifica servicios Injectable y consultas mediante Queries.",
-    "validate-module.py": "Revisa módulos, clases y registro de dependencias.",
-    "validate-dto.py": "Comprueba contratos DTO, trazabilidad y separación de capas.",
-    "validate-function.py": "Verifica clases utilitarias con métodos estáticos.",
-    "validate-table.py": "Revisa tablas Drizzle y los tres campos de auditoría.",
-    "validate-seed.py": "Exige una función seed y una tabla base por archivo.",
-    "validate-script.py": "Detecta nombres inválidos, secretos y rutas locales fijas.",
-    "validate-tsconfig.py": "Valida JSONC, módulo NodeNext y alias de TypeScript."
+    "validate-controller.py": "Valida `.controller.ts`: decoradores HTTP, Swagger y delegación al Service.",
+    "validate-service.py": "Valida `.service.ts`: servicios Injectable y consultas mediante Queries.",
+    "validate-module.py": "Valida `.module.ts`: clases y registro de dependencias NestJS.",
+    "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
+    "validate-function.py": "Valida `.function.ts`: clases utilitarias y métodos estáticos.",
+    "validate-table.py": "Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.",
+    "validate-seed.py": "Valida `.seed.ts`: una función seed y una tabla base por archivo.",
+    "validate-script.py": "Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.",
+    "validate-tsconfig.py": "Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript."
 }
 
 

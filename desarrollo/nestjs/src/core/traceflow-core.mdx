@@ -9,7 +9,7 @@ Inicializa TraceFlow y registra el middleware HTTP para capturar trazas durante 
 
 | Variable | Propósito |
 | --- | --- |
-| `TRACEFLOW_SERVICE_NAME` | Nombre que identifica el backend en el Studio; se utiliza al llamar a `startTraceFlow(...)` desde `main.ts`. |
+| `TRACEFLOW_SERVICE_NAME` | Nombre que identifica el backend en el Studio; se usa en `setupTraceFlow(app)`. |
 | `TRACEFLOW_STUDIO_URL` | Dirección local del Studio (por defecto `http://127.0.0.1:4789`). |
 | `TRACEFLOW_ENABLED` | Habilita TraceFlow cuando es `true` y `PROD` no es `true`. |
 | `TRACEFLOW_INSTRUMENT_HTTP` | Activa la instrumentación de HTTP. |
@@ -17,17 +17,25 @@ Inicializa TraceFlow y registra el middleware HTTP para capturar trazas durante 
 
 ## Archivo completo
 
-Este archivo aplica la convención de `src/core`: **una sola función exportada** (`setupTraceFlow`) y un único parámetro `app: INestApplication`. La inicialización previa del runtime se realiza en `main.ts`.
+Este archivo aplica la convención de `src/core`: **una sola función exportada** (`setupTraceFlow`) y un único parámetro `app: INestApplication`. La función también inicia TraceFlow antes de instalar el middleware; evita duplicar su inicialización en `main.ts`.
 
 ```typescript traceflow.core.ts
 import type { INestApplication } from '@nestjs/common';
-import { createTraceFlowHttpMiddleware } from 'traceflow';
+import { startTraceFlow, createTraceFlowHttpMiddleware } from 'traceflow';
 
 export function setupTraceFlow(app: INestApplication): void {
   // TraceFlow se utiliza únicamente en el entorno local de desarrollo.
   if (process.env.PROD === 'true' || process.env.TRACEFLOW_ENABLED?.toLowerCase() !== 'true') {
     return;
   }
+
+  startTraceFlow({
+    serviceName: process.env.TRACEFLOW_SERVICE_NAME || 'luis-ormeno-backend',
+    studioUrl: process.env.TRACEFLOW_STUDIO_URL || 'http://127.0.0.1:4789',
+    enabled: true,
+    instrumentHttp: process.env.TRACEFLOW_INSTRUMENT_HTTP?.toLowerCase() === 'true',
+    debug: process.env.TRACEFLOW_DEBUG?.toLowerCase() === 'true',
+  });
 
   app.use(
     createTraceFlowHttpMiddleware({
@@ -64,4 +72,4 @@ npm link traceflow traceflow-kit
 
 Estos enlaces son para desarrollo local; no son una instrucción para instalar TraceFlow en producción. Tras enlazarlos, puedes compilar y levantar el backend con sus comandos habituales.
 
-En `src/main.ts`, llama `startTraceFlow(...)` **antes** de crear la aplicación y `setupTraceFlow(app)` **después** de `NestFactory.create(AppModule)`. Consulta la página de [`main.ts`](/desarrollo/nestjs/src/main) para el ejemplo completo.
+En `src/main.ts`, llama únicamente `setupTraceFlow(app)` después de crear la aplicación y antes de `app.listen()`. No llames a `startTraceFlow()` por segunda vez. Consulta [`main.ts`](/desarrollo/nestjs/src/main).

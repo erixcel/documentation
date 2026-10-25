@@ -1,6 +1,6 @@
 {
   "name": "nestjs-standards",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Ocho Skills NestJS y doce Hooks independientes para validar Query, Core, Controllers, Services, Modules, DTO, Functions, Drizzle, Seeds, Scripts y TypeScript.",
   "skills": "./skills/",
   "interface": {

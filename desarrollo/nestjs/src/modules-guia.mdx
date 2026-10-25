@@ -42,6 +42,16 @@ modules/
 | `*.module.ts` | Registra controllers, providers e imports/exports de NestJS. |
 | `dto/*.dto.ts` | Tipos de petición y respuesta, validaciones y documentación Swagger de los endpoints. |
 
+## Regla: exactamente un DTO por método
+
+En cada carpeta de módulo, por cada **método de un Controller** (sin contar el `constructor`), crea exactamente un archivo `dto/<nombre-del-metodo>.dto.ts`. Los nombres en camelCase se convierten a kebab-case: `findAll()` → `find-all.dto.ts`.
+
+**Ejemplo:** si `auth.controller.ts` tiene `login()` y `me()`, la carpeta `dto/` debe tener **solo** `login.dto.ts` y `me.dto.ts`. Si varios Controllers comparten una carpeta, se admite la unión de sus métodos.
+
+Si existen archivos como `auth.dto.ts` que contienen contratos usados, **primero mueve sus clases a los DTO correspondientes y corrige todos los imports**; no borres contratos necesarios para que la aplicación compile. El Hook Controller Validator detecta faltantes y sobrantes incluso si el turno solo creó, modificó o eliminó un DTO.
+
+Esta es una convención estricta de Erixcel, no una regla general de NestJS.
+
 ## Reglas obligatorias para controllers
 
 1. **Un endpoint = una línea dentro del método:** `return this.servicio.metodo(...)`. No ejecutar consultas, conversiones, validaciones ni otras operaciones dentro del controller. Esas tareas corresponden al service.

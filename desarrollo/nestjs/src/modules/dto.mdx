@@ -4,6 +4,8 @@ sidebarTitle: "DTO de módulos"
 description: "Convenciones para DTO de entrada, filtros y respuestas de cada módulo de NestJS."
 ---
 
+**Convención Erixcel:** en las carpetas `dto/` de cada módulo, solo debe existir un archivo por método de Controller (excluye `constructor`). Ejemplo: `login()` y `me()` → `login.dto.ts` y `me.dto.ts`. Las clases de entrada, filtros y resultados de cada operación pueden convivir en ese mismo archivo. Consulta la [guía de módulos](/desarrollo/nestjs/src/modules-guia).
+
 Los DTO de módulos definen **el contrato de datos de una funcionalidad**: entradas, actualizaciones, filtros, respuestas de detalle y listados. Deben permanecer junto al módulo al que pertenecen, en lugar de mezclarse con los [DTO globales](/desarrollo/nestjs/src/dto/index).
 
 ## Ubicación y organización

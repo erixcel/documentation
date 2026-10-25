@@ -41,7 +41,7 @@ Las Skills consultan las páginas de [documentación de Erixcel](https://docs.er
 ### Al terminar (11)
 - **Query Validator** (`*.query.ts`): una sola clase por archivo; separación de consultas normales y con JOIN.
 - **Core Validator** (`*.core.ts`): función única `setupNombre(app)` e integración en `main.ts`.
-- **Controller Validator** (`*.controller.ts`): clases Controller, decoradores Swagger/TraceNode y delegación directa al Service.
+- **Controller Validator** (`*.controller.ts`): clases Controller, decoradores Swagger/TraceNode, delegación directa al Service y un DTO `<metodo-en-kebab-case>.dto.ts` por cada método (excepto `constructor`). Solo esos DTO deben existir en el directorio `dto/`; revisa también cambios en los propios DTO.
 - **Service Validator** (`*.service.ts`): clase Injectable y acceso a datos a través de Queries.
 - **Module Validator** (`*.module.ts`): clase Module y metadatos de dependencias.
 - **DTO Validator** (`*.dto.ts`): clases Dto, trazabilidad y ausencia de lógica de BD.

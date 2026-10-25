@@ -4,7 +4,7 @@ sidebarTitle: "functions"
 description: "Convenciones para clases de utilidades reutilizables en NestJS."
 ---
 
-`src/functions` concentra utilidades compartidas que pueden usarse desde distintos módulos sin mezclar responsabilidades con controllers o queries. Los archivos de esta carpeta reúnen **métodos utilitarios por propósito**.
+`src/functions` concentra utilidades compartidas; además, cada módulo puede tener `src/modules/<nombre>/functions/` para utilidades **privadas del módulo**. Ambas ubicaciones siguen la misma convención de archivos `<nombre>.function.ts`, clases con métodos `static` y sin inyección de dependencias. Esto permite conservar solamente los tres archivos hermanos `.module.ts`, `.controller.ts` y `.service.ts` en cada directorio de módulo.
 
 ## Convenciones obligatorias
 

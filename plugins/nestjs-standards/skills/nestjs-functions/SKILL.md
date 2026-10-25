@@ -15,7 +15,7 @@ Esta Skill establece **cuándo consultar** las convenciones de Erixcel, no una c
 
 ## Ámbito
 
-Aplica al trabajar con `src/functions/*.function.ts` en un backend NestJS.
+Aplica a utilidades compartidas `src/functions/*.function.ts` y utilidades locales `src/modules/**/functions/*.function.ts` en proyectos NestJS. Ambas ubicaciones usan una clase con métodos estáticos, sin providers NestJS.
 
 ## Procedimiento obligatorio
 

@@ -123,7 +123,7 @@ HOOK_DESCRIPTIONS = {
     "validate-core.py": "Valida las funciones setup de `.core.ts` y su integración.",
     "validate-controller.py": "Valida `.controller.ts`: decoradores HTTP, Swagger y delegación al Service.",
     "validate-service.py": "Valida `.service.ts`: servicios Injectable y consultas mediante Queries.",
-    "validate-module.py": "Valida `.module.ts`: clases y registro de dependencias NestJS.",
+    "validate-module.py": "Valida `.module.ts`: exactamente Module, Controller y Service hermanos con el mismo nombre base.",
     "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
     "validate-function.py": "Valida `.function.ts`: clases utilitarias y métodos estáticos.",
     "validate-table.py": "Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.",

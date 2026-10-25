@@ -3,37 +3,50 @@ title: "modules"
 sidebarTitle: "modules"
 ---
 
-La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo contiene como mínimo un `controller`, un `service`, un `module` y una carpeta `dto`. Los módulos sencillos, como `auth`, pueden guardar sus archivos directamente; los más grandes, como `admin`, se subdividen por funcionalidad.
+La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo debe tener **exactamente tres archivos hermanos** con el mismo nombre base: `.module.ts`, `.controller.ts` y `.service.ts`. Las subcarpetas `dto/`, `functions/`, `security/` y los submódulos se permiten; también los módulos contenedores como `admin` mantienen su trío.
 
 ## Estructura recomendada
 
 ```text src/modules
 modules/
 ├── auth/
-│   ├── dto/
-│   │   ├── login.dto.ts
-│   │   └── login-response.dto.ts
+│   ├── auth.module.ts
 │   ├── auth.controller.ts
 │   ├── auth.service.ts
-│   ├── auth.module.ts
-│   ├── jwt-auth.guard.ts
-│   └── jwt.strategy.ts
+│   ├── dto/
+│   │   └── login.dto.ts
+│   ├── functions/
+│   │   └── jwt.function.ts
+│   └── security/
+│       ├── jwt-auth.guard.ts
+│       └── jwt.strategy.ts
 └── admin/
+    ├── admin.module.ts
+    ├── admin.controller.ts
+    ├── admin.service.ts
     ├── user/
-    │   ├── dto/
-    │   │   ├── user-create.dto.ts
-    │   │   ├── user-update.dto.ts
-    │   │   ├── user-list.dto.ts
-    │   │   └── user-result.dto.ts
+    │   ├── user.module.ts
     │   ├── user.controller.ts
     │   ├── user.service.ts
-    │   └── user.module.ts
+    │   └── dto/
     └── producto/
-        ├── dto/
+        ├── producto.module.ts
         ├── producto.controller.ts
         ├── producto.service.ts
-        └── producto.module.ts
+        └── dto/
 ```
+
+## Regla obligatoria: tres archivos hermanos por módulo
+
+Un archivo `<nombre>.module.ts` situado debajo de `src/modules/**` debe tener **exactamente dos archivos hermanos** en el mismo directorio: `<nombre>.controller.ts` y `<nombre>.service.ts`. No se permiten otros archivos hermanos, aunque sí **subcarpetas** como `dto/`, `functions/`, `security/` o carpetas de submódulos.
+
+Por ejemplo, `auth.module.ts` exige `auth.controller.ts` y `auth.service.ts`: un `session.service.ts`, `google-auth.service.ts` o `jwt.config.ts` adicional en el mismo directorio **incumple la regla**.
+
+Para compartir lógica auxiliar estática crea una carpeta `functions/` y añade `<nombre>.function.ts`, siguiendo [Functions](/desarrollo/nestjs/src/functions/index). **No conviertas automáticamente un Service inyectable en una Function estática**: si necesita `@Injectable()` o dependencias mediante constructor, colócalo en un **submódulo** que tenga su propio trío.
+
+Los módulos contenedores como `admin/` también requieren los tres archivos `admin.*.ts`; sus carpetas hijas no cuentan como archivos hermanos. `src/app.module.ts`, en cambio, es la excepción por ser la raíz de arranque de NestJS.
+
+**Migraciones seguras:** preserva el comportamiento y actualiza imports, rutas, dependencias del contenedor DI, providers, exports y pruebas antes de quitar archivos antiguos. Module Validator comprueba la estructura al editar `.module.ts` o cualquiera de sus archivos hermanos.
 
 | Archivo | Responsabilidad |
 | --- | --- |

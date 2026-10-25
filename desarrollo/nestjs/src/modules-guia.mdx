@@ -410,7 +410,7 @@ De este modo, cuando cambian los roles en el esquema de Drizzle, el tipado, la v
 
 ## Ejemplo: auth (módulo pequeño)
 
-`auth` puede contener sus archivos directamente, sin subdividirse por entidad. Los archivos `jwt-auth.guard.ts` y `jwt.strategy.ts` son complementarios para proteger rutas, no reemplazan a los tres archivos mínimos ni la carpeta `dto`.
+`auth` puede contener sus archivos directamente, sin subdividirse por entidad. Los archivos `jwt-auth.guard.ts` y `jwt.strategy.ts` se organizan bajo `security/` para respetar los tres archivos hermanos obligatorios. Los DTO de la operación `login()` (entrada y resultado) comparten `dto/login.dto.ts`.
 
 ```typescript auth.controller.ts
 import { Body, Controller, Post } from '@nestjs/common';
@@ -418,8 +418,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TraceNode } from 'traceflow';
 import { HttpErrorDto } from 'src/dto/http-error.dto';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
+import { LoginDto, LoginResponseDto } from './dto/login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -469,7 +468,9 @@ export class AuthService {
 ```typescript login.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
+import { Trace } from 'traceflow';
 
+@Trace({ type: 'validation' })
 export class LoginDto {
   @ApiProperty({ example: 'ana@example.com' })
   @IsEmail()
@@ -479,11 +480,8 @@ export class LoginDto {
   @IsString()
   password: string;
 }
-```
 
-```typescript login-response.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
-
+@Trace({ type: 'validation' })
 export class LoginResponseDto {
   @ApiProperty({ description: 'Token JWT de acceso' })
   accessToken: string;

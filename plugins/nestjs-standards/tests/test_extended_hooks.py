@@ -78,8 +78,99 @@ export class UserController {
 """
         bad = good.replace("list() { return this.userService.list(); }",
                            "list() { const x = 1; return this.userService.list(x); }")
+        self.put("src/modules/user/dto/list.dto.ts", "export class ListDto {}")
         self.check_case("controller", "src/modules/user/user.controller.ts",
                         good, bad, "lógica de negocio")
+
+    def test_controller_methods_match_dto_folder_exactly(self):
+        good = """@Controller('admin/auth')
+export class AuthController {
+  constructor(private readonly service: AuthService) {}
+  @Post('login')
+  @ApiOperation({ summary: 'Login' })
+  @ApiResponse({ status: 200, type: LoginDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'login', type: 'controller' })
+  login() { return this.service.login(); }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Current user' })
+  @ApiResponse({ status: 200, type: MeDto })
+  @ApiResponse({ status: 400, type: HttpErrorDto })
+  @TraceNode({ name: 'me', type: 'controller' })
+  me() { return this.service.me(); }
+}
+"""
+        controller = "src/modules/admin/auth/auth.controller.ts"
+        self.put(controller, good)
+        self.put("src/modules/admin/auth/dto/login.dto.ts", "export class LoginDto {}")
+        self.put("src/modules/admin/auth/dto/me.dto.ts", "export class MeDto {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(controller, good + "\n// touched\n")
+        self.assertEqual(self.call("validate-controller.py", "Stop"), {})
+
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/modules/admin/auth/dto/auth.dto.ts", "export class AuthDto {}")
+        extra = self.call("validate-controller.py", "Stop")
+        self.assertEqual(extra.get("decision"), "block")
+        self.assertIn("auth.dto.ts", extra["reason"])
+        self.assertIn("sobrantes", extra["reason"])
+
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        (self.backend / "src/modules/admin/auth/dto/me.dto.ts").unlink()
+        missing = self.call("validate-controller.py", "Stop")
+        self.assertEqual(missing.get("decision"), "block")
+        self.assertIn("me.dto.ts", missing["reason"])
+        self.assertIn("faltantes", missing["reason"])
+
+    def test_controller_camel_case_dto_name(self):
+        code = """@Controller('users')
+export class UserController {
+  @Get('find-all')
+  @ApiOperation({})
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 400 })
+  @TraceNode({ name: 'findAll', type: 'controller' })
+  findAll() { return this.userService.findAll(); }
+}"""
+        controller = "src/modules/user/user.controller.ts"
+        self.put(controller, code)
+        self.put("src/modules/user/dto/find-all.dto.ts", "export class FindAllDto {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(controller, code + "\n// touched\n")
+        self.assertEqual(self.call("validate-controller.py", "Stop"), {})
+
+    def test_controllers_in_same_folder_merge_dto_names(self):
+        a = """@Controller('a')
+export class AController {
+  @Get()
+  @ApiOperation({})
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 400 })
+  @TraceNode({ name: 'find', type: 'controller' })
+  find() { return this.aService.find(); }
+}"""
+        b = """@Controller('b')
+export class BController {
+  @Get()
+  @ApiOperation({})
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 400 })
+  @TraceNode({ name: 'list', type: 'controller' })
+  list() { return this.bService.list(); }
+}"""
+        self.put("src/modules/team/a.controller.ts", a)
+        self.put("src/modules/team/b.controller.ts", b)
+        self.put("src/modules/team/dto/find.dto.ts", "export class FindDto {}")
+        self.put("src/modules/team/dto/list.dto.ts", "export class ListDto {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/modules/team/a.controller.ts", a + "\n// changed\n")
+        self.assertEqual(self.call("validate-controller.py", "Stop"), {})
 
     def test_service(self):
         good = """import { Injectable } from '@nestjs/common';

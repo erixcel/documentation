@@ -256,6 +256,83 @@ def validate_module(path):
                   "Antes de mover archivos, conserva imports, providers, exports "
                   "y comportamiento."
             )
+
+    # A module's controller/service are optional; nested NestJS submodules
+    # must be grouped in a dedicated 'modules/' child directory.
+    if path.name.endswith(".module.ts") and not is_root_app_module:
+        src = next((p for p in path.parents if p.name == "src"), None)
+        if src is not None:
+            stem = path.name[:-len(".module.ts")]
+            if path.parent != src and path.parent.name != stem:
+                errors.append(
+                    "La carpeta del módulo debe llamarse '" + stem +
+                    "' y contener " + stem + ".module.ts. "
+                    "No coloques archivos .module.ts directamente en modules/."
+                )
+
+            # Standard NestJS feature tree:
+            # src/modules/<main>/modules/<sub>/modules/<grandchild>/...
+            segments = path.relative_to(src).parts[:-1]
+            if segments and segments[0] == "modules":
+                if len(segments) == 1:
+                    errors.append(
+                        "Los módulos principales deben ir en "
+                        "src/modules/<nombre>/<nombre>.module.ts."
+                    )
+                else:
+                    for position in range(2, len(segments), 2):
+                        if segments[position] != "modules":
+                            suggested = (
+                                src.joinpath(*segments[:position], "modules",
+                                             *segments[position:], path.name)
+                            )
+                            errors.append(
+                                "Submódulo fuera de la carpeta agrupadora modules/: "
+                                + str(path) + ". Ruta esperada: "
+                                + str(suggested) + ". Cada módulo agrupa sus "
+                                "submódulos en modules/<nombre>/<nombre>.module.ts. "
+                                "Al moverlo, actualiza imports, providers, exports, "
+                                "rutas y tests sin modificar el comportamiento."
+                            )
+                            break
+            else:
+                # Also works for src/security/security.module.ts and other
+                # non-feature modules: their descendants must use modules/.
+                for ancestor in path.parent.parents:
+                    if ancestor == src:
+                        break
+                    if (ancestor / (ancestor.name + ".module.ts")).is_file():
+                        if path.relative_to(ancestor).parts[0] != "modules":
+                            suggested = (
+                                ancestor / "modules" /
+                                path.relative_to(ancestor)
+                            )
+                            errors.append(
+                                "Submódulo fuera de modules/: " + str(path) +
+                                ". Ruta esperada: " + str(suggested) +
+                                ". Conserva las dependencias al reorganizar."
+                            )
+                            break
+
+            misplaced = []
+            for child in path.parent.iterdir():
+                if child.is_dir() and child.name != "modules":
+                    child_modules = sorted(p.name for p in child.glob("*.module.ts")
+                                           if p.is_file())
+                    if child_modules:
+                        misplaced.append(
+                            child.name + "/ (" + ", ".join(child_modules) + ")"
+                        )
+            if misplaced:
+                errors.append(
+                    "Submódulos sueltos junto a " + path.name + ": " +
+                    ", ".join(misplaced) +
+                    ". Agrúpalos en modules/<nombre>/<nombre>.module.ts "
+                    "dentro del módulo actual. Las carpetas sin .module.ts "
+                    "(dto/, functions/, guards/, etc.) sí pueden permanecer "
+                    "como carpetas de responsabilidad. Conserva imports, "
+                    "providers, exports, rutas y tests al mover archivos."
+                )
     return errors
 
 

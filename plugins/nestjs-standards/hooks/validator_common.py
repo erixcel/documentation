@@ -183,18 +183,26 @@ def check_turn(payload, kind, suffix, validator, documentation):
             and str(Path(name).parent) in affected
         })
     if kind == "Module":
-        # Recheck a .module.ts when *any* direct sibling changes, including
-        # src/security/. The root src/app.module.ts has no sibling rule.
-        affected = {
-            str(Path(name).parent) for name in set(before) | set(after)
+        # Recheck parent module(s) too: nesting violations can be introduced by
+        # creating a loose child module without editing the parent's .module.ts.
+        touched_modules = set(modified)
+        changed_paths = {
+            name for name in set(before) | set(after)
             if "/src/" in "/" + name and before.get(name) != after.get(name)
         }
-        modified = sorted(set(modified) | {
-            name for name in current
-            if name.endswith(".module.ts")
-            and str(Path(name).parent) in affected
+        for name in changed_paths:
+            directory = Path(name).parent
+            for ancestor in (directory, *directory.parents):
+                if ancestor.name == "src":
+                    break
+                candidate = (ancestor / (ancestor.name + ".module.ts")).as_posix()
+                if candidate in current:
+                    touched_modules.add(candidate)
+        modified = sorted(
+            name for name in touched_modules
+            if name in current
             and not (name == "src/app.module.ts" or name.endswith("/src/app.module.ts"))
-        })
+        )
     issues = []
     for name in modified:
         issues.extend(f"{name}: {error}" for error in validator(current[name]))

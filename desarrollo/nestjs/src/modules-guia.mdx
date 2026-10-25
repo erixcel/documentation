@@ -9,33 +9,55 @@ La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo necesi
 
 ```text src
 src/
-├── app.module.ts              # ÚNICA excepción de archivos hermanos
+├── app.module.ts
 ├── security/
 │   ├── security.module.ts
-│   ├── security.service.ts     # Opcional
 │   ├── guards/
-│   │   └── auth.guard.ts
-│   ├── decorators/
-│   │   └── admin-roles.decorator.ts
-│   ├── config/
-│   │   └── jwt.config.ts
-│   └── session/
-│       ├── session.module.ts
-│       └── session.service.ts
+│   └── modules/
+│       └── session/
+│           ├── session.module.ts
+│           └── session.service.ts
 └── modules/
     ├── admin/
     │   ├── admin.module.ts
-    │   └── users/
-    │       ├── users.module.ts
-    │       ├── users.controller.ts
-    │       ├── users.service.ts
-    │       └── dto/
-    └── auth/
-        ├── auth.module.ts
-        ├── auth.service.ts     # Opcional
-        └── functions/
-            └── token.function.ts
+    │   ├── admin.controller.ts    # Opcional
+    │   ├── admin.service.ts       # Opcional
+    │   ├── dto/
+    │   ├── functions/
+    │   └── modules/               # Todos los submódulos aquí
+    │       ├── administrators/
+    │       │   ├── administrators.module.ts
+    │       │   └── administrators.service.ts
+    │       └── auth/
+    │           ├── auth.module.ts
+    │           └── dto/
+    ├── bettor/
+    │   ├── bettor.module.ts
+    │   └── modules/
+    │       ├── auth/
+    │       │   └── auth.module.ts
+    │       └── contributions/
+    │           └── contributions.module.ts
+    └── public/
+        ├── public.module.ts
+        └── modules/
+            └── history/
+                └── history.module.ts
 ```
+
+## Regla: agrupar submódulos en `modules/`
+
+Los módulos principales permanecen en `src/modules/<nombre>/<nombre>.module.ts`. **Dentro de cada módulo**, todas las carpetas que contengan un nuevo `<submodulo>.module.ts` deberán situarse bajo la carpeta agrupadora `modules/` del padre:
+
+- Incorrecto: `src/modules/admin/administrators/administrators.module.ts`
+- Correcto: `src/modules/admin/modules/administrators/administrators.module.ts`
+- Anidación adicional: `src/modules/admin/modules/administrators/modules/profile/profile.module.ts`
+
+Esta norma también se aplica a otros módulos como `src/security/security.module.ts`: un submódulo debe vivir en `src/security/modules/<nombre>/<nombre>.module.ts`. **Solo `src/app.module.ts` está exceptuado de las reglas estructurales de Module Validator.**
+
+No confundas un submódulo con una carpeta de responsabilidad. `dto/`, `functions/`, `guards/` o `config/` pueden ser carpetas hermanas de `<nombre>.module.ts` siempre que **no contengan otro `*.module.ts`**. Las carpetas de submódulos sí requieren su propio `<nombre>.module.ts` y pueden tener un Controller y/o Service opcionales.
+
+**Al reorganizar**, mueve las carpetas completas sin borrar código. Actualiza las rutas relativas, alias, imports, exports, providers y referencias de otros módulos; después ejecuta las pruebas de compilación y las correspondientes al proyecto. El Hook puede bloquear el cierre de Codex y pedir la corrección, pero no realiza los movimientos de archivos por sí mismo.
 
 ## Regla de archivos hermanos por módulo
 
@@ -50,11 +72,11 @@ Para cualquier `*.module.ts` dentro de `src`, **excepto `src/app.module.ts`**, s
 | `auth.module.ts` + `session.service.ts` | No: nombre base distinto |
 | `auth.module.ts` + `auth.service.ts` + `jwt.config.ts` | No: archivo hermano adicional |
 
-No se permiten otros archivos en el mismo nivel, pero **sí subcarpetas**, incluidas `dto/`, `functions/` y los submódulos. Los módulos contenedores como `admin.module.ts` pueden componerse únicamente de imports a submódulos.
+No se permiten otros archivos en el mismo nivel, pero **sí subcarpetas** como `dto/`, `functions/` y `guards/`. **Los submódulos van únicamente en `modules/<nombre>/<nombre>.module.ts`** dentro del padre. Los módulos contenedores como `admin.module.ts` pueden componerse únicamente de imports a submódulos.
 
 Para utilidades estáticas, crea una carpeta `functions/` y sigue las [convenciones de Functions](/desarrollo/nestjs/src/functions/index). Si otra clase necesita `@Injectable()` e inyección de dependencias, considera crear un submódulo propio; tampoco debes agregar Controllers o Services si no son necesarios.
 
-**Única excepción: `src/app.module.ts`.** `src/security/security.module.ts` **sí debe cumplir la regla**. Por ejemplo, `session.service.ts`, `auth.guard.ts`, `admin-roles.decorator.ts` y `jwt.config.ts` no pueden estar al mismo nivel de `security.module.ts`. Organízalos en subcarpetas como `session/`, `guards/`, `decorators/` y `config/`; un servicio inyectable adicional puede vivir en un submódulo propio. Preserva imports, providers, exports y comportamiento al trasladarlos.
+**Única excepción: `src/app.module.ts`.** `src/security/security.module.ts` **sí debe cumplir la regla**. Por ejemplo, `session.service.ts`, `auth.guard.ts`, `admin-roles.decorator.ts` y `jwt.config.ts` no pueden estar al mismo nivel de `security.module.ts`. Organízalos en subcarpetas como `guards/`, `decorators/` y `config/`. Si `session` tiene su propio módulo, ubícalo en `modules/session/session.module.ts`; los servicios adicionales con inyección de dependencias pueden requerir un submódulo. Preserva imports, providers, exports y comportamiento al trasladarlos.
 
 **Al reorganizar código:** conserva imports, providers, exports, rutas y comportamiento. El Module Validator revisa también cuando creas, editas o eliminas archivos hermanos; no altera código por sí mismo.
 

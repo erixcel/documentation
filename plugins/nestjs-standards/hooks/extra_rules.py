@@ -140,6 +140,39 @@ def class_methods(source):
     return result
 
 
+def controller_dto_files(path, source):
+    """Require dto/<method-in-kebab-case>.dto.ts for each method, except constructor.
+
+    Controllers in one module folder share a single DTO directory, so the expected
+    filenames are the union across those Controllers.
+    """
+    folder = path.parent / "dto"
+    required = set()
+    for candidate in sorted(path.parent.glob("*.controller.ts")):
+        code = source if candidate == path else candidate.read_text(encoding="utf-8")
+        for method, _decorators, _body, _line in class_methods(code):
+            stem = re.sub(r"([A-Z])([A-Z][a-z])", r"\1-\2", method)
+            stem = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", stem)
+            required.add(stem.replace("_", "-").lower() + ".dto.ts")
+    actual = {p.name for p in folder.glob("*.dto.ts") if p.is_file()} if folder.is_dir() else set()
+    missing = sorted(required - actual)
+    extras = sorted(actual - required)
+    errors = []
+    if missing:
+        errors.append(
+            f"DTO faltantes en {folder}: {', '.join(missing)}. "
+            "Cada método del Controller (excepto constructor) necesita exactamente "
+            "un archivo dto/<metodo-en-kebab-case>.dto.ts."
+        )
+    if extras:
+        errors.append(
+            f"DTO sobrantes en {folder}: {', '.join(extras)}. "
+            "Conserva los contratos existentes: primero migra clases, imports y referencias "
+            "a los DTO de métodos; luego retira los archivos sobrantes si es seguro."
+        )
+    return errors
+
+
 def validate_controller(path):
     s, errors = read(path)
     if errors:
@@ -149,6 +182,7 @@ def validate_controller(path):
     if any(p.startswith(("@db/", "@queries/")) or "drizzle-orm" in p for p in imports):
         errors.append("Un Controller no debe importar Drizzle, tablas ni Queries; delega al Service.")
     methods = class_methods(s)
+    errors += controller_dto_files(path, s)
     routes = {"Get", "Post", "Put", "Patch", "Delete", "Options", "Head", "All"}
     for method, decorators, body, line in methods:
         if not (routes & set(decorators)):

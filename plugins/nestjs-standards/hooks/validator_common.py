@@ -66,6 +66,11 @@ def source_files(root):
                 return True
             if name.endswith(".dto.ts"):
                 return "dto" in tail
+            if name.endswith(".function.ts") and "functions" in tail[1:-1]:
+                return True
+            # Track even unknown direct siblings in module folders.
+            if any(path.parent.glob("*.module.ts")):
+                return True
         if section == "dto":
             return name.endswith(".dto.ts")
         if section == "functions":
@@ -171,6 +176,17 @@ def check_turn(payload, kind, suffix, validator, documentation):
         modified = sorted(set(modified) | {
             name for name in current
             if name.endswith(".controller.ts")
+            and str(Path(name).parent) in affected
+        })
+    if kind == "Module":
+        affected = {
+            str(Path(name).parent) for name in set(before) | set(after)
+            if "/modules/" in "/" + name and before.get(name) != after.get(name)
+        }
+        modified = sorted(set(modified) | {
+            name for name in current
+            if name.endswith(".module.ts")
+            and "/modules/" in "/" + name
             and str(Path(name).parent) in affected
         })
     issues = []

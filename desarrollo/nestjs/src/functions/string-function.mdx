@@ -3,7 +3,7 @@ title: "string.function.ts"
 sidebarTitle: "string.function.ts"
 ---
 
-Normaliza strings de objetos y arreglos recursivamente: elimina espacios extremos, convierte a minúsculas y reduce espacios repetidos, exceptuando claves como `password`.
+Normaliza strings de objetos y arreglos recursivamente: elimina espacios extremos, convierte a minúsculas y reduce espacios repetidos, exceptuando claves como `password`. Todos los métodos, incluidos los privados y genéricos, llevan `@TraceNode` con `type: 'method'`. En operaciones recursivas esto generará spans adicionales; evalúa su costo al instrumentar grandes estructuras.
 
 ```typescript string.function.ts
 import { TraceNode } from '@erixcel/traceflow';
@@ -14,6 +14,7 @@ export class StringFunction {
     return StringFunction.sanitizeValue(obj, exclude);
   }
 
+  @TraceNode({ name: 'Sanitizar valor recursivo', type: 'method' })
   private static sanitizeValue<T>(obj: T, exclude: string[]): T {
     if (typeof obj !== 'object' || obj === null) {
       return obj;

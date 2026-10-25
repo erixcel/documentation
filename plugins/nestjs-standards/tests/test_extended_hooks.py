@@ -507,6 +507,19 @@ export class FijaFunction {
         self.check_case("function", "src/functions/fija.function.ts", good,
                         good.replace("private static helper", "private helper"), "static")
 
+    def test_function_generic_methods_must_be_traced(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class StringFunction {
+  @TraceNode({ name: 'string.clean', type: 'method' })
+  static clean<T>(value: T): T { return value; }
+  @TraceNode({ name: 'string.walk', type: 'method' })
+  private static walk<T>(value: T): T { return value; }
+}
+"""
+        bad = good.replace("  @TraceNode({ name: 'string.walk', type: 'method' })\n", "")
+        self.check_case("function", "src/functions/string.function.ts", good,
+                        bad, "falta @TraceNode")
+
     def test_table_three_audit_fields(self):
         good = """import { pgTable, timestamp, serial } from 'drizzle-orm/pg-core';
 export const user = pgTable('user', {

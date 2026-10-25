@@ -96,8 +96,23 @@ def class_methods(source):
             pending.append(decorator)
             i = j
             continue
-        if depth == 1 and word == "(" and i > 0 and IDENT.fullmatch(t[i - 1][0]):
-            method = t[i - 1][0]
+        if depth == 1 and word == "(" and i > 0:
+            # For generic methods foo<T>(...) find the identifier before <T>.
+            method_index = i - 1
+            if t[method_index][0] == ">":
+                generic_depth = 1
+                method_index -= 1
+                while method_index >= 0 and generic_depth > 0:
+                    value = t[method_index][0]
+                    if value == ">":
+                        generic_depth += 1
+                    elif value == "<":
+                        generic_depth -= 1
+                    method_index -= 1
+            method = t[method_index][0] if method_index >= 0 else ""
+            if not IDENT.fullmatch(method):
+                i += 1
+                continue
             if method in {"if", "for", "while", "switch", "catch", "constructor"}:
                 pending = []
             j = i

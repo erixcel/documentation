@@ -47,13 +47,13 @@ Las Skills consultan las páginas de [documentación de Erixcel](https://docs.er
 - **DTO Validator** (`*.dto.ts`): clases Dto, trazabilidad y ausencia de lógica de BD.
 - **Function Validator** (`*.function.ts`): una sola clase exportada y exclusivamente imports a nivel superior, sin tipos/interfaces/constantes o funciones sueltas. Cada método, también privado, debe ser `static` y llevar `@TraceNode({ name, type: 'method' })` desde `@erixcel/traceflow`.
 - **Table Validator** (`*.table.ts`): Drizzle `pgTable`, tres campos de auditoría y tipos inferidos.
-- **Seed Validator** (`*.seed.ts`): función de seed para una única tabla.
+- **Seed Validator** (`src/seeds/**`): carpeta plana con solo `*.seed.ts`, sin subcarpetas, JSON ni archivos auxiliares. Cada seed permite imports y una única función exportada `seedNombre(...)` para una tabla, sin `type`/`interface` ni declaraciones independientes. Los datos y constantes van dentro de la función; no se necesita TraceFlow. Detect Changes también registra creaciones, cambios y eliminaciones de cualquier archivo o carpeta de `src/seeds/`, incluso carpetas vacías.
 - **Script Validator** (`scripts/*.ts`): nombres y prevención básica de secretos/rutas absolutas.
 - **TSConfig Validator** (`tsconfig.json`): JSONC válido y coherencia básica de `compilerOptions`.
 
 Cada Hook se activa o desactiva de forma independiente en **Codex Desktop → Settings → Hooks**. Los comandos `Stop` leen el mismo snapshot; un incumplimiento devuelve `decision: "block"` e instrucciones para que Codex intente corregirlo automáticamente.
 
-Estas comprobaciones son **heurísticas** y no sustituyen el compilador, ESLint ni las pruebas. Se aplican únicamente a los archivos creados o modificados durante el turno. No se aplican a proyectos ajenos a NestJS ni a archivos preexistentes sin cambios.
+Estas comprobaciones son **heurísticas** y no sustituyen el compilador, ESLint ni las pruebas. Se aplican a los archivos creados o modificados durante el turno. Seed Validator se activa también cuando cambia cualquier archivo o carpeta bajo src/seeds/, para revisar su estructura completa. No se aplican a proyectos ajenos a NestJS ni a carpetas sin cambios.
 
 El plugin no modifica código por sí solo. El validador es **estático y heurístico**: no ejecuta el backend, PostgreSQL, TypeScript ni pruebas de integración. Los logs se guardan en `~/.codex/erixcel-query-validator/query-validator.log` para conservar compatibilidad.
 

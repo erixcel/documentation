@@ -544,6 +544,134 @@ export async function seedUsers() { return database.insert(users).values([]); }
         self.check_case("seed", "src/seeds/users.seed.ts",
                         good, bad, "una sola tabla")
 
+    def test_seed_rejects_type_interface_and_constants_at_top_level(self):
+        good = """import { database } from '@db/connection.db';
+import { users } from '@db/tables/users.table';
+export async function seedUsers() {
+  const data = [{ name: 'Ana' }];
+  return database.insert(users).values(data);
+}
+"""
+        bad = (
+            "type UserSeed = { id: string };\n"
+            "interface Input { user: string }\n"
+            "const SHARED = [{ name: 'Ana' }];\n" + good
+        )
+        self.check_case("seed", "src/seeds/users.seed.ts", good, bad,
+                        "fuera de la función seed")
+
+    def test_seed_disallows_type_alias_inside_seed_body(self):
+        good = """import { database } from '@db/connection.db';
+import { users } from '@db/tables/users.table';
+export async function seedUsers() {
+  const data = [{ name: 'Ana' }];
+  return database.insert(users).values(data);
+}
+"""
+        bad = good.replace(
+            "  const data =",
+            "  type UserSeed = { name: string };\n  const data ="
+        )
+        self.check_case("seed", "src/seeds/users.seed.ts",
+                        good, bad, "aliases type")
+
+    def test_seed_rejects_multiple_or_unexported_functions(self):
+        good = """import { database } from '@db/connection.db';
+import { users } from '@db/tables/users.table';
+export async function seedUsers() {
+  return database.insert(users).values([]);
+}
+"""
+        bad = good + "export function seedExtras() { return 1; }\n"
+        self.check_case("seed", "src/seeds/users.seed.ts", good, bad,
+                        "exactamente una función exportada")
+
+    def test_seed_accepts_embedded_json_data_and_local_type_inference(self):
+        good = """import { database } from '@db/connection.db';
+import { matches } from '@db/tables/fija-matches.table';
+export async function seedFijaMatches() {
+  const rows = [
+    { predictions: ['Ganará'], odds: '2.10', fijaId: 'seed-001' },
+    { predictions: ['Más de 1.5'], odds: '1.88', fijaId: 'seed-002' },
+  ];
+  return database.insert(matches).values(rows).onConflictDoNothing();
+}
+"""
+        self.put("src/seeds/fija-matches.seed.ts", good)
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/seeds/fija-matches.seed.ts", good + "\n// verify\n")
+        self.assertEqual(self.call("validate-seed.py", "Stop"), {})
+
+    def test_seed_rejects_json_file_added_without_seed_change(self):
+        self.put("src/seeds/fijas.seed.ts", """import { database } from '@db/connection.db';
+import { fijas } from '@db/tables/fijas.table';
+export async function seedFijas() { return database.insert(fijas).values([]); }
+""")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/seeds/fija-matches.json", '[{"fijaId":"seed-001"}]')
+        result = self.call("validate-seed.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        self.assertIn("fija-matches.json", result["reason"])
+        self.assertIn("Solo archivos *.seed.ts", result["reason"])
+
+    def test_seed_rejects_changes_inside_data_subfolder(self):
+        self.put("src/seeds/fija-matches.seed.ts", """import { database } from '@db/connection.db';
+import { matches } from '@db/tables/fija-matches.table';
+export async function seedFijaMatches() { return database.insert(matches).values([]); }
+""")
+        self.put("src/seeds/data/fija-matches.json", '[{"fijaId":"a"}]')
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/seeds/data/fija-matches.json", '[{"fijaId":"b"}]')
+        out = self.call("validate-seed.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("data/", out["reason"])
+        self.assertIn("Subcarpetas prohibidas", out["reason"])
+
+    def test_seed_rejects_new_empty_directory(self):
+        self.put("src/seeds/fijas.seed.ts", """import { database } from '@db/connection.db';
+import { fijas } from '@db/tables/fijas.table';
+export async function seedFijas() { return database.insert(fijas).values([]); }
+""")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        (self.backend / "src/seeds/data").mkdir()
+        out = self.call("validate-seed.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("data/", out["reason"])
+
+    def test_seed_cleanup_of_data_folder_passes(self):
+        self.put("src/seeds/fija-matches.seed.ts", """import { database } from '@db/connection.db';
+import { matches } from '@db/tables/fija-matches.table';
+export async function seedFijaMatches() {
+  const data = [{ fijaId: 'a' }];
+  return database.insert(matches).values(data);
+}
+""")
+        temporary = self.put("src/seeds/data/fija-matches.json", '[]')
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        temporary.unlink()
+        temporary.parent.rmdir()
+        self.assertEqual(self.call("validate-seed.py", "Stop"), {})
+
+    def test_seed_rejects_nested_ts_seed_even_without_root_edits(self):
+        self.put("src/seeds/users.seed.ts", """import { database } from '@db/connection.db';
+import { users } from '@db/tables/users.table';
+export async function seedUsers() { return database.insert(users).values([]); }
+""")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/seeds/extra/other.seed.ts", """import { database } from '@db/connection.db';
+import { others } from '@db/tables/others.table';
+export async function seedOthers() { return database.insert(others).values([]); }
+""")
+        out = self.call("validate-seed.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("extra/", out["reason"])
+
     def test_script(self):
         good = """import path from 'path';
 const outputDir = path.resolve(process.cwd(), 'generated');

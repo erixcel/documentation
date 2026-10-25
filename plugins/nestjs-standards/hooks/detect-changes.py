@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit: snapshot Query and Core files at the start of the turn."""
+"""UserPromptSubmit: snapshot monitored NestJS files and seed directory structure at the start of the turn."""
 import json
 import sys
 from validator_common import workspace_for, store_snapshot

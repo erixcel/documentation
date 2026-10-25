@@ -82,12 +82,21 @@ def source_files(root):
         if section == "db" and len(tail) >= 3 and tail[1] == "tables":
             return name.endswith(".table.ts")
         if section == "seeds":
-            return name.endswith(".seed.ts")
+            # Track every file, including JSON in nested directories, to notice
+            # prohibited files, edits, new folders and deletions.
+            return True
         return False
 
     for dirname, dirs, names in os.walk(root, followlinks=False):
         dirs[:] = [d for d in dirs if d not in SKIP and not d.startswith(".")]
         folder = Path(dirname)
+        # Directory markers allow detecting creation/removal of even empty
+        # directories inside a NestJS src/seeds/ folder.
+        for ancestor in folder.parents:
+            if ancestor.name == "seeds" and ancestor.parent.name == "src":
+                if get_project(ancestor.parent):
+                    found[folder.relative_to(root).as_posix() + "/"] = folder
+                break
         for name in names:
             path = folder / name
             if not path.is_file() or path.is_symlink() or not monitored(path):
@@ -100,7 +109,10 @@ def hashes(files):
     result = {}
     for name, path in files.items():
         try:
-            result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+            if path.is_dir():
+                result[name] = "<directory>"
+            else:
+                result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
         except OSError:
             continue
     return result
@@ -152,6 +164,47 @@ def log(event, root, kind, checked, issues):
         os.close(fd)
 
 
+def validate_seed_directory(folder):
+    """Only *.seed.ts files directly in src/seeds; no other files or folders."""
+    if not folder.is_dir():
+        return []
+    invalid_files = sorted(
+        entry.name for entry in folder.iterdir()
+        if not entry.is_dir() and not (
+            entry.is_file() and not entry.is_symlink()
+            and entry.name.endswith(".seed.ts")
+        )
+    )
+    invalid_dirs = sorted(entry.name + "/" for entry in folder.iterdir() if entry.is_dir())
+    problems = []
+    if invalid_files:
+        problems.append(
+            "Archivos no permitidos directamente en " + str(folder)
+            + ": " + ", ".join(invalid_files)
+            + ". Solo archivos *.seed.ts. Guarda los datos iniciales dentro "
+              "de la función seed correspondiente."
+        )
+    if invalid_dirs:
+        problems.append(
+            "Subcarpetas prohibidas dentro de " + str(folder)
+            + ": " + ", ".join(invalid_dirs)
+            + ". src/seeds/ debe ser plano: solo *.seed.ts. Migra los JSON "
+              "de data/ a arrays/objetos locales dentro del seed que los usa, "
+              "verifica referencias y elimina la carpeta solo cuando sea seguro."
+        )
+    return problems
+
+
+def seed_root_relative(name):
+    """Return the relative src/seeds directory for a tracked path, or None."""
+    marker = "/src/seeds/"
+    full = "/" + name
+    if marker not in full:
+        return None
+    prefix = full.split(marker, 1)[0].lstrip("/")
+    return (prefix + "/src/seeds").lstrip("/")
+
+
 def check_turn(payload, kind, suffix, validator, documentation):
     if payload.get("hook_event_name") != "Stop":
         return {}
@@ -167,6 +220,24 @@ def check_turn(payload, kind, suffix, validator, documentation):
         name for name, sha in after.items()
         if name.endswith(suffix) and (kind != "Script" or "/scripts/" in "/" + name) and before.get(name) != sha
     )
+    seed_directories = set()
+    if kind == "Seed":
+        changed = {
+            name for name in (set(before) | set(after))
+            if before.get(name) != after.get(name)
+        }
+        seed_directories = {
+            seed_root_relative(name) for name in changed
+            if seed_root_relative(name) is not None
+        }
+        # A JSON edit, a newly created empty directory, or deleting a seed
+        # must recheck the seed directory even without changing *.seed.ts.
+        if seed_directories:
+            modified = sorted({
+                name for name in current
+                if name.endswith(".seed.ts")
+                and str(Path(name).parent) in seed_directories
+            })
     if kind == "Controller":
         # A DTO created, edited, or deleted also rechecks its sibling Controller(s).
         dto_changes = {
@@ -204,9 +275,15 @@ def check_turn(payload, kind, suffix, validator, documentation):
             and not (name == "src/app.module.ts" or name.endswith("/src/app.module.ts"))
         )
     issues = []
+    if kind == "Seed":
+        for directory in sorted(seed_directories):
+            issues.extend(
+                f"{directory}: {error}"
+                for error in validate_seed_directory(root / directory)
+            )
     for name in modified:
         issues.extend(f"{name}: {error}" for error in validator(current[name]))
-    log("Stop", root, kind, modified, issues)
+    log("Stop", root, kind, modified + sorted(seed_directories), issues)
     if not issues:
         return {}
     message = (
@@ -225,10 +302,18 @@ def run(kind, suffix, validator, docs):
         issues = []
         for name in sys.argv[2:]:
             path = Path(name)
-            if not path.is_file() or not path.name.endswith(suffix):
-                issues.append(f"{name}: ruta inválida para {kind}.")
-            else:
+            if kind == "Seed" and path.is_dir() and path.name == "seeds":
+                issues.extend(f"{name}: {x}" for x in validate_seed_directory(path))
+                for seed in sorted(path.glob("*.seed.ts")):
+                    issues.extend(f"{seed}: {x}" for x in validator(seed))
+            elif path.is_file() and path.name.endswith(suffix):
+                if kind == "Seed":
+                    issues.extend(
+                        f"{path.parent}: {x}" for x in validate_seed_directory(path.parent)
+                    )
                 issues.extend(f"{name}: {item}" for item in validator(path))
+            else:
+                issues.append(f"{name}: ruta inválida para {kind}.")
         if issues:
             print("\n".join(issues))
             return 1

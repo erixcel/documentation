@@ -3,7 +3,7 @@ title: "seeds"
 sidebarTitle: "seeds"
 ---
 
-Cada archivo `*.seed.ts` contiene la **carga inicial de una sola tabla**. El nombre debe corresponder a la tabla: `categoria.seed.ts`, `producto.seed.ts`, etc.
+Cada archivo `*.seed.ts` contiene la **carga inicial de una sola tabla**. El nombre debe corresponder a la tabla: `categoria.seed.ts`, `producto.seed.ts`, etc. En `src/seeds/` **solo se permiten archivos `.seed.ts` en el nivel raíz**: no puede haber JSON, TypeScript auxiliar ni subcarpetas, incluyendo `data/`.
 
 ## Estructura
 
@@ -20,10 +20,49 @@ seeds/
 | Elemento | Regla |
 | --- | --- |
 | Archivo | Un `nombre-tabla.seed.ts` por tabla. |
-| Función | Exportar una función descriptiva, por ejemplo `seedCategorias()`. |
-| Operación | Insertar los datos iniciales con Drizzle ORM. |
+| Función | Exactamente una función exportada `seedNombre(...)`, por ejemplo `seedCategorias()`; puede ser `async`. No se permiten clases ni funciones adicionales. |
+| Estructura | Solo imports y una función exportada. No declarar `type`, `interface`, `const`, `let` o funciones sueltas a nivel superior; tampoco `type` o `interface` dentro del seed. Constantes y datos pueden declararse **dentro** de la función. |
+| Datos | JSON u objetos iniciales incorporados a la función del seed que los inserta; no guardarlos en `seeds/data/` ni importarlos desde un archivo de datos local. |
+| Trazabilidad | Los seeds **no requieren** TraceFlow ni `@TraceNode`. |
+| Operación | Insertar los datos iniciales con Drizzle ORM en una única tabla base. |
 | Retorno | Puede devolver los registros insertados para que los utilicen otros seeds. |
 | Orden | Ejecutar primero tablas independientes, y después las que necesitan claves foráneas. |
+
+## Ejemplo: JSON integrado en el seed
+
+Cuando exista `src/seeds/data/fija-matches.json`, **primero traslada los registros** a la función `seedFijaMatches()` de `src/seeds/fija-matches.seed.ts`. Comprueba contenido, referencias e idempotencia antes de eliminar el JSON anterior. Estos seeds no necesitan TraceFlow.
+
+```typescript fija-matches.seed.ts
+import { database } from '@db/connection.db';
+import { fijaMatches } from '@db/tables/fija-matches.table';
+
+export async function seedFijaMatches() {
+  const records = [
+    {
+      predictions: ['Gana Universitario', 'Más de 1.5 goles'],
+      odds: '2.10',
+      fijaId: '20000000-0000-4000-8000-000000000001',
+      position: 0,
+      leagueApiId: 281,
+    },
+  ];
+  return database.insert(fijaMatches).values(records).onConflictDoNothing();
+}
+```
+
+El ejemplo es ilustrativo: añade los campos obligatorios reales de tu esquema. Usa `import type` cuando se necesiten tipos externos, sin declarar `type` ni `interface` en el seed.
+
+## Validación automática de carpetas
+
+**Detect Changes** registra todas las modificaciones dentro de `src/seeds/`, incluso cambios de JSON, carpetas nuevas vacías y eliminaciones. Al terminar Codex, **Seed Validator** revisa la estructura completa y los archivos de seed aunque ningún `*.seed.ts` haya sido editado directamente. Si encuentra algo no permitido, devuelve instrucciones a Codex para corregirlo. **El Hook no elimina datos ni ejecuta la base de datos por sí mismo.**
+
+Puedes ejecutar la validación manual de la carpeta:
+
+```bash Terminal
+python3 ~/.codex/plugins/cache/erixcel-tools/nestjs-standards/1.10.0/hooks/validate-seed.py --check backend/src/seeds
+```
+
+La ruta exacta depende de la versión instalada del plugin.
 
 ## Ejecución centralizada
 
@@ -74,9 +113,7 @@ Carga productos utilizando el ID de una categoría **previamente insertada**. La
 import { database } from '@db/connection.db';
 import { productos } from '@db/tables/producto.table';
 
-type CategoriaSeed = { id: number; nombre: string };
-
-export async function seedProductos(categorias: CategoriaSeed[]) {
+export async function seedProductos(categorias: { id: number; nombre: string }[]) {
   console.log('🌱 Cargando productos...');
 
   const categoria = categorias.find((item) => item.nombre === 'Hogar');

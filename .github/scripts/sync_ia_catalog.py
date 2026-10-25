@@ -127,7 +127,7 @@ HOOK_DESCRIPTIONS = {
     "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
     "validate-function.py": "Valida `.function.ts`: una clase sin types/interfaces sueltos; métodos static con `@TraceNode`.",
     "validate-table.py": "Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.",
-    "validate-seed.py": "Valida `.seed.ts`: una función seed y una tabla base por archivo.",
+    "validate-seed.py": "Valida `src/seeds/`: solo `*.seed.ts` sin subcarpetas, una función por archivo y datos integrados.",
     "validate-script.py": "Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.",
     "validate-tsconfig.py": "Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript."
 }

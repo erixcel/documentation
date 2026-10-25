@@ -22,7 +22,7 @@ src/
 │   └── [tabla]/
 │       ├── [tabla].query.ts
 │       └── [tabla]-join.query.ts
-└── seeds/
+└── seeds/                 # Plano: sin subcarpetas ni JSON
     └── [tabla].seed.ts
 ```
 
@@ -73,3 +73,5 @@ Consulta [`tables`](/desarrollo/nestjs/src/db/tables) para ejemplos completos.
 - Nunca incluyas credenciales reales ni archivos de respaldo sensibles en la documentación pública o commits de Git.
 
 El detalle de ejecución y el código fuente pertenecen a cada página específica; este índice contiene las reglas comunes.
+
+**Convención de Seeds:** `src/seeds/` solo admite `*.seed.ts`. Cada archivo declara imports y una única función `seedNombre(...)`; los registros se integran dentro del método, sin `type` ni `interface` locales. No se necesita TraceFlow. Consulta [la guía de Seeds](/desarrollo/nestjs/src/seeds-guia).

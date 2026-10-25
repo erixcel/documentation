@@ -7,7 +7,7 @@ DTO compartido para la metadata de listados paginados: total, página, límite, 
 
 ```typescript pagination-meta.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 
 @Trace({ type: 'validation' })
 export class PaginationMetaDto {

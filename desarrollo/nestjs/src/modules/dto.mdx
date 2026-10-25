@@ -52,7 +52,7 @@ src/modules/
 ```typescript user-create.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 
 @Trace({ type: 'validation' })
 export class UserCreateDto {
@@ -65,7 +65,7 @@ export class UserCreateDto {
 
 ```typescript user-update.dto.ts
 import { PartialType } from '@nestjs/swagger';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 import { UserCreateDto } from './user-create.dto';
 
 @Trace({ type: 'validation' })

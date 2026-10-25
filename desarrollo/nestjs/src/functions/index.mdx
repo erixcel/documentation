@@ -10,19 +10,19 @@ description: "Convenciones para clases de utilidades reutilizables en NestJS."
 
 1. **Nombres de archivo:** utiliza `[nombre].function.ts` en `kebab-case`: `date.function.ts`, `pagination.function.ts`, `string.function.ts`.
 2. **Nombre de clase:** exporta `[Nombre]Function` en PascalCase, por ejemplo `DateFunction` o `PaginationFunction`.
-3. **Métodos estáticos:** las operaciones reutilizables se exponen como métodos `static`; se invocan sin instanciar la clase, como `PaginationFunction.createPaginationMeta(...)`.
+3. **Solo imports y una clase:** el archivo debe tener únicamente imports y una clase exportada `<Nombre>Function`. No se permiten `type`, `interface`, `const`, `enum` ni funciones independientes de la clase. Mueve tipos reutilizables a archivos de contratos e impórtalos. Todos sus métodos son `static`.
 4. **Responsabilidad única por clase:** agrupa operaciones relacionadas (fechas, cadenas, paginación, errores). Evita convertir una clase de utilidades en un conjunto de funciones sin relación.
-5. **Trazabilidad:** los métodos públicos instrumentados usan `@Trace({ name: '...', type: 'method' })` de `traceflow`, siguiendo los ejemplos. Evita generar spans redundantes en cada paso interno recursivo.
+5. **Trazabilidad obligatoria:** cada método, público o privado, lleva `@TraceNode({ name: '...', type: 'method' })` desde `@erixcel/traceflow`, inmediatamente encima del método estático.
 6. **Tipos explícitos:** declara los parámetros y resultados; prefiere tipos concretos o genéricos frente a `any` al crear nuevos métodos. Mantén la misma estructura de retorno que esperan los DTO.
 7. **Sin responsabilidades de módulo:** no declares rutas HTTP, no registres providers NestJS y no ejecutes consultas de tablas desde estas utilidades. El acceso a datos pertenece a `src/queries`.
 
 ## Ejemplo mínimo
 
 ```typescript pagination.function.ts
-import { Trace } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 
 export class PaginationFunction {
-  @Trace({ name: 'Crear paginación', type: 'method' })
+  @TraceNode({ name: 'Crear paginación', type: 'method' })
   static createPaginationMeta(total: number, page: number, limit: number) {
     // Devuelve la estructura del DTO de metadatos.
   }

@@ -142,6 +142,7 @@
               {
                 "group": "package.json",
                 "pages": [
+                  "desarrollo/nestjs/package-json/ejemplo-completo",
                   "desarrollo/nestjs/package-json/scripts",
                   "desarrollo/nestjs/package-json/dependencias",
                   "desarrollo/nestjs/package-json/devdependencias"

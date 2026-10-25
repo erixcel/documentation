@@ -145,7 +145,7 @@ Controller deliberadamente plano: **todos** los endpoints delegan directamente a
 ```typescript user.controller.ts
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { TraceNode } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 import { HttpErrorDto } from 'src/dto/http-error.dto';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { UserService } from './user.service';
@@ -217,7 +217,7 @@ Aquí sí se coloca la **lógica de negocio**: verificar existencia, preparar da
 
 ```typescript user.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 import * as bcrypt from 'bcrypt';
 import { UserQuery } from '@queries/user/user.query';
 import { PaginationFunction } from '@functions/pagination.function';
@@ -357,7 +357,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { user } from '@db/tables/user.table';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 import { PaginationMetaDto } from 'src/dto/pagination-meta.dto';
 
 @Trace({ type: 'validation' })
@@ -447,7 +447,7 @@ De este modo, cuando cambian los roles en el esquema de Drizzle, el tipado, la v
 ```typescript auth.controller.ts
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TraceNode } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 import { HttpErrorDto } from 'src/dto/http-error.dto';
 import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
@@ -483,7 +483,7 @@ export class AuthModule {}
 
 ```typescript auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -500,7 +500,7 @@ export class AuthService {
 ```typescript login.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 
 @Trace({ type: 'validation' })
 export class LoginDto {

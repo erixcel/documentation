@@ -7,10 +7,10 @@ Normaliza errores comunes de PostgreSQL. En concreto, transforma el código `235
 
 ```typescript db-error.function.ts
 import { BadRequestException } from '@nestjs/common';
-import { Trace } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 
 export class DbErrorFunction {
-  @Trace({ name: 'Procesar error de base de datos', type: 'method' })
+  @TraceNode({ name: 'Procesar error de base de datos', type: 'method' })
   static handleDbError(error: any): never {
     // Check if it's a wrapper error with 'cause' (common in some setups) or the direct error
     const dbError = error.cause || error;

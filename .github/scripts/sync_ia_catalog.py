@@ -125,7 +125,7 @@ HOOK_DESCRIPTIONS = {
     "validate-service.py": "Valida `.service.ts`: servicios Injectable y consultas mediante Queries.",
     "validate-module.py": "Valida `.module.ts`: archivos hermanos y submódulos agrupados en `modules/`; solo `app.module.ts` exceptuado.",
     "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
-    "validate-function.py": "Valida `.function.ts`: clases utilitarias y métodos estáticos.",
+    "validate-function.py": "Valida `.function.ts`: una clase sin types/interfaces sueltos; métodos static con `@TraceNode`.",
     "validate-table.py": "Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.",
     "validate-seed.py": "Valida `.seed.ts`: una función seed y una tabla base por archivo.",
     "validate-script.py": "Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.",

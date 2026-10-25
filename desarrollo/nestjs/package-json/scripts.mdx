@@ -2,69 +2,51 @@
 title: "Scripts"
 ---
 
-Ubicación en `package.json`:
+Scripts utilizados por el backend NestJS de referencia, con Node.js 24, TypeScript, Drizzle, Jest, oxlint y los paquetes publicados de TraceFlow. Ajusta rutas específicas de tu proyecto (en particular `postbuild`). Consulta el [package.json completo](/desarrollo/nestjs/package-json/ejemplo-completo).
 
-```jsonc package.json
+```json package.json
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  // ... otras propiedades
   "scripts": {
-    "build": "nest build",
-    "deploy": "nest deploy",
-    // ... otros scripts
-    // Coloca aquí los nuevos scripts
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "postbuild": "node -e \"require('node:fs').cpSync('src/modules/bettor/modules/auth/templates', 'dist/modules/bettor/modules/auth/templates', { recursive: true })\"",
+    "start": "npm run start:prod",
+    "start:dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "start:debug": "node --inspect --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "start:prod": "node dist/main.js",
+    "lint": "oxlint src/",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand",
+    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --testPathPatterns=api.e2e-spec",
+    "format": "npm run format:all",
+    "format:all": "prettier --write --ignore-path .gitignore .",
+    "format:all:check": "prettier --check --ignore-path .gitignore .",
+    "format:check": "npm run format:all:check",
+    "db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
+    "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
+    "db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+    "db:command": "ts-node -r tsconfig-paths/register src/db/command.db.ts",
+    "db:migrate": "ts-node -r tsconfig-paths/register src/db/migrate.db.ts",
+    "db:backup": "ts-node -r tsconfig-paths/register src/db/backup.db.ts",
+    "db:restore": "ts-node -r tsconfig-paths/register src/db/restore.db.ts",
+    "db:studio": "drizzle-kit studio",
+    "traceflow:studio": "traceflow-kit studio",
+    "generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
   }
 }
 ```
 
-## Formato e indentación (Prettier)
+## TraceFlow Studio
 
-| Script | Función |
-| --- | --- |
-| `format` | Alias para formatear todo. |
-| `format:all` | Aplica Prettier al proyecto. |
-| `format:all:check` | Comprueba el formato sin modificar archivos. |
-| `format:check` | Alias de la verificación. |
-
-```json package.json
-"format": "npm run format:all",
-"format:all": "prettier --write --ignore-path .gitignore .",
-"format:all:check": "prettier --check --ignore-path .gitignore .",
-"format:check": "npm run format:all:check"
+```bash Terminal
+npm run traceflow:studio
 ```
 
-## Base de datos (PostgreSQL y Drizzle)
+El script `traceflow:studio` invoca `traceflow-kit studio` desde `node_modules/.bin` (lo resuelve npm automáticamente). No requiere `npm link` ni la descarga de un paquete `traceflow-kit` sin namespace.
 
-| Script | Función |
-| --- | --- |
-| `db:create` | Ejecuta el script de creación de la base de datos. |
-| `db:seed` | Ejecuta la carga de datos iniciales. |
-| `db:reset` | Ejecuta el reinicio definido en el proyecto; usar con precaución. |
-| `db:migrate` | Ejecuta el script personalizado de migraciones. |
-| `db:command` | Ejecuta comandos de base de datos definidos en el proyecto. |
-| `db:backup` | Ejecuta el script de respaldo de la base de datos. |
-| `db:restore` | Ejecuta el script de restauración de la base de datos. |
-| `db:studio` | Abre Drizzle Studio para explorar los datos. |
+## Precauciones
 
-```json package.json
-"db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
-"db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
-"db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
-"db:migrate": "ts-node -r tsconfig-paths/register src/db/migrate.db.ts",
-"db:command": "ts-node -r tsconfig-paths/register src/db/command.db.ts",
-"db:backup": "ts-node -r tsconfig-paths/register src/db/backup.db.ts",
-"db:restore": "ts-node -r tsconfig-paths/register src/db/restore.db.ts",
-"db:studio": "drizzle-kit studio"
-```
-
-## Documentación y tipos de API
-
-| Script | Función |
-| --- | --- |
-| `generate:types` | Ejecuta un generador personalizado de tipos de API. El resultado concreto depende del contenido de `generate-api-types.ts`. |
-
-```json package.json
-"generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
-```
+- `db:reset` y `db:restore` pueden modificar o borrar datos; necesitan autorización antes de ejecutarse.
+- `postbuild` copia plantillas del módulo bettor/auth; solo es aplicable si esa carpeta existe.
+- `generate:types` depende de `scripts/generate-api-types.ts`.

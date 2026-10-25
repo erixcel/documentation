@@ -2,90 +2,42 @@
 title: "DevDependencias"
 ---
 
-Ubicación en `package.json`:
+Dependencias de desarrollo del proyecto NestJS de referencia. El CLI del Studio **no debe incluirse en dependencias de producción**. Consulta el [package.json completo](/desarrollo/nestjs/package-json/ejemplo-completo).
 
-```jsonc package.json
+```json package.json
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  // ... otras propiedades
   "devDependencies": {
+    "@erixcel/traceflow-kit": "^0.1.1",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/schematics": "^12.0.0",
-    // Coloca aquí las nuevas dependencias
+    "@nestjs/testing": "^12.0.1",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.0.0",
+    "drizzle-kit": "^0.31.11",
+    "jest": "^30.0.0",
+    "oxlint": "^1.58.0",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "swagger-typescript-api": "^13.2.16",
+    "ts-jest": "^29.4.14",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.9.7",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^6.0.2"
   }
 }
 ```
 
-## ESLint y calidad del código
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `eslint` | `^9.18.0` | Detectar problemas y aplicar reglas de calidad al código. |
-| `@eslint/js` | `^9.18.0` | Proveer las reglas base recomendadas de ESLint para JavaScript. |
-| `@eslint/eslintrc` | `^3.2.0` | Facilitar compatibilidad con configuraciones tradicionales de ESLint. |
-| `typescript-eslint` | `^8.20.0` | Habilitar parsing y reglas de ESLint para TypeScript. |
-| `globals` | `^15.14.0` | Definir variables globales conocidas según el entorno (Node.js, navegador, etc.). |
-
-```json package.json
-"eslint": "^9.18.0",
-"@eslint/js": "^9.18.0",
-"@eslint/eslintrc": "^3.2.0",
-"typescript-eslint": "^8.20.0",
-"globals": "^15.14.0"
-```
-
-## Integración ESLint + Prettier
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `eslint-config-prettier` | `^10.0.1` | Desactivar reglas de ESLint que entran en conflicto con Prettier. |
-| `eslint-plugin-prettier` | `^5.2.3` | Ejecutar Prettier como regla de ESLint y reportar diferencias de formato. |
-
-```json package.json
-"eslint-config-prettier": "^10.0.1",
-"eslint-plugin-prettier": "^5.2.3"
-```
-
-## Tipos TypeScript
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `@types/bcrypt` | `^6.0.0` | Declaraciones de tipos para usar bcrypt con TypeScript. |
-| `@types/multer` | `^2.0.0` | Tipos para archivos y middleware Multer, usado en cargas de archivos. |
-| `@types/passport-jwt` | `^4.0.1` | Tipos de las opciones y estrategias JWT de Passport. |
-| `@types/pg` | `^8.15.6` | Tipos de clientes, conexiones y consultas PostgreSQL con pg. |
-
-```json package.json
-"@types/bcrypt": "^6.0.0",
-"@types/multer": "^2.0.0",
-"@types/passport-jwt": "^4.0.1",
-"@types/pg": "^8.15.6"
-```
-
-## Base de datos: Drizzle
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `drizzle-kit` | `^0.31.6` | CLI para generar y aplicar migraciones y abrir Drizzle Studio. |
-
-```json package.json
-"drizzle-kit": "^0.31.6"
-```
-
-## Generación de clientes y tipos de API
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `swagger-typescript-api` | `^13.2.16` | Generar código TypeScript y clientes HTTP desde una especificación OpenAPI/Swagger. |
-
-```json package.json
-"swagger-typescript-api": "^13.2.16"
-```
-
-## Instalación
+## Herramientas de TraceFlow
 
 ```bash Terminal
-npm install
+npm install --save-dev @erixcel/traceflow-kit@^0.1.1
 ```
+
+Con la dependencia instalada, un script npm puede invocar el ejecutable local usando `traceflow-kit studio`. El ejemplo usa **oxlint**, Prettier y Jest, sin asumir ESLint o Passport como dependencias obligatorias.

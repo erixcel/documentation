@@ -1,0 +1,97 @@
+---
+title: "package.json completo"
+sidebarTitle: "Ejemplo completo"
+description: "Referencia integral de NestJS y TraceFlow con paquetes publicados en npm."
+---
+
+Este archivo es una **referencia de un backend concreto** y no un manifiesto universal. Conserva las versiones y scripts aportados para `luis-ormeno-backend`; adapta `name`, `description`, `postbuild` y las dependencias que no se utilicen. El script del Studio usa el ejecutable local de `@erixcel/traceflow-kit`.
+
+```json package.json
+{
+  "name": "luis-ormeno-backend",
+  "version": "0.0.1",
+  "description": "API de fijas, contribuciones y contenido de Las Fijas del Chef Ormeño",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "postbuild": "node -e \"require('node:fs').cpSync('src/modules/bettor/modules/auth/templates', 'dist/modules/bettor/modules/auth/templates', { recursive: true })\"",
+    "start": "npm run start:prod",
+    "start:dev": "node --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "start:debug": "node --inspect --watch -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "start:prod": "node dist/main.js",
+    "lint": "oxlint src/",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --runInBand",
+    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --testPathPatterns=api.e2e-spec",
+    "format": "npm run format:all",
+    "format:all": "prettier --write --ignore-path .gitignore .",
+    "format:all:check": "prettier --check --ignore-path .gitignore .",
+    "format:check": "npm run format:all:check",
+    "db:create": "ts-node -r tsconfig-paths/register src/db/create.db.ts",
+    "db:seed": "ts-node -r tsconfig-paths/register src/db/seed.db.ts",
+    "db:reset": "ts-node -r tsconfig-paths/register src/db/reset.db.ts",
+    "db:command": "ts-node -r tsconfig-paths/register src/db/command.db.ts",
+    "db:migrate": "ts-node -r tsconfig-paths/register src/db/migrate.db.ts",
+    "db:backup": "ts-node -r tsconfig-paths/register src/db/backup.db.ts",
+    "db:restore": "ts-node -r tsconfig-paths/register src/db/restore.db.ts",
+    "db:studio": "drizzle-kit studio",
+    "traceflow:studio": "traceflow-kit studio",
+    "generate:types": "ts-node -r tsconfig-paths/register scripts/generate-api-types.ts"
+  },
+  "dependencies": {
+    "@erixcel/traceflow": "^0.1.0",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/jwt": "^12.0.2",
+    "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/schedule": "^12.0.2",
+    "@nestjs/swagger": "^12.0.2",
+    "@nestjs/throttler": "^6.7.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^18.0.6",
+    "drizzle-orm": "^0.45.4",
+    "google-auth-library": "^11.3.1",
+    "helmet": "^8.3.0",
+    "libphonenumber-js": "^1.13.15",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "resend": "^6.33.0",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@erixcel/traceflow-kit": "^0.1.1",
+    "@nestjs/cli": "^12.0.0",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.0.1",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.0.0",
+    "drizzle-kit": "^0.31.11",
+    "jest": "^30.0.0",
+    "oxlint": "^1.58.0",
+    "prettier": "^3.4.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "swagger-typescript-api": "^13.2.16",
+    "ts-jest": "^29.4.14",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.9.7",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^6.0.2"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25"
+  }
+}
+```
+
+En un nuevo proyecto instala dependencias con `npm install` y registra `package-lock.json`. Evita instalar simultáneamente el antiguo paquete sin namespace `traceflow`.

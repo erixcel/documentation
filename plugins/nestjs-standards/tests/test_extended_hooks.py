@@ -433,13 +433,79 @@ export class UserListDto { data: unknown[]; }
                         good, bad, "terminar en Dto")
 
     def test_function(self):
-        good = """export class StringFunction {
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class StringFunction {
+  @TraceNode({ name: 'string.capitalize', type: 'method' })
   static capitalize(value: string) { return value.toUpperCase(); }
 }
 """
         bad = good.replace("  static capitalize", "  capitalize")
         self.check_case("function", "src/functions/string.function.ts",
                         good, bad, "static")
+
+    def test_function_forbids_top_level_types(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.run', type: 'method' })
+  static run() {}
+}
+"""
+        bad = "type Value = string;\ninterface Test { foo: number }\n" + good
+        self.check_case("function", "src/functions/fija.function.ts", good, bad, "fuera de la clase")
+
+    def test_function_forbids_top_level_consts_and_loose_functions(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.run', type: 'method' })
+  static run() {}
+}
+"""
+        bad = "const value = 1;\nfunction extra() {}\n" + good
+        self.check_case("function", "src/functions/fija.function.ts", good, bad, "fuera de la clase")
+
+    def test_function_trace_required_for_each_method(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.first', type: 'method' })
+  static first() {}
+  @TraceNode({ name: 'fija.second', type: 'method' })
+  static second() {}
+}
+"""
+        bad = good.replace("  @TraceNode({ name: 'fija.second', type: 'method' })\n", "")
+        self.check_case("function", "src/functions/fija.function.ts", good, bad, "falta @TraceNode")
+
+    def test_function_wrong_trace_type(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.run', type: 'method' })
+  static run() {}
+}
+"""
+        self.check_case("function", "src/functions/fija.function.ts", good,
+                        good.replace("type: 'method'", "type: 'controller'"), "type: 'method'")
+
+    def test_function_legacy_import(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.run', type: 'method' })
+  static run() {}
+}
+"""
+        self.check_case("function", "src/functions/fija.function.ts", good,
+                        good.replace("from '@erixcel/traceflow'", "from 'traceflow'"), "@erixcel/traceflow")
+
+    def test_function_all_methods_static(self):
+        good = """import { TraceNode } from '@erixcel/traceflow';
+export class FijaFunction {
+  @TraceNode({ name: 'fija.first', type: 'method' })
+  static first() {}
+  @TraceNode({ name: 'fija.helper', type: 'method' })
+  private static helper() {}
+}
+"""
+        self.check_case("function", "src/functions/fija.function.ts", good,
+                        good.replace("private static helper", "private helper"), "static")
 
     def test_table_three_audit_fields(self):
         good = """import { pgTable, timestamp, serial } from 'drizzle-orm/pg-core';

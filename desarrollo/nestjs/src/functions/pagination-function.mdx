@@ -6,11 +6,11 @@ sidebarTitle: "pagination.function.ts"
 Construye los metadatos de paginación en el DTO general `PaginationMetaDto`. Recibe total de registros, número de página y límite.
 
 ```typescript pagination.function.ts
-import { Trace } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 import { PaginationMetaDto } from 'src/dto/pagination-meta.dto';
 
 export class PaginationFunction {
-  @Trace({ name: 'Crear paginación', type: 'method' })
+  @TraceNode({ name: 'Crear paginación', type: 'method' })
   static createPaginationMeta(total: number, page: number, limit: number): PaginationMetaDto {
     const totalPages = Math.ceil(total / limit);
 

@@ -2,76 +2,46 @@
 title: "Dependencias"
 ---
 
-Ubicación en `package.json`:
+Dependencias de ejecución de referencia para el backend NestJS de Erixcel. Se mantienen las versiones del ejemplo publicado; adapta cada paquete a los requerimientos del proyecto. La referencia completa se encuentra en [package.json completo](/desarrollo/nestjs/package-json/ejemplo-completo).
 
-```jsonc package.json
+```json package.json
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  // ... otras propiedades
   "dependencies": {
+    "@erixcel/traceflow": "^0.1.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
-    // Coloca aquí las nuevas dependencias
+    "@nestjs/jwt": "^12.0.2",
+    "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/schedule": "^12.0.2",
+    "@nestjs/swagger": "^12.0.2",
+    "@nestjs/throttler": "^6.7.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^18.0.6",
+    "drizzle-orm": "^0.45.4",
+    "google-auth-library": "^11.3.1",
+    "helmet": "^8.3.0",
+    "libphonenumber-js": "^1.13.15",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "resend": "^6.33.0",
+    "rxjs": "^7.8.1"
   }
 }
 ```
 
-## Autenticación y seguridad
+## TraceFlow publicado en npm
 
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `@nestjs/jwt` | `^11.0.2` | Generar y verificar tokens JWT desde NestJS. |
-| `@nestjs/passport` | `^11.0.5` | Integrar estrategias de autenticación de Passport con guards de NestJS. |
-| `passport` | `^0.7.0` | Middleware base de autenticación y estrategias. |
-| `passport-jwt` | `^4.0.1` | Validar JWT en peticiones usando una estrategia Passport. |
-| `bcrypt` | `^6.0.0` | Hashear contraseñas y comparar hashes de forma segura. |
-
-```json package.json
-"@nestjs/jwt": "^11.0.2",
-"@nestjs/passport": "^11.0.5",
-"passport": "^0.7.0",
-"passport-jwt": "^4.0.1",
-"bcrypt": "^6.0.0"
-```
-
-## Validación y transformación de datos
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `class-validator` | `^0.14.2` | Validar DTOs con decoradores como `@IsEmail()` y `@IsString()`. |
-| `class-transformer` | `^0.5.1` | Convertir objetos planos en instancias de clase y transformar valores. |
-
-```json package.json
-"class-validator": "^0.14.2",
-"class-transformer": "^0.5.1"
-```
-
-## Base de datos: PostgreSQL y Drizzle
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `drizzle-orm` | `^0.44.7` | Definir esquemas y consultas SQL tipadas mediante Drizzle ORM. |
-| `pg` | `^8.16.3` | Driver de Node.js para conectarse a PostgreSQL. |
-
-```json package.json
-"drizzle-orm": "^0.44.7",
-"pg": "^8.16.3"
-```
-
-## Configuración
-
-| Librería | Versión | ¿Para qué sirve? |
-| --- | --- | --- |
-| `dotenv` | `^17.2.3` | Cargar variables de entorno desde archivos `.env` a `process.env`. |
-
-```json package.json
-"dotenv": "^17.2.3"
-```
-
-## Instalación
+Instala el **runtime** en dependencias normales:
 
 ```bash Terminal
-npm install
+npm install @erixcel/traceflow@^0.1.0
 ```
+
+Los imports de código emplean `@erixcel/traceflow`:
+
+```typescript
+import { TraceNode } from '@erixcel/traceflow';
+```
+
+Evita el paquete sin namespace `traceflow` en los ejemplos nuevos.

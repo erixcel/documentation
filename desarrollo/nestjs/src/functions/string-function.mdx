@@ -6,10 +6,10 @@ sidebarTitle: "string.function.ts"
 Normaliza strings de objetos y arreglos recursivamente: elimina espacios extremos, convierte a minúsculas y reduce espacios repetidos, exceptuando claves como `password`.
 
 ```typescript string.function.ts
-import { Trace } from 'traceflow';
+import { TraceNode } from '@erixcel/traceflow';
 
 export class StringFunction {
-  @Trace({ name: 'Sanitizar campos de texto', type: 'method' })
+  @TraceNode({ name: 'Sanitizar campos de texto', type: 'method' })
   static sanitizeStringFields<T>(obj: T, exclude: string[] = ['password']): T {
     return StringFunction.sanitizeValue(obj, exclude);
   }

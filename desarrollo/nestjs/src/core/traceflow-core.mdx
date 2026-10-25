@@ -21,7 +21,7 @@ Este archivo aplica la convención de `src/core`: **una sola función exportada*
 
 ```typescript traceflow.core.ts
 import type { INestApplication } from '@nestjs/common';
-import { startTraceFlow, createTraceFlowHttpMiddleware } from 'traceflow';
+import { startTraceFlow, createTraceFlowHttpMiddleware } from '@erixcel/traceflow';
 
 export function setupTraceFlow(app: INestApplication): void {
   // TraceFlow se utiliza únicamente en el entorno local de desarrollo.
@@ -54,22 +54,25 @@ export function setupTraceFlow(app: INestApplication): void {
 
 **Importante:** esta configuración solo debe utilizarse en local. `authorization: 'full'`, `cookies: true` y `body: true` **pueden registrar tokens, credenciales o información sensible**. Utiliza únicamente datos de prueba; desactiva esas capturas si no las necesitas. El ejemplo también deshabilita el middleware cuando `PROD=true`.
 
-## Preparar TraceFlow local
+## Instalación desde npm
 
-Con los paquetes locales ya compilados y el repositorio TraceFlow disponible, levanta su entorno de desarrollo:
-
-```bash Terminal — repositorio TraceFlow
-cd /ruta/absoluta/traceflow
-npm run dev
-```
-
-En otra terminal, desde el **backend consumidor**, enlaza los paquetes locales:
+TraceFlow se distribuye como paquetes publicados por Erixcel. **Ya no necesitas enlazar repositorios locales con `npm link`.**
 
 ```bash Terminal — backend NestJS
-cd /ruta/absoluta/mi-proyecto
-npm link traceflow traceflow-kit
+npm install @erixcel/traceflow@^0.1.0
+npm install --save-dev @erixcel/traceflow-kit@^0.1.1
 ```
 
-Estos enlaces son para desarrollo local; no son una instrucción para instalar TraceFlow en producción. Tras enlazarlos, puedes compilar y levantar el backend con sus comandos habituales.
+Para el Studio usa el ejecutable proporcionado por la dependencia de desarrollo:
+
+```json package.json
+"traceflow:studio": "traceflow-kit studio"
+```
+
+```bash Terminal
+npm run traceflow:studio
+```
+
+Estas versiones corresponden a las indicadas en el `package.json` de referencia. El `package-lock.json` fija la versión efectiva al instalar. Revisa el contrato real del paquete antes de ajustar opciones de captura.
 
 En `src/main.ts`, llama únicamente `setupTraceFlow(app)` después de crear la aplicación y antes de `app.listen()`. No llames a `startTraceFlow()` por segunda vez. Consulta [`main.ts`](/desarrollo/nestjs/src/main).

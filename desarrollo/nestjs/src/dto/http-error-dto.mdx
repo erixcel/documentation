@@ -7,7 +7,7 @@ DTO global reutilizable que describe la respuesta de error HTTP en Swagger. Se r
 
 ```typescript http-error.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { Trace } from 'traceflow';
+import { Trace } from '@erixcel/traceflow';
 
 @Trace({ type: "validation" })
 export class HttpErrorDto {

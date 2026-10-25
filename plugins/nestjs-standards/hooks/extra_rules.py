@@ -229,31 +229,31 @@ def validate_module(path):
         errors.append("@Module debe registrar las dependencias mediante un objeto.")
     if re.search(r"\b(?:database|db)\s*\.\s*(?:select|insert|update|delete)\s*\(", s):
         errors.append("No coloques consultas de datos dentro de un módulo.")
-    # Only modules under src/modules have the three-sibling convention.
-    # Root src/app.module.ts remains an entrypoint exception.
+    # This directory convention applies under src/modules only.
+    # src/security (base infrastructure) and src/app.module.ts are outside it.
+    # Controller and Service are optional, but must share the module's base
+    # name if present. Subdirectories are unrestricted.
     if "modules" in path.parts and path.name.endswith(".module.ts"):
         base = path.name[:-len(".module.ts")]
-        required = {base + ".module.ts", base + ".controller.ts", base + ".service.ts"}
+        allowed = {base + ".module.ts", base + ".controller.ts", base + ".service.ts"}
         siblings = {
             item.name for item in path.parent.iterdir()
             if item.is_file() and item.name != ".DS_Store"
         }
-        missing = sorted(required - siblings)
-        extra = sorted(siblings - required)
-        if missing:
-            errors.append(
-                "Faltan archivos hermanos de " + path.name + ": " + ", ".join(missing)
-                + ". Cada módulo necesita .module.ts, .controller.ts y .service.ts "
-                  "con idéntica base."
-            )
+        extra = sorted(siblings - allowed)
         if extra:
             errors.append(
                 "Archivos hermanos no permitidos junto a " + path.name + ": "
                 + ", ".join(extra)
-                + ". Se permiten carpetas. Usa functions/*.function.ts para utilidades "
-                  "estáticas sin inyección de dependencias. Un nuevo @Injectable() requiere "
-                  "un submódulo con su propio trío. Antes de mover archivos preserva imports, "
-                  "providers, exports y comportamiento."
+                + ". Solo se admite el .module.ts y, cuando sean necesarios, "
+                  "su .controller.ts y .service.ts con idéntico nombre base. "
+                  "No crees Controller ni Service vacíos si no son necesarios. "
+                  "Las subcarpetas están permitidas. Usa functions/*.function.ts "
+                  "para utilidades estáticas sin inyección de dependencias. "
+                  "Un @Injectable() adicional puede requerir un submódulo "
+                  "con su propio .module.ts (Controller y Service opcionales). "
+                  "Antes de mover archivos, conserva imports, providers, exports "
+                  "y comportamiento."
             )
     return errors
 

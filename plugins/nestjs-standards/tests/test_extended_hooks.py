@@ -209,7 +209,7 @@ export class UserModule {}
         self.put(path, code + "\n// touch")
         self.assertEqual(self.call("validate-module.py", "Stop"), {})
 
-    def test_module_missing_siblings_and_wrong_names(self):
+    def test_module_wrong_sibling_name_even_when_optional(self):
         path = "src/modules/admin/auth/auth.module.ts"
         self.put(path, "@Module({}) export class AuthModule {}")
         self.put("src/modules/admin/auth/session.service.ts", "class SessionService {}")
@@ -218,8 +218,8 @@ export class UserModule {}
         self.put(path, "@Module({}) export class AuthModule {}\n// touch")
         out = self.call("validate-module.py", "Stop")
         self.assertEqual(out.get("decision"), "block")
-        for name in ("auth.controller.ts", "auth.service.ts", "session.service.ts"):
-            self.assertIn(name, out["reason"])
+        self.assertIn("session.service.ts", out["reason"])
+        self.assertNotIn("Faltan archivos", out["reason"])
 
     def test_module_extra_service_triggers_without_editing_module(self):
         path = "src/modules/bettor/auth/auth.module.ts"
@@ -245,7 +245,7 @@ export class UserModule {}
         self.assertEqual(out.get("decision"), "block")
         self.assertIn("jwt.config.ts", out["reason"])
 
-    def test_module_deleted_service_triggers_without_editing_module(self):
+    def test_module_removing_optional_service_does_not_block(self):
         path = "src/modules/admin/auth/auth.module.ts"
         self.put(path, "@Module({}) export class AuthModule {}")
         self.put("src/modules/admin/auth/auth.controller.ts", "class AuthController {}")
@@ -253,9 +253,45 @@ export class UserModule {}
         self.turn += 1
         self.call("detect-changes.py", "UserPromptSubmit")
         service.unlink()
-        out = self.call("validate-module.py", "Stop")
-        self.assertEqual(out.get("decision"), "block")
-        self.assertIn("auth.service.ts", out["reason"])
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_module_only_module_without_controller_or_service(self):
+        name = "src/modules/admin/admin.module.ts"
+        self.put(name, "@Module({ imports: [] }) export class AdminModule {}")
+        self.put("src/modules/admin/auth/auth.module.ts", "@Module({}) export class AuthModule {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(name, "@Module({ imports: [AuthModule] }) export class AdminModule {}")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_module_optional_service_only(self):
+        name = "src/modules/admin/auth/auth.module.ts"
+        self.put(name, "@Module({}) export class AuthModule {}")
+        self.put("src/modules/admin/auth/auth.service.ts", "class AuthService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(name, "@Module({ providers: [AuthService] }) export class AuthModule {}")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_module_optional_controller_only(self):
+        name = "src/modules/admin/health/health.module.ts"
+        self.put(name, "@Module({}) export class HealthModule {}")
+        self.put("src/modules/admin/health/health.controller.ts", "class HealthController {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(name, "@Module({ controllers: [HealthController] }) export class HealthModule {}")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_security_base_is_not_checked_as_module_layout(self):
+        path = "src/security/security.module.ts"
+        self.put(path, "@Module({}) export class SecurityModule {}")
+        self.put("src/security/session.service.ts", "class SessionService {}")
+        self.put("src/security/auth.guard.ts", "class AuthGuard {}")
+        self.put("src/security/jwt.config.ts", "export const jwtConfig = {};")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(path, "@Module({ providers: [SessionService] }) export class SecurityModule {}")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
 
     def test_module_root_app_module_is_exempt(self):
         self.put("src/app.module.ts", "@Module({}) export class AppModule {}")

@@ -229,11 +229,12 @@ def validate_module(path):
         errors.append("@Module debe registrar las dependencias mediante un objeto.")
     if re.search(r"\b(?:database|db)\s*\.\s*(?:select|insert|update|delete)\s*\(", s):
         errors.append("No coloques consultas de datos dentro de un módulo.")
-    # This directory convention applies under src/modules only.
-    # src/security (base infrastructure) and src/app.module.ts are outside it.
-    # Controller and Service are optional, but must share the module's base
-    # name if present. Subdirectories are unrestricted.
-    if "modules" in path.parts and path.name.endswith(".module.ts"):
+    # Applies to every .module.ts in src, including src/security/.
+    # Only the root src/app.module.ts is exempt from sibling conventions.
+    # Controller and Service are optional but must share the module's base
+    # name when present. Subdirectories are unrestricted.
+    is_root_app_module = path.name == "app.module.ts" and path.parent.name == "src"
+    if path.name.endswith(".module.ts") and not is_root_app_module:
         base = path.name[:-len(".module.ts")]
         allowed = {base + ".module.ts", base + ".controller.ts", base + ".service.ts"}
         siblings = {

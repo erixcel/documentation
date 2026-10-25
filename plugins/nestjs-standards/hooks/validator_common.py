@@ -55,7 +55,11 @@ def source_files(root):
             return False
         tail = path.relative_to(src).parts
         if len(tail) < 2:
-            return name.endswith(".module.ts") and name == "app.module.ts"
+            return name.endswith(".module.ts")
+        # The Module Validator covers all NestJS modules, not just src/modules.
+        # Track their direct siblings to detect additions and removals as well.
+        if name.endswith(".module.ts") or any(path.parent.glob("*.module.ts")):
+            return True
         section = tail[0]
         if section == "queries":
             return name.endswith(".query.ts") and len(tail) >= 3
@@ -179,15 +183,17 @@ def check_turn(payload, kind, suffix, validator, documentation):
             and str(Path(name).parent) in affected
         })
     if kind == "Module":
+        # Recheck a .module.ts when *any* direct sibling changes, including
+        # src/security/. The root src/app.module.ts has no sibling rule.
         affected = {
             str(Path(name).parent) for name in set(before) | set(after)
-            if "/modules/" in "/" + name and before.get(name) != after.get(name)
+            if "/src/" in "/" + name and before.get(name) != after.get(name)
         }
         modified = sorted(set(modified) | {
             name for name in current
             if name.endswith(".module.ts")
-            and "/modules/" in "/" + name
             and str(Path(name).parent) in affected
+            and not (name == "src/app.module.ts" or name.endswith("/src/app.module.ts"))
         })
     issues = []
     for name in modified:

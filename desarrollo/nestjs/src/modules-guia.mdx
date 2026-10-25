@@ -3,20 +3,28 @@ title: "modules"
 sidebarTitle: "modules"
 ---
 
-La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo necesita su `<nombre>.module.ts`; **Controller y Service son opcionales** y solo se crean si la funcionalidad los requiere. Si existen, comparten la base del nombre de su módulo y no se permiten otros archivos hermanos. Se admiten subcarpetas como `dto/`, `functions/` y submódulos. La infraestructura base de `src/security/` queda fuera de esta regla.
+La carpeta `src/modules` agrupa funcionalidades por módulo. Cada módulo necesita su `<nombre>.module.ts`; **Controller y Service son opcionales** y solo se crean si la funcionalidad los requiere. Si existen, comparten el nombre base y no se permiten otros archivos hermanos. Esta convención se aplica también a otros módulos dentro de `src`, como `src/security/security.module.ts`. **La única excepción es `src/app.module.ts`**.
 
 ## Estructura recomendada
 
-```text src/modules
+```text src
 src/
-├── security/                 # Infraestructura base: sin restricción de hermanos
+├── app.module.ts              # ÚNICA excepción de archivos hermanos
+├── security/
 │   ├── security.module.ts
-│   ├── session.service.ts
-│   ├── auth.guard.ts
-│   └── jwt.config.ts
+│   ├── security.service.ts     # Opcional
+│   ├── guards/
+│   │   └── auth.guard.ts
+│   ├── decorators/
+│   │   └── admin-roles.decorator.ts
+│   ├── config/
+│   │   └── jwt.config.ts
+│   └── session/
+│       ├── session.module.ts
+│       └── session.service.ts
 └── modules/
     ├── admin/
-    │   ├── admin.module.ts     # Módulo contenedor; no necesita controller/service
+    │   ├── admin.module.ts
     │   └── users/
     │       ├── users.module.ts
     │       ├── users.controller.ts
@@ -24,14 +32,14 @@ src/
     │       └── dto/
     └── auth/
         ├── auth.module.ts
-        ├── auth.service.ts     # Solo si se necesita
+        ├── auth.service.ts     # Opcional
         └── functions/
             └── token.function.ts
 ```
 
 ## Regla de archivos hermanos por módulo
 
-Dentro de `src/modules/**`, **solo es obligatorio** el archivo `<nombre>.module.ts`. Los archivos `<nombre>.controller.ts` y `<nombre>.service.ts` son **opcionales e independientes entre sí**: crea cada uno únicamente cuando se necesite. Si existen, deben compartir exactamente el nombre base del módulo. No crees clases vacías para satisfacer el Hook.
+Para cualquier `*.module.ts` dentro de `src`, **excepto `src/app.module.ts`**, solo es obligatorio el propio archivo `<nombre>.module.ts`. Los archivos `<nombre>.controller.ts` y `<nombre>.service.ts` son **opcionales e independientes entre sí**: crea cada uno únicamente cuando se necesite. Si existen, deben compartir exactamente el nombre base del módulo. No crees clases vacías para satisfacer el Hook.
 
 | Archivos hermanos | ¿Válido? |
 | --- | --- |
@@ -46,7 +54,7 @@ No se permiten otros archivos en el mismo nivel, pero **sí subcarpetas**, inclu
 
 Para utilidades estáticas, crea una carpeta `functions/` y sigue las [convenciones de Functions](/desarrollo/nestjs/src/functions/index). Si otra clase necesita `@Injectable()` e inyección de dependencias, considera crear un submódulo propio; tampoco debes agregar Controllers o Services si no son necesarios.
 
-**Excepción de infraestructura base:** la regla de archivos hermanos **no se aplica a `src/security/`**. Ahí pueden coexistir `security.module.ts`, `session.service.ts`, Guards, decoradores y archivos de configuración. `src/app.module.ts` es el módulo raíz de NestJS y está fuera de `src/modules`, por lo que tampoco se somete a esta convención.
+**Única excepción: `src/app.module.ts`.** `src/security/security.module.ts` **sí debe cumplir la regla**. Por ejemplo, `session.service.ts`, `auth.guard.ts`, `admin-roles.decorator.ts` y `jwt.config.ts` no pueden estar al mismo nivel de `security.module.ts`. Organízalos en subcarpetas como `session/`, `guards/`, `decorators/` y `config/`; un servicio inyectable adicional puede vivir en un submódulo propio. Preserva imports, providers, exports y comportamiento al trasladarlos.
 
 **Al reorganizar código:** conserva imports, providers, exports, rutas y comportamiento. El Module Validator revisa también cuando creas, editas o eliminas archivos hermanos; no altera código por sí mismo.
 

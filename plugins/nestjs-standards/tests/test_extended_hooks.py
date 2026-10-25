@@ -282,7 +282,7 @@ export class UserModule {}
         self.put(name, "@Module({ controllers: [HealthController] }) export class HealthModule {}")
         self.assertEqual(self.call("validate-module.py", "Stop"), {})
 
-    def test_security_base_is_not_checked_as_module_layout(self):
+    def test_security_module_detects_existing_extra_siblings(self):
         path = "src/security/security.module.ts"
         self.put(path, "@Module({}) export class SecurityModule {}")
         self.put("src/security/session.service.ts", "class SessionService {}")
@@ -291,7 +291,43 @@ export class UserModule {}
         self.turn += 1
         self.call("detect-changes.py", "UserPromptSubmit")
         self.put(path, "@Module({ providers: [SessionService] }) export class SecurityModule {}")
+        result = self.call("validate-module.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        for name in ("session.service.ts", "auth.guard.ts", "jwt.config.ts"):
+            self.assertIn(name, result["reason"])
+
+    def test_security_sibling_creation_triggers_without_module_edits(self):
+        path = "src/security/security.module.ts"
+        self.put(path, "@Module({}) export class SecurityModule {}")
+        self.put("src/security/security.service.ts", "class SecurityService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/security/session.service.ts", "class SessionService {}")
+        result = self.call("validate-module.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        self.assertIn("session.service.ts", result["reason"])
+
+    def test_security_module_allows_only_module_and_folders(self):
+        path = "src/security/security.module.ts"
+        self.put(path, "@Module({}) export class SecurityModule {}")
+        self.put("src/security/guards/auth.guard.ts", "class AuthGuard {}")
+        self.put("src/security/dto/session.dto.ts", "class SessionDto {}")
+        self.put("src/security/session/session.module.ts", "@Module({}) export class SessionModule {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(path, "@Module({ imports: [SessionModule] }) export class SecurityModule {}")
         self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_other_direct_src_module_except_app_uses_same_rule(self):
+        name = "src/custom.module.ts"
+        self.put(name, "@Module({}) export class CustomModule {}")
+        self.put("src/extra.service.ts", "class ExtraService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(name, "@Module({}) export class CustomModule {}\n// changed")
+        result = self.call("validate-module.py", "Stop")
+        self.assertEqual(result.get("decision"), "block")
+        self.assertIn("extra.service.ts", result["reason"])
 
     def test_module_root_app_module_is_exempt(self):
         self.put("src/app.module.ts", "@Module({}) export class AppModule {}")

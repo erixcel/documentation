@@ -191,8 +191,88 @@ export class UserService {
 export class UserModule {}
 """
         bad = good.replace("export class UserModule", "export class WrongModule")
+        self.put("src/modules/user/user.controller.ts", "export class UserController {}")
+        self.put("src/modules/user/user.service.ts", "export class UserService {}")
         self.check_case("module", "src/modules/user/user.module.ts",
                         good, bad, "UserModule")
+
+    def test_module_exact_trio_with_subfolders(self):
+        path = "src/modules/admin/auth/auth.module.ts"
+        code = "@Module({}) export class AuthModule {}"
+        self.put(path, code)
+        self.put("src/modules/admin/auth/auth.controller.ts", "class AuthController {}")
+        self.put("src/modules/admin/auth/auth.service.ts", "class AuthService {}")
+        self.put("src/modules/admin/auth/functions/token.function.ts",
+                 "class TokenFunction { static create() {} }")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(path, code + "\n// touch")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_module_missing_siblings_and_wrong_names(self):
+        path = "src/modules/admin/auth/auth.module.ts"
+        self.put(path, "@Module({}) export class AuthModule {}")
+        self.put("src/modules/admin/auth/session.service.ts", "class SessionService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(path, "@Module({}) export class AuthModule {}\n// touch")
+        out = self.call("validate-module.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        for name in ("auth.controller.ts", "auth.service.ts", "session.service.ts"):
+            self.assertIn(name, out["reason"])
+
+    def test_module_extra_service_triggers_without_editing_module(self):
+        path = "src/modules/bettor/auth/auth.module.ts"
+        self.put(path, "@Module({}) export class AuthModule {}")
+        self.put("src/modules/bettor/auth/auth.controller.ts", "class AuthController {}")
+        self.put("src/modules/bettor/auth/auth.service.ts", "class AuthService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/modules/bettor/auth/google-auth.service.ts", "class GoogleAuthService {}")
+        out = self.call("validate-module.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("google-auth.service.ts", out["reason"])
+
+    def test_module_extra_config_file_triggers_without_editing_module(self):
+        path = "src/modules/admin/auth/auth.module.ts"
+        self.put(path, "@Module({}) export class AuthModule {}")
+        self.put("src/modules/admin/auth/auth.controller.ts", "class AuthController {}")
+        self.put("src/modules/admin/auth/auth.service.ts", "class AuthService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/modules/admin/auth/jwt.config.ts", "export const jwtConfig = {};")
+        out = self.call("validate-module.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("jwt.config.ts", out["reason"])
+
+    def test_module_deleted_service_triggers_without_editing_module(self):
+        path = "src/modules/admin/auth/auth.module.ts"
+        self.put(path, "@Module({}) export class AuthModule {}")
+        self.put("src/modules/admin/auth/auth.controller.ts", "class AuthController {}")
+        service = self.put("src/modules/admin/auth/auth.service.ts", "class AuthService {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        service.unlink()
+        out = self.call("validate-module.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("auth.service.ts", out["reason"])
+
+    def test_module_root_app_module_is_exempt(self):
+        self.put("src/app.module.ts", "@Module({}) export class AppModule {}")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put("src/app.module.ts", "@Module({}) export class AppModule {}\n// changed")
+        self.assertEqual(self.call("validate-module.py", "Stop"), {})
+
+    def test_module_local_function_hook_runs(self):
+        path = "src/modules/admin/auth/functions/token.function.ts"
+        self.put(path, "export class TokenFunction { static create() {} }")
+        self.turn += 1
+        self.call("detect-changes.py", "UserPromptSubmit")
+        self.put(path, "export class TokenFunction { create() {} }")
+        out = self.call("validate-function.py", "Stop")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("static", out["reason"])
 
     def test_dto_multiple_classes_in_one_file(self):
         good = """import { Trace } from 'traceflow';

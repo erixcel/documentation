@@ -158,6 +158,21 @@ def check_turn(payload, kind, suffix, validator, documentation):
         name for name, sha in after.items()
         if name.endswith(suffix) and (kind != "Script" or "/scripts/" in "/" + name) and before.get(name) != sha
     )
+    if kind == "Controller":
+        # A DTO created, edited, or deleted also rechecks its sibling Controller(s).
+        dto_changes = {
+            name for name in set(before) | set(after)
+            if name.endswith(".dto.ts")
+            and "/modules/" in "/" + name
+            and "/dto/" in name
+            and before.get(name) != after.get(name)
+        }
+        affected = {str(Path(name).parent.parent) for name in dto_changes}
+        modified = sorted(set(modified) | {
+            name for name in current
+            if name.endswith(".controller.ts")
+            and str(Path(name).parent) in affected
+        })
     issues = []
     for name in modified:
         issues.extend(f"{name}: {error}" for error in validator(current[name]))

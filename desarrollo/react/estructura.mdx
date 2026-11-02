@@ -50,7 +50,7 @@ Los archivos técnicos de Vite, ESLint, TypeScript y despliegue en la raíz **si
 
 ## Decisiones pendientes
 
-La ubicación de estado compartido ya está definida en [stores](/desarrollo/react/src/stores), por alcance de consumidores; solo la ubicación de **contratos de tipos reutilizables** continúa pendiente. Conserva identidad, persistencia y aislamiento de sesiones, que requieren pruebas de comportamiento; no sustituyas tipos por `any`. Tampoco existe un mecanismo de procedencia para distinguir un cambio manual a `backend.api.ts` de una regeneración legítima: el Hook valida la estructura y la Skill indica regenerarlo desde el backend.
+La ubicación de estado compartido ya está definida en [stores](/desarrollo/react/src/stores), por alcance de consumidores; las interfaces reutilizables siguen la regla del ancestro común más cercano y terminan en `*.interface.ts`. Conserva identidad, persistencia y aislamiento de sesiones, que requieren pruebas de comportamiento; no sustituyas tipos por `any`. Tampoco existe un mecanismo de procedencia para distinguir un cambio manual a `backend.api.ts` de una regeneración legítima: el Hook valida la estructura y la Skill indica regenerarlo desde el backend.
 
 Consulta cada carpeta para ejemplos de código y excepciones.
 

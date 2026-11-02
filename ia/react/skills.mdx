@@ -12,7 +12,7 @@ Instala solo el plugin que corresponda a tu proyecto desde [Erixcel Developer To
 
 <Columns cols={1}>
 <Card title="react-api" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-api/SKILL.md" horizontal>
-Mantiene solo `src/api/backend.api.ts` generado desde el backend.
+Organiza clientes HTTP y contratos bajo `src/api/`.
 </Card>
 <Card title="react-app" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-app/SKILL.md" horizontal>
 Inicializa React en `src/main.tsx` y conecta RouterProvider.
@@ -21,13 +21,13 @@ Inicializa React en `src/main.tsx` y conecta RouterProvider.
 Gestiona imágenes y recursos estáticos de `src/assets/`.
 </Card>
 <Card title="react-components" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-components/SKILL.md" horizontal>
-Organiza componentes compartidos en `simple/` y `complex/`.
+Construye componentes reutilizables en `src/components/`.
 </Card>
 <Card title="react-env" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-env/SKILL.md" horizontal>
 Documenta y valida las variables `.env` y `.env.example`.
 </Card>
 <Card title="react-hooks" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-hooks/SKILL.md" horizontal>
-Valida `*.hook.ts`: solo imports y funciones en nivel superior.
+Define hooks personalizados `useXxx` en `src/hooks/`.
 </Card>
 <Card title="react-modules" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-modules/SKILL.md" horizontal>
 Agrupa funcionalidades por dominio en `src/modules/`.
@@ -39,10 +39,10 @@ Mantiene los scripts y dependencias de `package.json`.
 Organiza las rutas y navegación desde `src/routes/`.
 </Card>
 <Card title="react-services" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-services/SKILL.md" horizontal>
-Valida `*.service.ts`: funciones, sin clases ni estado global.
+Separa los servicios de negocio en `src/services/`.
 </Card>
 <Card title="react-styles" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-styles/SKILL.md" horizontal>
-Usa Tailwind con un único `src/index.css` sin clases propias.
+Usar al modificar Tailwind, className o src/index.css.
 </Card>
 </Columns>
 

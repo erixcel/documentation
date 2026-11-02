@@ -14,7 +14,7 @@ Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al env
 
 <Columns cols={1}>
 <Card title="Detect Changes" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Registra los cambios de `frontend/src/`, `package.json` y archivos `.env`.
+Registra el estado de `src/`, `package.json` y `.env` antes de editar.
 </Card>
 </Columns>
 
@@ -25,36 +25,37 @@ Evento **`Stop`**: revisa los archivos modificados cuando Codex termina.
 
 <Columns cols={1}>
 <Card title="Structure Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Comprueba la estructura principal de `src/`.
+Comprueba estructura principal de `src/`.
 </Card>
 <Card title="Main Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
 Revisa `main.tsx`, RouterProvider y carga de estilos.
 </Card>
 <Card title="Style Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Solo `index.css` con Tailwind y `@theme`; sin CSS propio adicional.
+Solo `index.css` con Tailwind y tokens `@theme`; sin CSS propio adicional.
 </Card>
 <Card title="API Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Solo `src/api/backend.api.ts` generado.
+Exige únicamente `src/api/backend.api.ts` autogenerado.
 </Card>
 <Card title="Component Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Exige `simple/` y `complex/` y sus convenciones.
+Comprueba componentes `simple/` y `complex/` y sus convenciones.
 </Card>
 <Card title="React Hook Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Exige `*.hook.ts` con funciones (AST TypeScript).
+Exige `*.hook.ts`: solo imports y funciones (AST de TypeScript).
 </Card>
 <Card title="Service Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Exige `*.service.ts` con funciones, sin JSX ni React Hooks.
+Exige `*.service.ts`: solo funciones, sin JSX ni React Hooks.
 </Card>
 <Card title="Module &amp; Route Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Agrupa módulos y separa páginas de configuración de navegación.
+Separa módulos por dominio y configuración de navegación.
 </Card>
 <Card title="Package Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
 Comprueba scripts y dependencias de `package.json`.
 </Card>
 <Card title="Env Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
-Comprueba `.env` y `.env.example` sin publicar secretos.
+Comprueba `.env` y `.env.example` sin exponer secretos.
 </Card>
 </Columns>
+
 
 ## Activación
 

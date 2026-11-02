@@ -271,6 +271,31 @@ class ReactPluginTests(unittest.TestCase):
         self.assertIn("TypeScript", out.get("reason", ""))
 
 
+    def test_resource_scope_cross_subpages_requires_ancestor(self):
+        self.write("src/pages/admin/pages/users/functions/format-date.function.ts",
+                   "export function formatDate() { return ''; }")
+        self.write("src/pages/admin/pages/bettors/bettors.page.tsx",
+                   "import { formatDate } from '../users/functions/format-date.function';")
+        result = validator.validate_resource_scopes(
+            self.frontend, {"src/pages/admin/pages/bettors/bettors.page.tsx"})
+        self.assertTrue(any("[resource-scope]" in issue for issue in result))
+
+    def test_resource_scope_parent_import_is_allowed(self):
+        self.write("src/pages/admin/functions/format-date.function.ts",
+                   "export function formatDate() { return ''; }")
+        self.write("src/pages/admin/pages/users/users.page.tsx",
+                   "import { formatDate } from '../../functions/format-date.function';")
+        self.assertEqual(validator.validate_resource_scopes(
+            self.frontend, {"src/pages/admin/pages/users/users.page.tsx"}), [])
+
+    def test_resource_suffix_and_component_nesting(self):
+        self.write("src/pages/admin/functions/date.ts", "export function date() { return ''; }")
+        self.write("src/pages/admin/components/simple/action.tsx", "export function Action() { return null; }")
+        result = validator.validate_resource_scopes(
+            self.frontend, {"src/pages/admin/functions/date.ts",
+                            "src/pages/admin/components/simple/action.tsx"})
+        self.assertEqual(sum("[resource-suffix]" in issue for issue in result), 2)
+
     def test_store_plugin_registered_and_nestjs_isolated(self):
         root = Path(__file__).resolve().parents[1]
         config = json.loads((root / "hooks/hooks.json").read_text())["hooks"]

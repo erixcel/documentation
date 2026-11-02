@@ -62,6 +62,30 @@
             "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-env.py\"",
             "timeout": 45,
             "statusMessage": "Env Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-functions.py\"",
+            "timeout": 45,
+            "statusMessage": "Function Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-page-files.py\"",
+            "timeout": 45,
+            "statusMessage": "Page Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-interfaces.py\"",
+            "timeout": 45,
+            "statusMessage": "Interface Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-layouts.py\"",
+            "timeout": 45,
+            "statusMessage": "Layout Validator - Erixcel React"
           }
         ]
       }

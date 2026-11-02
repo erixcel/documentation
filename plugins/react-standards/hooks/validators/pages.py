@@ -1,5 +1,6 @@
 """Erixcel React hook validation; read-only."""
 from pathlib import Path
+from common.constants import SKIP
 from common.discovery import changed_in
 from validators.routes import validate_routes
 

@@ -7,6 +7,7 @@ on:
       - 'plugins/**'
       - '.agents/plugins/marketplace.json'
       - '.github/scripts/sync_ia_catalog.py'
+      - '.github/scripts/test_ia_catalog.py'
       - '.github/workflows/sync-ia-catalog.yml'
   workflow_dispatch:
 

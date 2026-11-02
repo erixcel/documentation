@@ -3,13 +3,14 @@ title: "Hooks de NestJS"
 sidebarTitle: "Hooks"
 ---
 
-Estos Hooks pertenecen **solo a Erixcel NestJS**; no incorporan validadores del otro plugin. Sigue la [guía de instalación de Erixcel NestJS](/ia/nestjs) para activarlos.
+Los siguientes Hooks pertenecen **exclusivamente a Erixcel NestJS**.
+No se mezclan con los validadores del otro plugin. Para instalarlos y activarlos, sigue la [guía de Erixcel NestJS](/ia/nestjs).
 
 ## Hooks por evento (12)
 
 ### Antes de comenzar
 
-Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos relevantes.
+Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al enviar tu mensaje.
 
 <Columns cols={1}>
 <Card title="Detect Changes" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
@@ -17,9 +18,10 @@ Registra el estado inicial de todos los archivos NestJS vigilados.
 </Card>
 </Columns>
 
+
 ### Al terminar
 
-Evento **`Stop`**: comprueba los cambios y devuelve feedback de errores para que Codex pueda autocorregirse.
+Evento **`Stop`**: revisa los archivos modificados cuando Codex termina.
 
 <Columns cols={1}>
 <Card title="Query Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
@@ -57,6 +59,12 @@ Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript.
 </Card>
 </Columns>
 
-## Autorizar y activar
 
-Abre **Codex Desktop → Settings → Hooks**, revisa los comandos, pulsa **Trust** y activa los Hooks de **Erixcel NestJS** que vayas a utilizar.
+## Activación
+
+Abre **Codex Desktop → Settings → Hooks**. Revisa los comandos de Erixcel NestJS, pulsa **Trust** solo si confías en ellos y activa sus interruptores.
+Los Hooks publicados en GitHub no reflejan si están activados en tu equipo.
+
+## Sincronización
+
+Este listado se genera desde el archivo de Hooks del plugin en GitHub; no desde los Hooks instalados localmente.

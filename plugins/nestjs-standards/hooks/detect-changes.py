@@ -2,7 +2,8 @@
 """UserPromptSubmit: snapshot monitored NestJS files and seed directory structure at the start of the turn."""
 import json
 import sys
-from validator_common import workspace_for, store_snapshot
+from common.discovery import workspace_for
+from common.snapshot import store_snapshot
 
 
 def main():

@@ -1,6 +1,10 @@
 name: Test Erixcel Hooks
 
 on:
+  pull_request:
+    paths:
+      - "plugins/nestjs-standards/**"
+      - ".github/workflows/test-nestjs-validators.yml"
   push:
     branches: [main]
     paths:

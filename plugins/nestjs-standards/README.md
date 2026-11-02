@@ -79,3 +79,10 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 Documentación: [Skills](https://docs.erixcel.com/ia/skills) · [Hooks](https://docs.erixcel.com/ia/hooks).
+
+
+## Arquitectura modular de los Hooks
+
+Cada `validate-*.py` mantiene su punto de entrada y su configuración en `hooks.json`, pero delega su regla a `validators/`: `controller.py`, `service.py`, `module.py`, `dto.py`, `functions.py`, `query.py`, `core.py`, `seed.py`, `table.py`, `script.py`, `tsconfig.py` y `_helpers.py` para funciones de análisis compartidas. `common/` contiene `discovery.py`, `snapshot.py`, `runner.py`, `reporter.py` y constantes. `analyzers/query_structure.py` mantiene la tokenización de consultas. Los archivos históricos `validator_common.py`, `extra_rules.py`, `core_validator.py` y `query_structure.py` son fachadas de compatibilidad, ya no albergan las implementaciones.
+
+Los Hooks continúan aislados de React y no modifican los proyectos. Comprobación: `python3 -m unittest discover -s plugins/nestjs-standards/tests -p "test_*.py" -v`.

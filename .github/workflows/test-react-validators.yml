@@ -1,6 +1,10 @@
 name: Test Erixcel React Hooks
 
 on:
+  pull_request:
+    paths:
+      - "plugins/react-standards/**"
+      - ".github/workflows/test-react-validators.yml"
   push:
     branches: [main]
     paths:

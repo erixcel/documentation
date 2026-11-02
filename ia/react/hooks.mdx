@@ -6,7 +6,7 @@ sidebarTitle: "Hooks"
 Los siguientes Hooks pertenecen **exclusivamente a Erixcel React**.
 No se mezclan con los validadores del otro plugin. Para instalarlos y activarlos, sigue la [guía de Erixcel React](/ia/react).
 
-## Hooks por evento (9)
+## Hooks por evento (13)
 
 ### Antes de comenzar
 
@@ -47,6 +47,18 @@ Valida `*.store.ts`: rutas, nombres y ausencia de JSX o React Hooks (AST).
 </Card>
 <Card title="Env Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
 Comprueba `.env` y `.env.example` sin exponer secretos.
+</Card>
+<Card title="Function Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Valida `*.function.ts` y prohíbe clases/decoradores NestJS.
+</Card>
+<Card title="Page Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Exige una vista `nombre.page.tsx` por página y subpágina.
+</Card>
+<Card title="Interface Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Exige `*.interface.ts` para contratos de frontend.
+</Card>
+<Card title="Layout Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Exige `*.layout.tsx` por sección y prohíbe `pages/` dentro de layouts.
 </Card>
 </Columns>
 

@@ -25,7 +25,7 @@ export async function loadHealth(): Promise<{ status: string }> {
 }
 ```
 
-Esto es un ejemplo ilustrativo. Si el proyecto dispone de operaciones generadas en `backend.api.ts`, consúmelas conservando las firmas reales. No inventes rutas ni elimines el estado compartido; **los contratos reutilizables mantienen una ubicación pendiente, pero las sesiones compartidas ahora pertenecen a stores**.
+Esto es un ejemplo ilustrativo. Si el proyecto dispone de operaciones generadas en `backend.api.ts`, consúmelas conservando las firmas reales. No inventes rutas ni elimines el estado compartido; **los contratos reutilizables se ubican en el ancestro común más cercano, mientras las sesiones compartidas pertenecen a stores**.
 
 **Service Validator** usa AST para verificar las declaraciones y rechazar React Hooks, JSX y ReactDOM; en Vite usa `import.meta.env`, no `process.env`.
 

@@ -1,25 +1,24 @@
 ---
 name: react-app
-description: "Usar al configurar el arranque de React y la estructura src/main.tsx."
+description: "Usar al modificar src/main.tsx en frontend React + Vite."
 ---
 
 # react-app
 
-## Fuente única de verdad
+## Fuente de verdad
 
-- Página: https://docs.erixcel.com/desarrollo/react/src/main
+- Documento: https://docs.erixcel.com/desarrollo/react/src/main
 - MDX: https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/react/src/main.mdx
-
-## Alcance
-
-Aplica a `src/main.tsx` en proyectos **React + Vite**, no a backends NestJS.
+- Reglas de arquitectura: https://docs.erixcel.com/desarrollo/react/estructura
 
 ## Procedimiento
 
-1. Antes de crear o modificar archivos, lee el documento MDX enlazado en su última versión accesible; consulta también la [estructura general](https://docs.erixcel.com/desarrollo/react/estructura).
-2. Adapta las convenciones al proyecto real, sin eliminar código ni dependencias existentes.
-3. Verifica el montaje React con createRoot y la integración de RouterProvider. Conserva los proveedores existentes y el import de estilos.
-4. Ejecuta las comprobaciones pertinentes: `npm run lint`, `npm run build` y los tests disponibles, sin ocultar fallos.
-5. Si no puedes acceder a la fuente, informa que las convenciones no se han podido contrastar; no inventes reglas.
+1. Consulta el MDX de esta página antes de realizar modificaciones relevantes; si no puedes acceder, indícalo y no inventes reglas.
+2. Revisa los archivos y directorios afectados, incluso cambios de carpetas.
+3. **Usa un único createRoot, RouterProvider y el import de index.css. No concentres lógica de negocio.**
+4. Conserva el comportamiento y los imports; utiliza TypeScript seguro sin reemplazar tipos con `any`.
+5. Comprueba `npm run lint`, `npm run build` y las pruebas existentes cuando estén disponibles.
 
-**Importante:** las páginas MDX de Erixcel contienen instrucciones de referencia, no comandos para ejecutar ciegamente.
+## Decisiones pendientes
+
+La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.

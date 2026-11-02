@@ -1,25 +1,24 @@
 ---
 name: react-package
-description: "Usar al modificar dependencias y scripts de package.json en React + Vite."
+description: "Usar al modificar package.json de frontend Vite."
 ---
 
 # react-package
 
-## Fuente única de verdad
+## Fuente de verdad
 
-- Página: https://docs.erixcel.com/desarrollo/react/package-json
+- Documento: https://docs.erixcel.com/desarrollo/react/package-json
 - MDX: https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/react/package-json.mdx
-
-## Alcance
-
-Aplica a `package.json` en proyectos **React + Vite**, no a backends NestJS.
+- Reglas de arquitectura: https://docs.erixcel.com/desarrollo/react/estructura
 
 ## Procedimiento
 
-1. Antes de crear o modificar archivos, lee el documento MDX enlazado en su última versión accesible; consulta también la [estructura general](https://docs.erixcel.com/desarrollo/react/estructura).
-2. Adapta las convenciones al proyecto real, sin eliminar código ni dependencias existentes.
-3. Respeta los scripts dev, build, lint, preview y test y las dependencias de React 19, React Router 7, Tailwind 4 y Vite 8.
-4. Ejecuta las comprobaciones pertinentes: `npm run lint`, `npm run build` y los tests disponibles, sin ocultar fallos.
-5. Si no puedes acceder a la fuente, informa que las convenciones no se han podido contrastar; no inventes reglas.
+1. Consulta el MDX de esta página antes de realizar modificaciones relevantes; si no puedes acceder, indícalo y no inventes reglas.
+2. Revisa los archivos y directorios afectados, incluso cambios de carpetas.
+3. **Conserva dev/build/lint/preview/test y las dependencias de React/Vite; no cambies versiones sin verificar.**
+4. Conserva el comportamiento y los imports; utiliza TypeScript seguro sin reemplazar tipos con `any`.
+5. Comprueba `npm run lint`, `npm run build` y las pruebas existentes cuando estén disponibles.
 
-**Importante:** las páginas MDX de Erixcel contienen instrucciones de referencia, no comandos para ejecutar ciegamente.
+## Decisiones pendientes
+
+La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.

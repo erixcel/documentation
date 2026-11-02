@@ -1,0 +1,23 @@
+---
+title: "Tailwind e index.css"
+sidebarTitle: "index.css"
+---
+
+# Estilos con Tailwind
+
+`src/index.css` es el **único archivo CSS propio** permitido. Contiene solo `@import 'tailwindcss';` y bloques `@theme` con fuentes, colores u otros tokens.
+
+```css src/index.css
+@import 'tailwindcss';
+
+@theme {
+  --color-brand: #2563eb;
+  --font-sans: 'Inter', sans-serif;
+}
+```
+
+Prohibidos: archivos adicionales `.css`, `.module.css`, `.scss`, `.sass` y `.less`; selectores, clases CSS propias, `@apply`, `@layer`, `@media`, `@keyframes`, etiquetas `<style>` y CSS-in-JS.
+
+Estiliza con utilidades Tailwind en `className`: responsive, estados, pseudo-elementos y valores arbitrarios. Se permiten variables CSS calculadas dinámicamente y consumidas desde Tailwind. El CSS compilado y el código externo quedan excluidos.
+
+**Style Validator** revisa CSS propio y TSX modificado; no bloquea el CSS generado por Tailwind ni dependencias.

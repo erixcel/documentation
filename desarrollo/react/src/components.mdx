@@ -1,19 +1,34 @@
 ---
-title: "components"
+title: "Components"
 sidebarTitle: "components"
-description: "Componentes reutilizables y composición de interfaz."
 ---
 
 # src/components
 
-Agrupa componentes de interfaz reutilizables. Mantén sus props tipadas, sus responsabilidades acotadas y los controles accesibles. Puedes organizar carpetas por función, por ejemplo `components/complex/toast/`.
+Solo pueden existir `simple/` y `complex/` en la raíz de componentes compartidos:
 
-```tsx src/components/primary-button.component.tsx
-type Props = { label: string; onClick: () => void };
-
-export function PrimaryButton({ label, onClick }: Props) {
-  return <button type="button" onClick={onClick}>{label}</button>;
-}
+```text
+src/components/
+├── simple/
+│   ├── button.component.tsx
+│   └── input.component.tsx
+└── complex/
+    └── audio-recorder/
+        ├── audio-recorder.component.tsx
+        ├── hooks/
+        │   └── audio-recorder.hook.ts
+        └── services/
+            └── audio-recorder.service.ts # Solo cuando se necesita
 ```
 
-Las llamadas HTTP se resuelven preferentemente desde `src/services` o `src/api`, no directamente dentro de componentes de presentación. **Component Validator** avisa si encuentra llamadas directas como `fetch()` o `axios()` en TSX del directorio de componentes.
+## Simple
+
+Solo archivos planos `*.component.tsx`, sin carpetas ni barrels `index.ts`. Son componentes de presentación controlados mediante props. Se permiten callbacks como onClick/onChange y `useId` para accesibilidad. No gestionan HTTP, almacenamiento, grabaciones, suscripciones ni procesos propios.
+
+## Complex
+
+Cada componente tiene una carpeta con vista `nombre.component.tsx` y las subcarpetas `hooks/` y `services/`. La lógica React se mantiene en hooks, y las operaciones independientes en servicios. No crees archivos o funciones vacíos: un componente puede requerir un hook y ningún servicio.
+
+La vista conecta eventos con la lógica, sin duplicar responsabilidades. Los imports de componentes compartidos apuntan al archivo directamente, **sin barrels**. Las reglas `*.hook.ts` y `*.service.ts` también se aplican a los archivos internos.
+
+**Component Validator** comprueba estructura y nombres y detecta llamadas HTTP directas en componentes compartidos. No restaures el formato antiguo de archivos planos para componentes complejos.

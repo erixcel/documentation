@@ -160,6 +160,7 @@
                 "group": "src",
                 "pages": [
                   "desarrollo/react/src/main",
+                  "desarrollo/react/src/styles",
                   "desarrollo/react/src/api",
                   "desarrollo/react/src/assets",
                   "desarrollo/react/src/components",

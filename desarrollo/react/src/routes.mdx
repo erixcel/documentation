@@ -1,12 +1,11 @@
 ---
-title: "routes"
+title: "Routes"
 sidebarTitle: "routes"
-description: "Rutas y navegación con React Router 7."
 ---
 
 # src/routes
 
-Define aquí el router utilizado por `RouterProvider` en `src/main.tsx`. Mantén las rutas legibles y los nombres consistentes, sin mezclar endpoints HTTP con rutas de interfaz.
+La carpeta `src/routes/` contiene **configuración de navegación**, no implementaciones de páginas. Es válido usar JSX en la declaración de los elementos de ruta.
 
 ```tsx src/routes/path.route.tsx
 import { createBrowserRouter } from 'react-router-dom';
@@ -17,4 +16,6 @@ export const router = createBrowserRouter([
 ]);
 ```
 
-**Route Validator** verifica que exista una definición TypeScript de rutas basada en React Router cuando se modifica `src/routes`. La validación del router exacto y los enlaces requiere además ejecutar `npm run build` y los tests de navegación.
+El ejemplo es orientativo: utiliza los componentes y nombres reales de tu frontend. La página `not-found` se implementa en `src/modules/not-found/` y se referencia desde el router. Integra las rutas con `RouterProvider` desde `src/main.tsx`.
+
+**Module & Route Validator** detecta implementaciones `*.page.tsx` / `*.screen.tsx` dentro de routes y comprueba que exista configuración de React Router.

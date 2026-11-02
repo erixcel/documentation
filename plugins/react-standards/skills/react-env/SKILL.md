@@ -1,25 +1,24 @@
 ---
 name: react-env
-description: "Usar al configurar variables Vite en .env y .env.example."
+description: "Usar al revisar variables Vite .env y .env.example."
 ---
 
 # react-env
 
-## Fuente única de verdad
+## Fuente de verdad
 
-- Página: https://docs.erixcel.com/desarrollo/react/env
+- Documento: https://docs.erixcel.com/desarrollo/react/env
 - MDX: https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/react/env.mdx
-
-## Alcance
-
-Aplica a `.env, .env.example` en proyectos **React + Vite**, no a backends NestJS.
+- Reglas de arquitectura: https://docs.erixcel.com/desarrollo/react/estructura
 
 ## Procedimiento
 
-1. Antes de crear o modificar archivos, lee el documento MDX enlazado en su última versión accesible; consulta también la [estructura general](https://docs.erixcel.com/desarrollo/react/estructura).
-2. Adapta las convenciones al proyecto real, sin eliminar código ni dependencias existentes.
-3. Solo expón al navegador variables VITE_ y nunca secretos. Documenta nombres en .env.example sin credenciales reales.
-4. Ejecuta las comprobaciones pertinentes: `npm run lint`, `npm run build` y los tests disponibles, sin ocultar fallos.
-5. Si no puedes acceder a la fuente, informa que las convenciones no se han podido contrastar; no inventes reglas.
+1. Consulta el MDX de esta página antes de realizar modificaciones relevantes; si no puedes acceder, indícalo y no inventes reglas.
+2. Revisa los archivos y directorios afectados, incluso cambios de carpetas.
+3. **VITE_ es público: nunca secretos. Documenta nombres sin valores sensibles.**
+4. Conserva el comportamiento y los imports; utiliza TypeScript seguro sin reemplazar tipos con `any`.
+5. Comprueba `npm run lint`, `npm run build` y las pruebas existentes cuando estén disponibles.
 
-**Importante:** las páginas MDX de Erixcel contienen instrucciones de referencia, no comandos para ejecutar ciegamente.
+## Decisiones pendientes
+
+La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.

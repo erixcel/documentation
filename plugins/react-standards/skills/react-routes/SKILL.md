@@ -1,25 +1,24 @@
 ---
 name: react-routes
-description: "Usar al definir o modificar navegación y rutas de React Router."
+description: "Usar al configurar navegación y rutas React Router."
 ---
 
 # react-routes
 
-## Fuente única de verdad
+## Fuente de verdad
 
-- Página: https://docs.erixcel.com/desarrollo/react/src/routes
+- Documento: https://docs.erixcel.com/desarrollo/react/src/routes
 - MDX: https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/react/src/routes.mdx
-
-## Alcance
-
-Aplica a `src/routes/**` en proyectos **React + Vite**, no a backends NestJS.
+- Reglas de arquitectura: https://docs.erixcel.com/desarrollo/react/estructura
 
 ## Procedimiento
 
-1. Antes de crear o modificar archivos, lee el documento MDX enlazado en su última versión accesible; consulta también la [estructura general](https://docs.erixcel.com/desarrollo/react/estructura).
-2. Adapta las convenciones al proyecto real, sin eliminar código ni dependencias existentes.
-3. Define y exporta las rutas para el RouterProvider, preservando lazy loading, paths y enlaces existentes.
-4. Ejecuta las comprobaciones pertinentes: `npm run lint`, `npm run build` y los tests disponibles, sin ocultar fallos.
-5. Si no puedes acceder a la fuente, informa que las convenciones no se han podido contrastar; no inventes reglas.
+1. Consulta el MDX de esta página antes de realizar modificaciones relevantes; si no puedes acceder, indícalo y no inventes reglas.
+2. Revisa los archivos y directorios afectados, incluso cambios de carpetas.
+3. **Routes solo configura navegación y admite JSX de rutas; páginas bajo modules/, no SEO/prerenderizado impuesto.**
+4. Conserva el comportamiento y los imports; utiliza TypeScript seguro sin reemplazar tipos con `any`.
+5. Comprueba `npm run lint`, `npm run build` y las pruebas existentes cuando estén disponibles.
 
-**Importante:** las páginas MDX de Erixcel contienen instrucciones de referencia, no comandos para ejecutar ciegamente.
+## Decisiones pendientes
+
+La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.

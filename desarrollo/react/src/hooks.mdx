@@ -1,25 +1,37 @@
 ---
-title: "hooks"
+title: "Hooks personalizados"
 sidebarTitle: "hooks"
-description: "Hooks personalizados y reglas de React."
 ---
 
-# src/hooks
+# src/hooks y hooks privados
 
-Los hooks personalizados encapsulan estado, efectos o lógica reutilizable y declaran un nombre de función `useXxx`. Sigue las Rules of Hooks: no llames hooks dentro de condiciones ni bucles y limpia listeners o temporizadores.
+Todos los hooks personalizados, también los privados de módulos y componentes complejos, utilizan `*.hook.ts`:
 
-```tsx src/hooks/use-window-width.ts
-import { useEffect, useState } from 'react';
-
-export function useWindowWidth() {
-  const [width, setWidth] = useState(window.innerWidth);
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
-  return width;
-}
+```text
+src/hooks/use-api-query.hook.ts
+src/modules/auth/hooks/use-auth.hook.ts
+src/components/complex/modal/hooks/modal.hook.ts
 ```
 
-**React Hook Validator** revisa que los archivos TS/TSX modificados dentro de `src/hooks/` contengan una declaración de hook personalizada `useXxx`. Ejecuta además `npm run lint` para las reglas semánticas de React Hooks.
+Las funciones que invocan hooks React se llaman `useNombre`; las auxiliares pueden tener nombres distintos. Los hooks gestionan estado, efectos, refs y coordinación React; deben limpiar listeners, temporizadores, grabaciones y suscripciones y cumplir las Rules of Hooks. Las operaciones de datos se delegan a servicios.
+
+## Solo funciones en el nivel superior
+
+Se permiten imports (`import type` incluido), declaraciones de funciones y `const` cuyo valor sea una función flecha o expresión de función. Puede haber varias funciones por archivo. Se permiten variables **dentro** de funciones y tipos inline, genéricos y parámetros tipados.
+
+No se permiten `type`, `interface`, `class`, `enum`, `namespace`, objetos, constantes de datos, instancias, cachés, estados compartidos o efectos de inicialización a nivel superior.
+
+```ts src/hooks/use-session.hook.ts
+import { useMemo } from 'react';
+
+export function useSession(session: { id: string } | null) {
+  return useMemo(() => session !== null, [session]);
+}
+
+export const normalizeEmail = (email: string) =>
+  email.trim().toLowerCase();
+```
+
+**React Hook Validator** usa el AST de TypeScript para comprobar extensiones y declaraciones sin confundir comentarios con código; el lint de React Hooks complementa la comprobación semántica.
+
+La carpeta oficial de contratos y estado compartido **está pendiente de definir**. No pierdas tipado ni comportamiento al migrar código existente.

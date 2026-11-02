@@ -1,24 +1,28 @@
 ---
-title: "modules"
+title: "Modules"
 sidebarTitle: "modules"
-description: "Agrupación de funcionalidades del frontend por dominio."
 ---
 
 # src/modules
 
-Cada funcionalidad vive dentro de una carpeta de dominio propia. **No pongas archivos sueltos directamente bajo `src/modules/`**.
+Cada funcionalidad tiene su propia carpeta. No coloques páginas sueltas directamente en `src/modules/`.
 
 ```text
 src/modules/
 ├── auth/
 │   ├── components/
 │   ├── hooks/
+│   │   └── use-auth.hook.ts
 │   ├── services/
+│   │   └── auth-session.service.ts
+│   ├── index.ts
 │   └── auth.page.tsx
-├── fijas/
-│   └── fijas.page.tsx
-└── profile/
-    └── profile.page.tsx
+└── not-found/
+    └── not-found.page.tsx
 ```
 
-Los módulos pueden contener sus propias subcarpetas de componentes, servicios y hooks. No necesitas un archivo `.module.ts`: esa convención corresponde a NestJS, **no a React**. Si se trasladan carpetas, corrige rutas e imports sin modificar la navegación.
+Cada módulo conserva sus componentes, hooks y servicios privados. Los archivos `*.hook.ts` y `*.service.ts` siguen las reglas del plugin incluso dentro de subcarpetas. Se permiten `index.ts` públicos de módulos (la prohibición de barrels aplica a componentes compartidos).
+
+La página no encontrada pertenece a `src/modules/not-found/`. No apliques a React la convención NestJS `*.module.ts` ni reintroduzcas SEO/prerenderizado.
+
+**Module & Route Validator** comprueba archivos sueltos en la raíz de módulos y ubicación de páginas en routes.

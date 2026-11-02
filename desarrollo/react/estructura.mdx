@@ -1,45 +1,53 @@
 ---
 title: "Estructura de React"
-sidebarTitle: "Guía de estructura"
-description: "Convenciones de Erixcel React para frontend/src, package.json y archivos .env."
+description: "Convenciones de arquitectura de Erixcel React y validadores."
 ---
 
 # Erixcel React: estructura
 
-Esta guía es la **fuente de verdad** para la distribución de código en proyectos **React 19 + Vite 8 + TypeScript**, siguiendo la estructura del frontend de Erixcel. Las Skills del plugin enlazan a las páginas específicas y los Hooks validan cambios de forma automática.
+Esta guía es la **fuente de verdad** para el plugin React 19 + Vite 8 + TypeScript. No se aplican convenciones de NestJS a este frontend.
 
 ```text
 frontend/
 ├── src/
 │   ├── api/
+│   │   └── backend.api.ts          # Generado desde el backend
 │   ├── assets/
 │   ├── components/
-│   ├── hooks/
-│   ├── modules/
-│   ├── routes/
-│   ├── services/
-│   ├── index.css
+│   │   ├── simple/
+│   │   └── complex/
+│   ├── hooks/                      # *.hook.ts
+│   ├── modules/                    # Por dominio
+│   ├── routes/                     # Solo configuración
+│   ├── services/                   # *.service.ts
+│   ├── index.css                   # Tailwind + @theme
 │   └── main.tsx
-├── .env                # Solo local; no publicar en Git
-├── .env.example        # Variables documentadas sin secretos
+├── .env
+├── .env.example
 └── package.json
 ```
 
-## Principios
+## Reglas verificables
 
-- **src/api** contiene la capa de cliente HTTP y contratos de transporte; **src/services** define operaciones reutilizables que consumen API.
-- **src/assets** guarda recursos estáticos que Vite importa al bundle.
-- **src/components** guarda elementos de interfaz reutilizables; sus llamadas a red deben delegarse a API/servicios.
-- **src/hooks** reúne hooks personalizados con la convención `useXxx`.
-- **src/modules** agrupa funcionalidades por dominio, sin archivos sueltos en la raíz de esa carpeta.
-- **src/routes** define el router usado por `RouterProvider` desde `src/main.tsx`.
-- **src/main.tsx** monta React; **src/index.css** carga estilos globales.
-- En la raíz, estas reglas se concentran en **package.json**, **.env** y **.env.example**. No obligan a reorganizar archivos técnicos de Vite, ESLint o TypeScript.
+| Área | Convención |
+| --- | --- |
+| CSS | Solo `src/index.css` propio; `@import 'tailwindcss';` y tokens `@theme`, sin selectores ni reglas propias |
+| API | Solo `src/api/backend.api.ts` generado; no modificar a mano |
+| Componentes | `simple/` y `complex/`; simples planos, complejos por carpeta |
+| Hooks | Todos los hooks en `*.hook.ts`; solo imports y funciones a nivel superior |
+| Servicios | Todos los servicios en `*.service.ts`; solo imports y funciones a nivel superior |
+| Módulos | Funcionalidades por carpeta, incluyendo `not-found/` |
+| Rutas | Configuración en `src/routes/`; páginas en módulos |
+| Entrada | `createRoot`, `RouterProvider` y `index.css` desde `main.tsx` |
 
-## Alcance y funcionamiento
+Los archivos técnicos de Vite, ESLint, TypeScript y despliegue en la raíz **siguen permitidos**. De la raíz se vigilan específicamente `package.json`, `.env` y `.env.example`.
 
-Los Hooks se aplican **solo a proyectos identificados como React + Vite** y se disparan sobre los archivos o carpetas **cambiados durante el turno**. No borran, mueven ni editan archivos. Cuando detectan errores en `Stop`, devuelven feedback para que Codex pueda corregirlos; las Skills contienen instrucciones y siempre deben consultar esta documentación actualizada.
+## Hooks de validación
 
-<Note>
-  La estructura es un punto de partida, no una invitación a borrar implementaciones existentes. Si mueves archivos, revisa imports, enlaces, dependencias y pruebas.
-</Note>
+`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los validadores `Stop` inspeccionan cambios, altas, eliminaciones y carpetas afectadas. En archivos de hooks/servicios usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
+
+## Decisiones pendientes
+
+La ubicación/nomenclatura oficial de contratos de tipos y de estado compartido todavía no está acordada. No inventes carpetas, no reemplaces tipos por `any` y no destruyas cachés o sesiones existentes para cumplir la regla. Tampoco existe un mecanismo de procedencia para distinguir un cambio manual a `backend.api.ts` de una regeneración legítima: el Hook valida la estructura y la Skill indica regenerarlo desde el backend.
+
+Consulta cada carpeta para ejemplos de código y excepciones.

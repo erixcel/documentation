@@ -1,19 +1,30 @@
 ---
-title: "services"
+title: "Services"
 sidebarTitle: "services"
-description: "Servicios de aplicación y operaciones reutilizables."
 ---
 
-# src/services
+# Services
 
-Esta capa orquesta operaciones de negocio del frontend y consume el cliente de `src/api`. Evita renderizar ReactDOM, crear raíces o depender del DOM de montaje aquí.
+Los archivos en `src/services/` y en servicios privados de módulos o componentes complejos deben terminar en `*.service.ts`.
+
+```text
+src/services/upload-attachment.service.ts
+src/modules/auth/services/auth-session.service.ts
+src/components/complex/toast/services/toast.service.ts
+```
+
+Los servicios se ocupan de API, almacenamiento, transformaciones y operaciones reutilizables. En el nivel superior **solo imports y funciones**, incluidas expresiones/arrow functions asignadas a `const`. Se permiten múltiples funciones y variables locales con tipos inline y genéricos.
+
+Prohibidos a nivel superior: `type`, `interface`, `class`, `enum`, `namespace`, instancias, constantes de datos, cachés, sesiones compartidas o ejecución al importar. Prohibidos JSX, ReactDOM, hooks React y `@Injectable` de NestJS.
 
 ```ts src/services/health.service.ts
-import { apiGet } from '../api/http.api';
-
-export function loadHealth() {
-  return apiGet<{ status: string }>('/public/health');
+export async function loadHealth(): Promise<{ status: string }> {
+  const response = await fetch(import.meta.env.VITE_API_URL + '/health');
+  if (!response.ok) throw new Error('No se pudo consultar el estado');
+  return response.json();
 }
 ```
 
-Si necesitas valores de entorno con Vite, usa `import.meta.env`. **API & Service Validator** rechaza el uso de `process.env` y los imports de `react-dom` dentro de `src/api` y `src/services`.
+Esto es un ejemplo ilustrativo. Si el proyecto dispone de operaciones generadas en `backend.api.ts`, consúmelas conservando las firmas reales. No inventes rutas ni elimines el estado compartido; **la ubicación final de contratos y sesiones sigue pendiente**.
+
+**Service Validator** usa AST para verificar las declaraciones y rechazar React Hooks, JSX y ReactDOM; en Vite usa `import.meta.env`, no `process.env`.

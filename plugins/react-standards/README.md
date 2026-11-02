@@ -1,6 +1,6 @@
 # Erixcel React
 
-Plugin independiente de Erixcel NestJS. 10 Skills y 9 Hooks sobre React 19, TypeScript, React Router 7, Tailwind 4 y Vite 8.
+Plugin independiente de Erixcel NestJS. 11 Skills y 9 Hooks sobre React 19, TypeScript, React Router 7, Tailwind 4 y Vite 8.
 
 Fuente de verdad: [documentación React](https://docs.erixcel.com/desarrollo/react/estructura). Las Skills enlazan a las páginas MDX de este repositorio; no duplican reglas extensas.
 

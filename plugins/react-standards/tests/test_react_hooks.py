@@ -27,7 +27,7 @@ class ReactPluginTests(unittest.TestCase):
             "createRoot(document.getElementById('root')!).render(<RouterProvider router={router}/>);\n",
             encoding="utf-8",
         )
-        (src / "index.css").write_text("body { margin: 0; }", encoding="utf-8")
+        (src / "index.css").write_text("@import 'tailwindcss';\n", encoding="utf-8")
         (src / "routes/path.route.tsx").write_text(
             "import { createBrowserRouter } from 'react-router-dom';\n"
             "export const router = createBrowserRouter([]);\n",
@@ -71,9 +71,9 @@ class ReactPluginTests(unittest.TestCase):
         manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
         hooks = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
         self.assertEqual(manifest["interface"]["displayName"], "Erixcel React")
-        self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 10)
+        self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 11)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
-        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 8)
+        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 10)
 
     def test_only_responds_to_react_projects(self):
         backend = self.base / "backend"
@@ -106,15 +106,15 @@ class ReactPluginTests(unittest.TestCase):
 
     def test_components_http_layer(self):
         self.prepare()
-        self.write("src/components/card.component.tsx", "export function Card(){ fetch('/api'); return <div/>; }")
+        self.write("src/components/simple/card.component.tsx", "export function Card(){ fetch('/api'); return <div/>; }")
         out = self.check_stop("components")
-        self.assertIn("src/api", out.get("reason", ""))
+        self.assertIn("delega HTTP", out.get("reason", ""))
 
     def test_hook_filename_convention(self):
         self.prepare()
         self.write("src/hooks/width.ts", "export function width(){ return 10; }")
         out = self.check_stop("hooks")
-        self.assertIn("useXxx", out.get("reason", ""))
+        self.assertIn(".hook.ts", out.get("reason", ""))
 
     def test_route_definition(self):
         self.prepare()
@@ -130,7 +130,7 @@ class ReactPluginTests(unittest.TestCase):
 
     def test_services_use_vite_env(self):
         self.prepare()
-        self.write("src/api/http.api.ts", "export const url = process.env.API_URL;")
+        self.write("src/services/fetch.service.ts", "export const fetchData = () => process.env.API_URL;")
         out = self.check_stop("api-services")
         self.assertIn("import.meta.env", out.get("reason", ""))
 
@@ -150,6 +150,120 @@ class ReactPluginTests(unittest.TestCase):
         out = self.check_stop("config")
         self.assertEqual(out.get("decision"), "block")
         self.assertIn("script build", out["reason"])
+
+    def test_css_theme_only_allowed(self):
+        self.prepare()
+        self.write("src/index.css", "@import 'tailwindcss';\n@theme { --color-primary: #2563eb; }\n")
+        self.assertEqual(self.check_stop("styles"), {})
+
+    def test_css_rejects_selectors_and_extra_files(self):
+        self.prepare()
+        self.write("src/index.css", "@import 'tailwindcss';\n.button { color: red; }\n")
+        self.write("src/components/simple/button.module.css", ".button { color: blue; }")
+        out = self.check_stop("styles")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("index.css", out["reason"])
+        self.assertIn("button.module.css", out["reason"])
+
+    def test_api_only_generated_file(self):
+        self.prepare()
+        self.write("src/api/http.api.ts", "export const api = 1;")
+        out = self.check_stop("api")
+        self.assertIn("http.api.ts", out.get("reason", ""))
+        self.assertIn("backend.api.ts", out.get("reason", ""))
+
+    def test_generated_api_class_and_types_permitted(self):
+        self.prepare()
+        self.write("src/api/backend.api.ts", "export interface Foo { id: string }\nexport class Api {}\n")
+        self.assertEqual(self.check_stop("api"), {})
+
+    def test_components_require_simple_complex_subfolders(self):
+        self.prepare()
+        self.write("src/components/simple/button.component.tsx", "export function Button(){return <button/>;}")
+        result = self.check_stop("components")
+        self.assertIn("complex", result.get("reason", ""))
+
+    def test_complex_component_requires_view_and_subfolders(self):
+        self.prepare()
+        self.write("src/components/complex/audio-recorder/test.ts", "export const x = 1;")
+        out = self.check_stop("components")
+        self.assertIn("audio-recorder.component.tsx", out.get("reason", ""))
+        self.assertIn("hooks/", out.get("reason", ""))
+        self.assertIn("services/", out.get("reason", ""))
+
+    def test_hook_ast_allows_inline_types_and_multiple_functions(self):
+        self.prepare()
+        self.write("src/hooks/use-user.hook.ts",
+                   "import { useMemo } from 'react';\n"
+                   "export function useUser<T>(user: T | null) { return useMemo(() => !!user, [user]); }\n"
+                   "export const helper = (a: string) => a.trim();\n")
+        self.assertEqual(self.check_stop("hooks"), {})
+
+    def test_hook_ast_rejects_type_interface_class_and_shared_cache(self):
+        self.prepare()
+        self.write("src/modules/auth/hooks/use-user.hook.ts",
+                   "export type U = { id: number };\n"
+                   "interface I { name: string }\n"
+                   "class Store {}\n"
+                   "const cache = new Map();\n"
+                   "export function useUser() { return true; }\n")
+        out = self.check_stop("hooks")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("use-user.hook.ts:", out["reason"])
+        self.assertIn("Solo imports y funciones", out["reason"])
+
+    def test_hook_ast_does_not_confuse_comments_or_strings(self):
+        self.prepare()
+        self.write("src/hooks/use-token.hook.ts",
+                   "// type Secret = string; class Fake {}\n"
+                   "export function useToken() { const str = 'interface Fake {}'; return str; }\n")
+        self.assertEqual(self.check_stop("hooks"), {})
+
+    def test_services_ast_rejects_classes_and_types(self):
+        self.prepare()
+        self.write("src/services/session.service.ts",
+                   "export class SessionService {}\n"
+                   "export interface Session { id: string }\n"
+                   "export const load = () => true;\n")
+        out = self.check_stop("services")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("session.service.ts:1", out["reason"])
+
+    def test_nested_service_wrong_extension(self):
+        self.prepare()
+        self.write("src/components/complex/toast/services/toast.ts", "export function show() {}")
+        out = self.check_stop("services")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn(".service.ts", out["reason"])
+
+    def test_service_ast_allows_function_expressions_and_local_variables(self):
+        self.prepare()
+        self.write("src/modules/auth/services/auth.service.ts",
+                   "import type { RequestInit } from 'node-fetch';\n"
+                   "export const getUser = async <T>(key: string): Promise<T> => { "
+                   "const data = { key }; return data as T; };\n")
+        self.assertEqual(self.check_stop("services"), {})
+
+    def test_services_reject_react_hooks(self):
+        self.prepare()
+        self.write("src/services/session.service.ts",
+                   "import { useState } from 'react';\n"
+                   "export function getState(){ return useState(0); }\n")
+        out = self.check_stop("services")
+        self.assertIn("React", out.get("reason", ""))
+
+    def test_module_route_page_placement(self):
+        self.prepare()
+        self.write("src/routes/not-found.page.tsx", "export const NotFound = () => null;")
+        out = self.check_stop("module-routes")
+        self.assertIn("not-found.page.tsx", out.get("reason", ""))
+
+    def test_missing_typescript_reports_explicit_error(self):
+        self.prepare()
+        self.write("src/hooks/use-any.hook.ts", "export function useAny(){return true;}")
+        with patch.object(validator.subprocess, "run", side_effect=FileNotFoundError()):
+            out = self.check_stop("hooks")
+        self.assertIn("TypeScript", out.get("reason", ""))
 
     def test_unmodified_files_are_not_blocked(self):
         self.prepare()

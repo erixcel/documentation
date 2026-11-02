@@ -650,14 +650,16 @@ def validate_layout_files(root, changed):
         for item in folder.rglob("*"):
             if item.is_dir() and item.name == "pages":
                 issues.append(f"{item.relative_to(root)}: [layout-pages] Un layout no puede contener pages/.")
-            if item.is_file() and item.suffix == ".tsx":
-                if not item.name.endswith(".layout.tsx"):
-                    issues.append(f"{item.relative_to(root)}: [layout-name] Usa *.layout.tsx.")
         for section in folder.iterdir():
-            if section.is_dir() and section.name != "pages":
-                view = section / (section.name + ".layout.tsx")
-                if not view.is_file():
-                    issues.append(f"{section.relative_to(root)}: [layout-required] Falta {view.name}.")
+            if not section.is_dir() or section.name == "pages":
+                continue
+            view = section / (section.name + ".layout.tsx")
+            if not view.is_file():
+                issues.append(f"{section.relative_to(root)}: [layout-required] Falta {view.name}.")
+            # Nested components retain their .component.tsx suffix.
+            for item in section.iterdir():
+                if item.is_file() and item.suffix == ".tsx" and item.name != view.name:
+                    issues.append(f"{item.relative_to(root)}: [layout-name] La sección utiliza {view.name}.")
     return issues
 
 def validate_functions(root, changed):

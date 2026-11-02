@@ -1,0 +1,45 @@
+---
+title: "Estructura de React"
+sidebarTitle: "Guía de estructura"
+description: "Convenciones de Erixcel React para frontend/src, package.json y archivos .env."
+---
+
+# Erixcel React: estructura
+
+Esta guía es la **fuente de verdad** para la distribución de código en proyectos **React 19 + Vite 8 + TypeScript**, siguiendo la estructura del frontend de Erixcel. Las Skills del plugin enlazan a las páginas específicas y los Hooks validan cambios de forma automática.
+
+```text
+frontend/
+├── src/
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   ├── hooks/
+│   ├── modules/
+│   ├── routes/
+│   ├── services/
+│   ├── index.css
+│   └── main.tsx
+├── .env                # Solo local; no publicar en Git
+├── .env.example        # Variables documentadas sin secretos
+└── package.json
+```
+
+## Principios
+
+- **src/api** contiene la capa de cliente HTTP y contratos de transporte; **src/services** define operaciones reutilizables que consumen API.
+- **src/assets** guarda recursos estáticos que Vite importa al bundle.
+- **src/components** guarda elementos de interfaz reutilizables; sus llamadas a red deben delegarse a API/servicios.
+- **src/hooks** reúne hooks personalizados con la convención `useXxx`.
+- **src/modules** agrupa funcionalidades por dominio, sin archivos sueltos en la raíz de esa carpeta.
+- **src/routes** define el router usado por `RouterProvider` desde `src/main.tsx`.
+- **src/main.tsx** monta React; **src/index.css** carga estilos globales.
+- En la raíz, estas reglas se concentran en **package.json**, **.env** y **.env.example**. No obligan a reorganizar archivos técnicos de Vite, ESLint o TypeScript.
+
+## Alcance y funcionamiento
+
+Los Hooks se aplican **solo a proyectos identificados como React + Vite** y se disparan sobre los archivos o carpetas **cambiados durante el turno**. No borran, mueven ni editan archivos. Cuando detectan errores en `Stop`, devuelven feedback para que Codex pueda corregirlos; las Skills contienen instrucciones y siempre deben consultar esta documentación actualizada.
+
+<Note>
+  La estructura es un punto de partida, no una invitación a borrar implementaciones existentes. Si mueves archivos, revisa imports, enlaces, dependencias y pruebas.
+</Note>

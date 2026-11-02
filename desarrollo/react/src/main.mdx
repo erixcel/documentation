@@ -1,0 +1,27 @@
+---
+title: "main.tsx"
+sidebarTitle: "main.tsx"
+description: "Punto de entrada de React, ReactDOM y RouterProvider."
+---
+
+# main.tsx
+
+El punto de entrada del frontend se encuentra en `src/main.tsx`. Inicializa React una sola vez, registra el `RouterProvider` y carga `index.css`. Mantén aquí únicamente el montaje de la aplicación y sus proveedores globales.
+
+```tsx src/main.tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes/path.route';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+);
+```
+
+Si el proyecto ya registra contenedores globales, por ejemplo ToastContainer o AlertContainer, consérvalos; no dupliques `createRoot`. La ruta del router del ejemplo debe adaptarse al archivo exportado por el proyecto.
+
+**Hook:** Main Validator comprueba `createRoot`, `RouterProvider` y el import de `index.css` cuando se editan los archivos de entrada.

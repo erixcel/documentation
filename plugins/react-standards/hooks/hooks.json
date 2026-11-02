@@ -1,0 +1,70 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/detect-changes.py\"",
+            "timeout": 30,
+            "statusMessage": "Detect Changes - Erixcel React"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-structure.py\"",
+            "timeout": 45,
+            "statusMessage": "Structure Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-main.py\"",
+            "timeout": 45,
+            "statusMessage": "Main Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-components.py\"",
+            "timeout": 45,
+            "statusMessage": "Component Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-hooks.py\"",
+            "timeout": 45,
+            "statusMessage": "React Hook Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-routes.py\"",
+            "timeout": 45,
+            "statusMessage": "Route Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-modules.py\"",
+            "timeout": 45,
+            "statusMessage": "Module Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-api-services.py\"",
+            "timeout": 45,
+            "statusMessage": "API & Service Validator - Erixcel React"
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-config.py\"",
+            "timeout": 45,
+            "statusMessage": "Env & Package Validator - Erixcel React"
+          }
+        ]
+      }
+    ]
+  }
+}

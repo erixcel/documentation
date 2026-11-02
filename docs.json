@@ -154,7 +154,23 @@
           {
             "group": "React",
             "pages": [
-              "desarrollo/react/creacion-proyecto"
+              "desarrollo/react/creacion-proyecto",
+              "desarrollo/react/estructura",
+              {
+                "group": "src",
+                "pages": [
+                  "desarrollo/react/src/main",
+                  "desarrollo/react/src/api",
+                  "desarrollo/react/src/assets",
+                  "desarrollo/react/src/components",
+                  "desarrollo/react/src/hooks",
+                  "desarrollo/react/src/modules",
+                  "desarrollo/react/src/routes",
+                  "desarrollo/react/src/services"
+                ]
+              },
+              "desarrollo/react/env",
+              "desarrollo/react/package-json"
             ]
           },
           {
@@ -189,7 +205,8 @@
             "group": "Catálogo",
             "pages": [
               "ia/skills",
-              "ia/hooks"
+              "ia/hooks",
+              "ia/react"
             ]
           }
         ]

@@ -1,0 +1,78 @@
+---
+title: "Erixcel React"
+sidebarTitle: "React"
+description: "Instalación, Skills, Hooks y estructura para React + Vite."
+---
+
+# Erixcel React
+
+Plugin independiente de **Erixcel NestJS** que incluye **10 Skills y 9 Hooks** para proyectos React 19 + Vite 8 + TypeScript. La estructura del código se concentra en `frontend/src/`; en la raíz se revisan principalmente `package.json`, `.env` y `.env.example`.
+
+## Cómo instalarlo y activarlo
+
+<Steps>
+  <Step title="Agregar marketplace">
+    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega en **Source**:
+
+    ```text Marketplace Erixcel
+    erixcel/documentation
+    ```
+  </Step>
+  <Step title="Instalar Erixcel React">
+    En **Erixcel Developer Tools**, instala el plugin **Erixcel React**. Es independiente de NestJS y puede activarse por separado.
+  </Step>
+  <Step title="Autorizar los Hooks">
+    Abre **Codex Desktop → Settings → Hooks**, revisa los comandos, autorízalos con **Trust** y activa los interruptores deseados.
+  </Step>
+  <Step title="Probar una validación">
+    Abre un proyecto React + Vite y solicita una modificación pequeña en `src/main.tsx`; al terminar, el evento **Stop** verificará las reglas pertinentes si **Detect Changes** está activo.
+  </Step>
+</Steps>
+
+## Estructura recomendada
+
+```text
+frontend/
+├── src/
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   ├── hooks/
+│   ├── modules/
+│   ├── routes/
+│   ├── services/
+│   ├── index.css
+│   └── main.tsx
+├── .env
+├── .env.example
+└── package.json
+```
+
+Consulta la [guía completa de estructura](/desarrollo/react/estructura), [package.json](/desarrollo/react/package-json) y [variables de entorno](/desarrollo/react/env).
+
+## Skills disponibles (10)
+
+<Columns cols={2}>
+<Card title="react-app" icon="book-open" href="/desarrollo/react/src/main">Convenciones y ejemplos para react-app.</Card>
+<Card title="react-api" icon="book-open" href="/desarrollo/react/src/api">Convenciones y ejemplos para react-api.</Card>
+<Card title="react-assets" icon="book-open" href="/desarrollo/react/src/assets">Convenciones y ejemplos para react-assets.</Card>
+<Card title="react-components" icon="book-open" href="/desarrollo/react/src/components">Convenciones y ejemplos para react-components.</Card>
+<Card title="react-hooks" icon="book-open" href="/desarrollo/react/src/hooks">Convenciones y ejemplos para react-hooks.</Card>
+<Card title="react-modules" icon="book-open" href="/desarrollo/react/src/modules">Convenciones y ejemplos para react-modules.</Card>
+<Card title="react-routes" icon="book-open" href="/desarrollo/react/src/routes">Convenciones y ejemplos para react-routes.</Card>
+<Card title="react-services" icon="book-open" href="/desarrollo/react/src/services">Convenciones y ejemplos para react-services.</Card>
+<Card title="react-env" icon="book-open" href="/desarrollo/react/env">Convenciones y ejemplos para react-env.</Card>
+<Card title="react-package" icon="book-open" href="/desarrollo/react/package-json">Convenciones y ejemplos para react-package.</Card>
+</Columns>
+
+## Hooks por evento (9)
+
+### Antes de comenzar
+
+**UserPromptSubmit**: **Detect Changes** registra el estado de `src/` y de los archivos de configuración relevantes.
+
+### Al terminar
+
+**Stop**: ocho validadores independientes revisan estructura, main, componentes, hooks personalizados, rutas, módulos, API/servicios y package/env; solo reportan problemas si hubo cambios pertinentes. Las validaciones responden a Codex con feedback, pero no editan archivos directamente.
+
+La lista de Skills y Hooks publicados está también en el [catálogo de Skills](/ia/skills) y [catálogo de Hooks](/ia/hooks), ambos generados desde el marketplace.

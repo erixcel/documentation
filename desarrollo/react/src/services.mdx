@@ -1,0 +1,19 @@
+---
+title: "services"
+sidebarTitle: "services"
+description: "Servicios de aplicación y operaciones reutilizables."
+---
+
+# src/services
+
+Esta capa orquesta operaciones de negocio del frontend y consume el cliente de `src/api`. Evita renderizar ReactDOM, crear raíces o depender del DOM de montaje aquí.
+
+```ts src/services/health.service.ts
+import { apiGet } from '../api/http.api';
+
+export function loadHealth() {
+  return apiGet<{ status: string }>('/public/health');
+}
+```
+
+Si necesitas valores de entorno con Vite, usa `import.meta.env`. **API & Service Validator** rechaza el uso de `process.env` y los imports de `react-dom` dentro de `src/api` y `src/services`.

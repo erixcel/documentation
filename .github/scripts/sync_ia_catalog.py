@@ -33,7 +33,17 @@ SKILL_CARD_DETAILS = {
     },
     "nestjs-tsconfig": {
         "description": "Configura `tsconfig.json` y los alias de TypeScript."
-    }
+    },
+    "react-app": {"description": "Inicializa React en `src/main.tsx` y conecta RouterProvider."},
+    "react-api": {"description": "Organiza clientes HTTP y contratos bajo `src/api/`."},
+    "react-assets": {"description": "Gestiona imágenes y recursos estáticos de `src/assets/`."},
+    "react-components": {"description": "Construye componentes reutilizables en `src/components/`."},
+    "react-hooks": {"description": "Define hooks personalizados `useXxx` en `src/hooks/`."},
+    "react-modules": {"description": "Agrupa funcionalidades por dominio en `src/modules/`."},
+    "react-routes": {"description": "Organiza las rutas y navegación desde `src/routes/`."},
+    "react-services": {"description": "Separa los servicios de negocio en `src/services/`."},
+    "react-env": {"description": "Documenta y valida las variables `.env` y `.env.example`."},
+    "react-package": {"description": "Mantiene los scripts y dependencias de `package.json`."}
 }
 
 
@@ -133,8 +143,23 @@ HOOK_DESCRIPTIONS = {
 }
 
 
+REACT_HOOK_DESCRIPTIONS = {
+    "detect-changes.py": "Registra los cambios de `frontend/src/`, `package.json` y archivos `.env`.",
+    "validate-structure.py": "Comprueba las carpetas de `src/` y archivos de entrada.",
+    "validate-main.py": "Valida `src/main.tsx`: createRoot, RouterProvider y estilos.",
+    "validate-components.py": "Detecta llamadas HTTP dentro de componentes TSX.",
+    "validate-hooks.py": "Comprueba la convención `useXxx` de hooks personalizados.",
+    "validate-routes.py": "Verifica que las rutas definan configuración React Router.",
+    "validate-modules.py": "Exige agrupar las funcionalidades en carpetas de `src/modules/`.",
+    "validate-api-services.py": "Revisa `src/api/` y `src/services/` y las variables Vite.",
+    "validate-config.py": "Revisa `package.json`, `.env` y `.env.example`."
+}
+
+
 def describe_hook(item):
     filename = hook_filename(item["command"])
+    if item.get("plugin") == "Erixcel React":
+        return REACT_HOOK_DESCRIPTIONS.get(filename, "Validación de React + Vite.")
     return HOOK_DESCRIPTIONS.get(filename, f'Hook del evento {item["event"]}.')
 
 
@@ -187,6 +212,7 @@ def generate():
                         title = hook.get("statusMessage") or f'{event} · {hook.get("type", "hook")}'
                         hooks.append({
                             "title": title,
+                            "plugin": plugin["name"],
                             "event": event,
                             "command": hook.get("command") or "",
                             "description": f'{plugin["name"]} (v{plugin["version"]})',
@@ -210,16 +236,16 @@ Las **Skills de Erixcel** son instrucciones reutilizables para agentes de progra
     ```
   </Step>
 
-  <Step title="Instalar Erixcel NestJS">
-    Tras agregar el marketplace, abre su catálogo de plugins, busca **Erixcel NestJS** e instálalo. El plugin incluye las ocho Skills y doce Hooks de validación.
+  <Step title="Instalar el plugin">
+    En **Erixcel Developer Tools**, instala **Erixcel NestJS** o **Erixcel React** según el proyecto. Son plugins separados y cada uno contiene sus propias Skills y Hooks.
   </Step>
 
   <Step title="Comprobar las Skills">
-    En Codex, consulta la sección **Skills** o los detalles del plugin **Erixcel NestJS** instalado y comprueba que estén las ocho Skills.
+    En Codex, abre **Skills** o los detalles del plugin instalado y revisa las Skills de NestJS o React.
   </Step>
 
   <Step title="Utilizarlas">
-    Abre tu proyecto NestJS y solicita, por ejemplo: «Usa la Skill `nestjs-core` para revisar `cors.core.ts` y consulta primero la documentación de Erixcel».
+    Abre tu proyecto y solicita, por ejemplo: «Usa `nestjs-core` para revisar `cors.core.ts`» o «Usa `react-app` para revisar `src/main.tsx`».
   </Step>
 </Steps>
 
@@ -251,7 +277,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y doce Hooks: uno detecta cambios y once revisan las convenciones de NestJS al terminar Codex.
+    Instala o actualiza **Erixcel NestJS** o **Erixcel React** desde **Erixcel Developer Tools**. Cada plugin contiene sus propias Skills y Hooks, y puedes instalarlos independientemente.
   </Step>
 
   <Step title="Revisar los Hooks">

@@ -1,0 +1,21 @@
+---
+title: "api"
+sidebarTitle: "api"
+description: "Clientes HTTP, serialización y contratos de transporte del frontend."
+---
+
+# src/api
+
+Reúne clientes de acceso a APIs externas, adaptadores HTTP y contratos de transporte. Separa la configuración de URL base de las operaciones de negocio y usa `import.meta.env.VITE_API_URL` para variables que **pueden ser públicas**.
+
+```ts src/api/http.api.ts
+const baseUrl = import.meta.env.VITE_API_URL;
+
+export async function apiGet<T>(path: string): Promise<T> {
+  const response = await fetch(new URL(path, baseUrl));
+  if (!response.ok) throw new Error('Error de solicitud');
+  return response.json() as Promise<T>;
+}
+```
+
+Evita guardar tokens secretos en variables `VITE_`, pues Vite las incluye en el bundle del navegador. Los servicios de dominio pueden reutilizar este cliente y tratar los errores.

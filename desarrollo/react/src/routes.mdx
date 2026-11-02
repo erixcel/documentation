@@ -1,0 +1,20 @@
+---
+title: "routes"
+sidebarTitle: "routes"
+description: "Rutas y navegación con React Router 7."
+---
+
+# src/routes
+
+Define aquí el router utilizado por `RouterProvider` en `src/main.tsx`. Mantén las rutas legibles y los nombres consistentes, sin mezclar endpoints HTTP con rutas de interfaz.
+
+```tsx src/routes/path.route.tsx
+import { createBrowserRouter } from 'react-router-dom';
+import { HomePage } from '../modules/home/home.page';
+
+export const router = createBrowserRouter([
+  { path: '/', element: <HomePage /> },
+]);
+```
+
+**Route Validator** verifica que exista una definición TypeScript de rutas basada en React Router cuando se modifica `src/routes`. La validación del router exacto y los enlaces requiere además ejecutar `npm run build` y los tests de navegación.

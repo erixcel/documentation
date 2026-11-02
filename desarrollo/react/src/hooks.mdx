@@ -1,0 +1,25 @@
+---
+title: "hooks"
+sidebarTitle: "hooks"
+description: "Hooks personalizados y reglas de React."
+---
+
+# src/hooks
+
+Los hooks personalizados encapsulan estado, efectos o lógica reutilizable y declaran un nombre de función `useXxx`. Sigue las Rules of Hooks: no llames hooks dentro de condiciones ni bucles y limpia listeners o temporizadores.
+
+```tsx src/hooks/use-window-width.ts
+import { useEffect, useState } from 'react';
+
+export function useWindowWidth() {
+  const [width, setWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return width;
+}
+```
+
+**React Hook Validator** revisa que los archivos TS/TSX modificados dentro de `src/hooks/` contengan una declaración de hook personalizada `useXxx`. Ejecuta además `npm run lint` para las reglas semánticas de React Hooks.

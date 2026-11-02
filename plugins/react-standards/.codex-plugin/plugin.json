@@ -1,0 +1,12 @@
+{
+  "name": "react-standards",
+  "version": "0.1.0",
+  "description": "10 Skills y 9 Hooks para React 19 + Vite 8: estructura src, main, API, assets, componentes, hooks, módulos, rutas, servicios, .env y package.json.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Erixcel React",
+    "shortDescription": "10 Skills y 9 Hooks para React + Vite",
+    "developerName": "Erixcel",
+    "category": "Developer Tools"
+  }
+}

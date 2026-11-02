@@ -1,0 +1,19 @@
+---
+title: "components"
+sidebarTitle: "components"
+description: "Componentes reutilizables y composición de interfaz."
+---
+
+# src/components
+
+Agrupa componentes de interfaz reutilizables. Mantén sus props tipadas, sus responsabilidades acotadas y los controles accesibles. Puedes organizar carpetas por función, por ejemplo `components/complex/toast/`.
+
+```tsx src/components/primary-button.component.tsx
+type Props = { label: string; onClick: () => void };
+
+export function PrimaryButton({ label, onClick }: Props) {
+  return <button type="button" onClick={onClick}>{label}</button>;
+}
+```
+
+Las llamadas HTTP se resuelven preferentemente desde `src/services` o `src/api`, no directamente dentro de componentes de presentación. **Component Validator** avisa si encuentra llamadas directas como `fetch()` o `axios()` en TSX del directorio de componentes.

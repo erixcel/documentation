@@ -1,0 +1,19 @@
+---
+title: "assets"
+sidebarTitle: "assets"
+description: "Recursos estáticos del bundle React y convenciones de rutas."
+---
+
+# src/assets
+
+Guarda imágenes, iconos, fuentes y recursos que se importan desde el código React y que Vite procesa en el bundle.
+
+```tsx
+import logo from '../assets/logo.png';
+
+export function Logo() {
+  return <img src={logo} alt="Logo" />;
+}
+```
+
+Mantén los recursos de despliegue público directo donde corresponda al proyecto; moverlos a `src/assets` puede cambiar sus rutas. Usa nombres claros y comprueba referencias antes de renombrar.

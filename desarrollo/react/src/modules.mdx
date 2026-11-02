@@ -1,0 +1,24 @@
+---
+title: "modules"
+sidebarTitle: "modules"
+description: "Agrupación de funcionalidades del frontend por dominio."
+---
+
+# src/modules
+
+Cada funcionalidad vive dentro de una carpeta de dominio propia. **No pongas archivos sueltos directamente bajo `src/modules/`**.
+
+```text
+src/modules/
+├── auth/
+│   ├── components/
+│   ├── hooks/
+│   ├── services/
+│   └── auth.page.tsx
+├── fijas/
+│   └── fijas.page.tsx
+└── profile/
+    └── profile.page.tsx
+```
+
+Los módulos pueden contener sus propias subcarpetas de componentes, servicios y hooks. No necesitas un archivo `.module.ts`: esa convención corresponde a NestJS, **no a React**. Si se trasladan carpetas, corrige rutas e imports sin modificar la navegación.

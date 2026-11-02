@@ -9,7 +9,7 @@ Estructura de referencia: `src/api`, `src/assets`, `src/components`, `src/hooks`
 ## Hooks activos en v0.4.0
 
 - **UserPromptSubmit:** Detect Changes registra cambios antes de que Codex trabaje.
-- **Stop (12):** Main, Style, API, Component, React Hook, Service, Store y Env Validator.
+- **Stop (12):** Main, Style, API, Component, React Hook, Service, Store, Env, Function, Page, Interface y Layout Validator.
 
 **Retirados por flexibilidad entre proyectos:** Structure Validator, Module & Route Validator y Package Validator. Se eliminaron de `hooks.json` y de la distribución del plugin, por lo que no se ejecutan al terminar Codex.
 
@@ -47,3 +47,10 @@ Cada página puede tener **solo las carpetas que realmente necesite**: `componen
 `layout/` sirve para **dividir una sola página grande en secciones internas con lógica o representación sustancial**, no para crear rutas o subpáginas. Ejemplo: `src/pages/auth/layout/topbar/topbar.layout.tsx` y `src/pages/auth/layout/bottombar/bottombar.layout.tsx`. Si hay solo una vista sencilla, no hace falta layout. Cada sección tiene su propia carpeta, la vista `<sección>.layout.tsx` y sus propios recursos opcionales (functions, hooks, components, services, interfaces, stores). Queda **prohibido cualquier directorio `pages/` dentro de `layout/` a cualquier profundidad**. Las páginas hijas van en `src/pages/<padre>/pages/<hija>/`.
 
 La regla del ancestro común más cercano también rige los recursos dentro de layouts y páginas. Los validadores `Page`, `Layout`, `Function`, `Interface` están registrados como Hooks Stop adicionales; las comprobaciones no modifican ni migran archivos automáticamente.
+
+
+## Arquitectura modular de los Hooks
+
+Los ejecutables `validate-*.py` siguen registrados individualmente en `hooks.json`; son wrappers sin reglas embebidas. `common/` contiene `discovery.py`, `snapshot.py`, `runner.py`, `reporter.py` y constantes. `validators/` contiene un módulo por recurso (`pages.py`, `layouts.py`, `functions.py`, `interfaces.py`, `hooks.py`, `components.py`, `services.py`, `stores.py`, etc.). `analyzers/` incluye `imports.py`, `ast.py` y `typescript-ast.mjs` para análisis estático de imports y del AST TypeScript. `validator_common.py` permanece temporalmente como fachada para compatibilidad con pruebas y llamadas anteriores, pero ya no concentra las reglas.
+
+La separación es interna: se conservan los nombres y contratos de los 13 Hooks. Los validadores no modifican archivos. Para ejecutar las pruebas: `python3 -m unittest discover -s plugins/react-standards/tests -p "test_*.py" -v` (requiere dependencias del parser TypeScript cuando se prueban reglas AST).

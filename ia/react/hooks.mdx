@@ -59,3 +59,8 @@ Los Hooks publicados en GitHub no reflejan si están activados en tu equipo.
 ## Sincronización
 
 Este listado se genera desde el archivo de Hooks del plugin en GitHub; no desde los Hooks instalados localmente.
+
+
+## Límites de recursos compartidos
+
+Los validadores de componentes, hooks, servicios y stores también inspeccionan los nombres de recursos React y los imports relativos resolubles para detectar cruces entre páginas o secciones: `[resource-suffix]`, `[component-location]` y `[resource-scope]`. Los imports con alias, dinámicos, o referencias externas no se consideran una prueba concluyente. Consulta [estructura de React](/desarrollo/react/estructura).

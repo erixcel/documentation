@@ -21,4 +21,6 @@ description: "Usar al crear o modificar hooks personalizados *.hook.ts."
 
 ## Decisiones pendientes
 
-La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+El alcance de estado compartido se define en stores; la ubicación de contratos de tipos reutilizables sigue pendiente. No elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+
+6. Consume el estado compartido desde `src/stores/` o `src/pages/<sección>/stores/` mediante hooks React; no declares caches o clientes al nivel superior de `.hook.ts`. Consulta `react-stores`.

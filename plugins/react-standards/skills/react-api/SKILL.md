@@ -21,4 +21,6 @@ description: "Usar al modificar src/api/backend.api.ts generado."
 
 ## Decisiones pendientes
 
-La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+El alcance de estado compartido se define en stores; la ubicación de contratos de tipos reutilizables sigue pendiente. No elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+
+6. Las instancias compartidas de API viven en stores; las operaciones, en servicios; y la integración React, en hooks. Consulta `react-stores`.

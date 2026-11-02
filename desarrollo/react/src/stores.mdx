@@ -1,0 +1,83 @@
+---
+title: "Stores"
+sidebarTitle: "stores"
+description: "Estado compartido e instancias estables por alcance en Erixcel React."
+---
+
+# Stores: estado e instancias compartidas
+
+Un store conserva **estado e instancias**: sesiones, clientes HTTP, suscripciones o cachés. Los servicios usan esas instancias y los hooks las integran con React. **No crees stores vacíos.**
+
+## Ubicación por consumidores
+
+| Compartido entre | Ubicación |
+| --- | --- |
+| Varias páginas principales | `src/stores/*.store.ts` |
+| Solo una página/sección | `src/pages/<nombre>/stores/*.store.ts` |
+| Subpáginas de una misma sección | `src/pages/<sección>/stores/*.store.ts` |
+
+```text
+src/
+├── stores/
+│   ├── auth-session.store.ts
+│   └── api-client.store.ts
+└── pages/
+    └── admin/
+        ├── admin.tsx
+        ├── stores/
+        │   └── admin-client.store.ts
+        ├── services/
+        │   └── admin-client.service.ts
+        └── hooks/
+            └── use-admin-auth.hook.ts
+```
+
+El store administrativo pertenece a `admin` si solo esa sección lo consume. Compartirlo entre subpáginas de admin **no** lo convierte en global. Se permiten secciones anidadas, como `src/pages/admin/reports/stores/*.store.ts`. Los archivos de store deben residir directamente dentro de su directorio `stores/`.
+
+## Contenido
+
+- Todos los archivos de store terminan en `*.store.ts`.
+- Un store **sí puede contener** constantes, objetos, clientes, estado, instancias e inicialización a nivel superior. No aplica la restricción «solo funciones» de `.service.ts` y `.hook.ts`.
+- No introduzcas JSX, componentes React, montaje con ReactDOM ni llamadas a React Hooks; los hooks React pertenecen a `*.hook.ts`.
+- Los tipos locales relacionados con el estado son posibles; no transformes stores en simples repositorios de tipos o utilidades. La ubicación general de los contratos reutilizables permanece pendiente.
+- Los servicios deben acceder mediante funciones como `getApi()`, `getAdminApi()` y `getAdminSession()`, reutilizando la instancia y sin reconstruirla por cada llamada.
+- Evita dependencias circulares entre fábricas, stores y servicios.
+
+## Ejemplo: sesión administrativa
+
+```ts src/pages/admin/stores/admin-session.store.ts
+type AdminSession = { token: string; revision: number };
+let adminSession: AdminSession | null = null;
+
+export function getAdminSession(): AdminSession | null {
+  return adminSession;
+}
+
+export function replaceAdminSession(next: AdminSession | null): void {
+  adminSession = next;
+}
+
+export function clearAdminSessionIfCurrent(revision: number): void {
+  if (adminSession?.revision === revision) adminSession = null;
+}
+```
+
+```ts src/pages/admin/services/admin-session.service.ts
+import { getAdminSession } from '../stores/admin-session.store';
+
+export function getAdminToken(): string | null {
+  return getAdminSession()?.token ?? null;
+}
+```
+
+Un cliente se inicializa una vez en su store y se ofrece mediante un getter estable. Si necesita inicialización diferida, almacena su resultado y no lo reconstruyas en cada llamada. El store global `src/stores/auth-session.store.ts` es independiente del administrativo.
+
+## Consumo en React y pruebas
+
+El hook personalizado se suscribe al estado mediante `useSyncExternalStore` u otra integración apropiada, con limpieza de suscripciones y snapshots de identidad estable.
+
+**Store Validator (Stop)** comprueba sufijo, rutas permitidas (globales o bajo `src/pages/`), archivos de carpetas afectadas y prohibiciones estructurales (JSX, ReactDOM y llamadas a hooks React) con el **AST de TypeScript**. Los diagnósticos incluyen archivo y línea.
+
+**El AST no demuestra** quién consume realmente el estado, identidad de la instancia entre llamadas, persistencia, caducidad, limpieza de suscripciones, ausencia de ciclos transitivos o aislamiento de sesiones. Esas condiciones exigen pruebas funcionales: un 401 de admin no cierra la sesión del apostador; una respuesta antigua no borra una sesión renovada.
+
+El plugin no crea archivos ni reactiva los validadores globales retirados. Mantén `src/pages`, nunca `src/modules`.

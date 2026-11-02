@@ -71,10 +71,10 @@ class ReactPluginTests(unittest.TestCase):
         manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
         hooks = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
         self.assertEqual(manifest["interface"]["displayName"], "Erixcel React")
-        self.assertEqual(manifest["version"], "0.2.2")
-        self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 11)
+        self.assertEqual(manifest["version"], "0.3.0")
+        self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 12)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
-        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 7)
+        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 8)
         retired = ("validate-structure.py", "validate-module-routes.py", "validate-package.py")
         commands = [h["command"] for h in hooks["Stop"][0]["hooks"]]
         for name in retired:
@@ -269,6 +269,133 @@ class ReactPluginTests(unittest.TestCase):
         with patch.object(validator.subprocess, "run", side_effect=FileNotFoundError()):
             out = self.check_stop("hooks")
         self.assertIn("TypeScript", out.get("reason", ""))
+
+
+    def test_store_plugin_registered_and_nestjs_isolated(self):
+        root = Path(__file__).resolve().parents[1]
+        config = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
+        active = [h["command"] for h in config["Stop"][0]["hooks"]]
+        self.assertEqual(sum("validate-stores.py" in command for command in active), 1)
+        self.assertNotIn("validate-module-routes.py", " ".join(active))
+        self.assertTrue((root / "skills/react-stores/SKILL.md").is_file())
+
+    def test_global_store_keeps_top_level_singleton_and_local_type(self):
+        self.prepare()
+        self.write("src/stores/api-client.store.ts",
+                   "type ApiOptions = { path: string };\n"
+                   "const api = { url: '/api', request: () => true };\n"
+                   "let session = { token: 'test' };\n"
+                   "export function getApi() { return api; }\n"
+                   "export function getSession() { return session; }\n")
+        self.assertEqual(self.check_stop("stores"), {})
+
+    def test_private_store_in_pages_and_deeply_nested_sections(self):
+        self.prepare()
+        self.write("src/pages/admin/stores/admin-client.store.ts",
+                   "const adminApi = { name: 'admin' };\n"
+                   "export const getAdminApi = () => adminApi;\n")
+        self.write("src/pages/admin/reports/stores/reports.store.ts",
+                   "let cache = new Map<string, unknown>();\n"
+                   "export function getCache() { return cache; }\n")
+        self.assertEqual(self.check_stop("stores"), {})
+
+    def test_store_does_not_require_creating_empty_folders(self):
+        self.prepare()
+        self.write("src/pages/admin/admin.tsx", "export function Admin() { return null; }\n")
+        self.assertEqual(self.check_stop("stores"), {})
+
+    def test_store_rejects_non_store_filename_in_touched_store_folder(self):
+        self.prepare()
+        self.write("src/stores/auth-session.store.ts", "let state = null;\nexport function getState() { return state; }\n")
+        self.write("src/stores/legacy.ts", "export const cache = new Map();\n")
+        out = self.check_stop("stores")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("src/stores/legacy.ts:1", out["reason"])
+        self.assertIn("[store-name]", out["reason"])
+
+    def test_store_rejects_file_outside_global_or_page_store_locations(self):
+        self.prepare()
+        self.write("src/pages/admin/admin-client.store.ts", "export const client = {};\n")
+        self.write("src/components/simple/cache.store.ts", "export const cache = {};\n")
+        out = self.check_stop("stores")
+        self.assertEqual(out.get("decision"), "block")
+        self.assertIn("admin-client.store.ts:1", out["reason"])
+        self.assertIn("cache.store.ts:1", out["reason"])
+        self.assertIn("[store-location]", out["reason"])
+
+    def test_store_rejects_nested_store_subfolders_and_wrong_suffix(self):
+        self.prepare()
+        self.write("src/pages/admin/stores/deep/legacy.store.ts", "export let cache = {};\n")
+        self.write("src/pages/admin/stores/bad.store.tsx", "export const state = 5;\n")
+        out = self.check_stop("stores")
+        self.assertIn("legacy.store.ts:1", out.get("reason", ""))
+        self.assertIn("bad.store.tsx:1", out.get("reason", ""))
+
+    def test_store_rejects_react_hooks_and_jsx_ast(self):
+        self.prepare()
+        self.write("src/stores/bad.store.tsx",
+                   "import { useState as state } from 'react';\n"
+                   "const a = state(0);\n"
+                   "export function View(){ return <main/>; }\n")
+        out = self.check_stop("stores")
+        self.assertIn("[store-react-hook]", out.get("reason", ""))
+        self.assertIn("[store-jsx]", out.get("reason", ""))
+
+    def test_store_rejects_reactdom_import_and_mount(self):
+        self.prepare()
+        self.write("src/stores/dom.store.ts",
+                   "import { createRoot } from 'react-dom/client';\n"
+                   "export const app = createRoot(document.getElementById('root')!);\n")
+        out = self.check_stop("stores")
+        self.assertIn("[store-reactdom]", out.get("reason", ""))
+        self.assertIn("[store-react-render]", out.get("reason", ""))
+
+    def test_store_rejects_type_only_container(self):
+        self.prepare()
+        self.write("src/stores/contracts.store.ts", "export type Token = string;\nexport interface Data { id: string }\n")
+        out = self.check_stop("stores")
+        self.assertIn("[store-empty]", out.get("reason", ""))
+
+    def test_store_does_not_mistake_strings_comments_or_types_for_hooks(self):
+        self.prepare()
+        self.write("src/pages/bettor/stores/auth.store.ts",
+                   "// useState() is only a comment.\n"
+                   "type Auth = { message: string };\n"
+                   "let session: Auth | null = { message: 'React.useEffect() JSX <div/>' };\n"
+                   "export function getSession() { return session; }\n")
+        self.assertEqual(self.check_stop("stores"), {})
+
+    def test_store_modified_directory_validates_unchanged_sibling(self):
+        self.write("src/stores/old.ts", "export const value = 1;\n")
+        self.prepare()
+        self.write("src/stores/new.store.ts", "export const cache = {};\n")
+        out = self.check_stop("stores")
+        self.assertIn("src/stores/old.ts:1", out.get("reason", ""))
+
+    def test_store_move_and_delete_are_handled_by_snapshot(self):
+        self.write("src/pages/admin/stores/original.store.ts", "export const state = { id: 1 };\n")
+        self.prepare()
+        original = self.frontend / "src/pages/admin/stores/original.store.ts"
+        original.unlink()
+        self.write("src/stores/moved.store.ts", "export const state = { id: 1 };\n")
+        self.assertEqual(self.check_stop("stores"), {})
+
+    def test_existing_service_and_hook_function_only_rules_remain(self):
+        self.prepare()
+        self.write("src/pages/admin/services/admin.service.ts",
+                   "const api = new Map();\nexport function getApi() { return api; }\n")
+        self.write("src/pages/admin/hooks/use-auth.hook.ts",
+                   "const session = { token: '' };\nexport function useAuth() { return session; }\n")
+        self.assertIn("Solo funciones", self.check_stop("services").get("reason", ""))
+        self.assertIn("Solo funciones", self.check_stop("hooks").get("reason", ""))
+
+    def test_store_validator_does_not_run_in_nestjs_backend(self):
+        self.prepare()
+        backend = self.base / "backend"
+        backend.mkdir()
+        (backend / "package.json").write_text('{"dependencies":{"@nestjs/core":"*"}}')
+        self.assertEqual(validator.stop({**self.payload, "cwd": str(backend),
+                                        "hook_event_name": "Stop"}, "stores"), {})
 
     def test_unmodified_files_are_not_blocked(self):
         self.prepare()

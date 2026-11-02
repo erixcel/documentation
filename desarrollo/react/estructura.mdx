@@ -20,6 +20,7 @@ frontend/
 │   ├── pages/                      # Por funcionalidad
 │   ├── routes/                     # Solo configuración
 │   ├── services/                   # *.service.ts
+│   ├── stores/                     # *.store.ts, estado entre páginas
 │   ├── index.css                   # Tailwind + @theme
 │   └── main.tsx
 ├── .env
@@ -36,7 +37,8 @@ frontend/
 | Componentes | `simple/` y `complex/`; simples planos, complejos por carpeta |
 | Hooks | Todos los hooks en `*.hook.ts`; solo imports y funciones a nivel superior |
 | Servicios | Todos los servicios en `*.service.ts`; solo imports y funciones a nivel superior |
-| Módulos | Funcionalidades por carpeta, incluyendo `not-found/` |
+| Páginas | Funcionalidades en `src/pages/`, incluyendo `not-found/` |
+| Stores | Instancias globales en `src/stores/`; privadas de sección en `src/pages/<sección>/stores/`, siempre `*.store.ts` |
 | Rutas | Configuración en `src/routes/`; páginas en `src/pages/` |
 | Entrada | `createRoot`, `RouterProvider` y `index.css` desde `main.tsx` |
 
@@ -44,10 +46,14 @@ Los archivos técnicos de Vite, ESLint, TypeScript y despliegue en la raíz **si
 
 ## Hooks de validación
 
-`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **siete validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan validadores de estructura general, páginas/rutas ni `package.json`**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks/servicios usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
+`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **ocho validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan validadores de estructura general, páginas/rutas ni `package.json`**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks, servicios y stores usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
 
 ## Decisiones pendientes
 
-La ubicación/nomenclatura oficial de contratos de tipos y de estado compartido todavía no está acordada. No inventes carpetas, no reemplaces tipos por `any` y no destruyas cachés o sesiones existentes para cumplir la regla. Tampoco existe un mecanismo de procedencia para distinguir un cambio manual a `backend.api.ts` de una regeneración legítima: el Hook valida la estructura y la Skill indica regenerarlo desde el backend.
+La ubicación de estado compartido ya está definida en [stores](/desarrollo/react/src/stores), por alcance de consumidores; solo la ubicación de **contratos de tipos reutilizables** continúa pendiente. Conserva identidad, persistencia y aislamiento de sesiones, que requieren pruebas de comportamiento; no sustituyas tipos por `any`. Tampoco existe un mecanismo de procedencia para distinguir un cambio manual a `backend.api.ts` de una regeneración legítima: el Hook valida la estructura y la Skill indica regenerarlo desde el backend.
 
 Consulta cada carpeta para ejemplos de código y excepciones.
+
+## Instancias y stores
+
+Consulta [stores](/desarrollo/react/src/stores) antes de ubicar una sesión o cliente. Lo utilizado por varias páginas principales va en `src/stores/`; lo compartido solo entre subpáginas permanece en `src/pages/<sección>/stores/`. No crees stores vacíos ni globalices por comodidad. Los servicios siguen admitiendo solo funciones y los stores sí permiten estado e inicialización a nivel superior.

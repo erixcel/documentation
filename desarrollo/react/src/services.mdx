@@ -13,7 +13,7 @@ src/pages/auth/services/auth-session.service.ts
 src/components/complex/toast/services/toast.service.ts
 ```
 
-Los servicios se ocupan de API, almacenamiento, transformaciones y operaciones reutilizables. En el nivel superior **solo imports y funciones**, incluidas expresiones/arrow functions asignadas a `const`. Se permiten múltiples funciones y variables locales con tipos inline y genéricos.
+Los servicios realizan operaciones de API, almacenamiento y transformación. Obtienen sus clientes o sesiones **desde stores**, mediante accessors como `getApi()`, `getAdminApi()` o `getAdminSession()` que devuelven la misma instancia; no construyen una nueva en cada llamada. Consulta [stores](/desarrollo/react/src/stores). En el nivel superior **solo imports y funciones**, incluidas expresiones/arrow functions asignadas a `const`. Se permiten múltiples funciones y variables locales con tipos inline y genéricos.
 
 Prohibidos a nivel superior: `type`, `interface`, `class`, `enum`, `namespace`, instancias, constantes de datos, cachés, sesiones compartidas o ejecución al importar. Prohibidos JSX, ReactDOM, hooks React y `@Injectable` de NestJS.
 
@@ -25,6 +25,18 @@ export async function loadHealth(): Promise<{ status: string }> {
 }
 ```
 
-Esto es un ejemplo ilustrativo. Si el proyecto dispone de operaciones generadas en `backend.api.ts`, consúmelas conservando las firmas reales. No inventes rutas ni elimines el estado compartido; **la ubicación final de contratos y sesiones sigue pendiente**.
+Esto es un ejemplo ilustrativo. Si el proyecto dispone de operaciones generadas en `backend.api.ts`, consúmelas conservando las firmas reales. No inventes rutas ni elimines el estado compartido; **los contratos reutilizables mantienen una ubicación pendiente, pero las sesiones compartidas ahora pertenecen a stores**.
 
 **Service Validator** usa AST para verificar las declaraciones y rechazar React Hooks, JSX y ReactDOM; en Vite usa `import.meta.env`, no `process.env`.
+
+## Cliente ya inicializado
+
+```ts src/pages/admin/services/admin-client.service.ts
+import { getAdminApi } from '../stores/admin-client.store';
+
+export function getAdminClient() {
+  return getAdminApi(); // Devuelve la instancia existente.
+}
+```
+
+Mantén separadas la sesión administrativa y la del apostador. Un 401 de administración no cierra la sesión del apostador, y una respuesta antigua no elimina una sesión renovada. Estas propiedades exigen **pruebas de comportamiento**: el AST no puede garantizarlas.

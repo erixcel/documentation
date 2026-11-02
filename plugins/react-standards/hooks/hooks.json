@@ -53,6 +53,12 @@
           },
           {
             "type": "command",
+            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-stores.py\"",
+            "timeout": 45,
+            "statusMessage": "Store Validator - Erixcel React"
+          },
+          {
+            "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-env.py\"",
             "timeout": 45,
             "statusMessage": "Env Validator - Erixcel React"

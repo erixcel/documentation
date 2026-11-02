@@ -167,7 +167,8 @@
                   "desarrollo/react/src/hooks",
                   "desarrollo/react/src/pages",
                   "desarrollo/react/src/routes",
-                  "desarrollo/react/src/services"
+                  "desarrollo/react/src/services",
+                  "desarrollo/react/src/stores"
                 ]
               },
               "desarrollo/react/env",

@@ -14,6 +14,6 @@ src/api/
 
 Se **permiten** `type`, `interface` y `class` emitidos por el generador. La restricción de «solo funciones» de hooks y servicios no aplica aquí.
 
-Los clientes configurados, manejo de sesiones, subida de archivos y operaciones de datos van en `services/`. La coordinación React va en `hooks/`.
+Las instancias compartidas de clientes y sesiones permanecen en [stores](/desarrollo/react/src/stores); los servicios ejecutan operaciones sobre esas instancias existentes. La coordinación React va en `hooks/`.
 
 **API Validator** comprueba estructura y presencia del archivo generado. El Hook no puede demostrar si una modificación del archivo fue una regeneración legítima, porque no se ha definido una huella de procedencia del generador.

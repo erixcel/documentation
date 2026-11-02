@@ -81,6 +81,78 @@ function validateFunctionsOnly(name, sf, kind) {
     walk(sf);
   }
 }
+
+function validateStore(name, sf) {
+  // A store may initialize singleton clients and mutable module-level state.
+  // Do not apply validateFunctionsOnly to stores.
+  let hasRuntimeState = false;
+  const reactNamespaces = new Set(['React']);
+  const reactHookAliases = new Set();
+  const reactElementAliases = new Set(['createElement']);
+  const reactRootAliases = new Set(['createRoot', 'hydrateRoot']);
+
+  for (const statement of sf.statements) {
+    if (ts.isVariableStatement(statement) || ts.isClassDeclaration(statement) ||
+        ts.isExpressionStatement(statement)) hasRuntimeState = true;
+    if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
+      const source = statement.moduleSpecifier.text;
+      const clause = statement.importClause;
+      if (source === 'react-dom' || source.startsWith('react-dom/')) {
+        add(name, sf, statement, '[store-reactdom] Un store no importa ReactDOM ni monta componentes.');
+      }
+      if (source === 'react' && clause && !clause.isTypeOnly) {
+        if (clause.name) reactNamespaces.add(clause.name.text);
+        const bindings = clause.namedBindings;
+        if (bindings && ts.isNamespaceImport(bindings)) reactNamespaces.add(bindings.name.text);
+        if (bindings && ts.isNamedImports(bindings)) {
+          for (const element of bindings.elements) {
+            if (element.isTypeOnly) continue;
+            const original = (element.propertyName ?? element.name).text;
+            if (/^use[A-Z0-9]/.test(original)) reactHookAliases.add(element.name.text);
+            if (original === 'createElement') reactElementAliases.add(element.name.text);
+          }
+        }
+      }
+      continue;
+    }
+  }
+
+  function inspect(node) {
+    if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
+      add(name, sf, node, '[store-jsx] Los stores no contienen JSX ni componentes React.');
+      return;
+    }
+    if (ts.isFunctionDeclaration(node) && node.name && /^use[A-Z0-9]/.test(node.name.text)) {
+      add(name, sf, node, '[store-react-hook] Define hooks useNombre en archivos .hook.ts, no en stores.');
+    }
+    if (ts.isCallExpression(node)) {
+      const expr = node.expression;
+      const direct = ts.isIdentifier(expr) ? expr.text : null;
+      const property = ts.isPropertyAccessExpression(expr) ? expr : null;
+      const method = property ? property.name.text : null;
+      const receiver = property && ts.isIdentifier(property.expression) ? property.expression.text : null;
+      const hookCall = (direct && (/^use[A-Z0-9]/.test(direct) || reactHookAliases.has(direct))) ||
+        (receiver && reactNamespaces.has(receiver) && /^use[A-Z0-9]/.test(method));
+      if (hookCall) add(name, sf, node, '[store-react-hook] No invoques React Hooks desde stores; usa archivos .hook.ts.');
+      const renderCall = (direct && (reactElementAliases.has(direct) || reactRootAliases.has(direct))) ||
+        (receiver && (reactNamespaces.has(receiver) && method === 'createElement' ||
+          /^ReactDOM$/.test(receiver) && ['createRoot', 'hydrateRoot', 'render'].includes(method)));
+      if (renderCall) add(name, sf, node, '[store-react-render] No crees componentes ni montes ReactDOM desde un store.');
+    }
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) &&
+        /^use[A-Z0-9]/.test(node.name.text) && node.initializer && isFunctionValue(node.initializer)) {
+      add(name, sf, node, '[store-react-hook] Los hooks React deben declararse en .hook.ts.');
+    }
+    ts.forEachChild(node, inspect);
+  }
+  inspect(sf);
+  // Type-only modules are not state stores, but allow standalone store accessors
+  // (e.g. a lazily cached singleton in a closure) without guessing behavior.
+  const runtime = sf.statements.some(st => ts.isVariableStatement(st) ||
+    ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isExpressionStatement(st));
+  if (!runtime) add(name, sf, sf, '[store-empty] No uses .store.ts solo para types/interfaces/imports; debe conservar o exponer estado/instancias.');
+}
+
 function validateStyles(name, sf) {
   function visit(node) {
     if (ts.isJsxElement(node) && node.openingElement.tagName.getText(sf).toLowerCase() === 'style') {
@@ -122,5 +194,6 @@ for (const name of names) {
   }
   if (mode === 'hooks' || mode === 'services') validateFunctionsOnly(name, sf, mode);
   if (mode === 'styles') validateStyles(name, sf);
+  if (mode === 'stores') validateStore(name, sf);
 }
 process.stdout.write(JSON.stringify(errors));

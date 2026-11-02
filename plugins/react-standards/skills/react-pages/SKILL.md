@@ -21,4 +21,6 @@ description: "Usar al crear páginas React agrupadas por funcionalidad."
 
 ## Decisiones pendientes
 
-La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+El alcance de estado compartido se define en stores; la ubicación de contratos de tipos reutilizables sigue pendiente. No elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+
+6. Mantén los stores compartidos entre subpáginas dentro de `src/pages/<sección>/stores/` y globaliza solo si los usan distintas páginas principales. No crees stores vacíos.

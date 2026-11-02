@@ -4,7 +4,7 @@ sidebarTitle: "React"
 description: "Instalación de Erixcel React, con Skills y Hooks propios."
 ---
 
-**Erixcel React** incluye **11 Skills y 8 Hooks** para frontends React + Vite. Es independiente del otro plugin: no instala sus Skills ni sus Hooks.
+**Erixcel React** incluye **12 Skills y 9 Hooks** para frontends React + Vite. Es independiente del otro plugin: no instala sus Skills ni sus Hooks.
 
 ## Cómo instalarlo
 
@@ -20,23 +20,23 @@ description: "Instalación de Erixcel React, con Skills y Hooks propios."
     Dentro de **Personal → Erixcel Developer Tools**, busca **Erixcel React** e instálalo. No es necesario instalar el otro plugin.
   </Step>
   <Step title="Comprobar las Skills">
-    En **Codex Desktop → Customize → Plugins → Erixcel React**, revisa sus 11 Skills. Se distribuyen solo con este plugin.
+    En **Codex Desktop → Customize → Plugins → Erixcel React**, revisa sus 12 Skills. Se distribuyen solo con este plugin.
   </Step>
   <Step title="Autorizar y activar los Hooks">
     En **Codex Desktop → Settings → Hooks**, abre **Erixcel React**, inspecciona los comandos y pulsa **Trust** para autorizar los que confíes. Activa **Detect Changes** y los validadores que quieras usar.
   </Step>
   <Step title="Probar el plugin">
-    Abre un proyecto React + Vite y pide un cambio pequeño a `src/main.tsx`. Al finalizar el turno, los siete Hooks de Stop activos pueden enviar feedback para autocorregir incumplimientos. Structure, Module & Route y Package son recomendaciones de documentación y no bloquean cambios.
+    Abre un proyecto React + Vite y pide un cambio pequeño a `src/main.tsx`. Al finalizar el turno, los ocho Hooks de Stop activos pueden enviar feedback para autocorregir incumplimientos. Structure, Module & Route y Package son recomendaciones de documentación y no bloquean cambios.
   </Step>
 </Steps>
 
 ## Skills y Hooks de React
 
 <Columns cols={2}>
-  <Card title="Skills (11)" icon="book-open" href="/ia/react/skills">
+  <Card title="Skills (12)" icon="book-open" href="/ia/react/skills">
     Ver únicamente las Skills del plugin Erixcel React.
   </Card>
-  <Card title="Hooks (11)" icon="shield-check" href="/ia/react/hooks">
+  <Card title="Hooks (9)" icon="shield-check" href="/ia/react/hooks">
     Ver únicamente los Hooks del plugin Erixcel React, separados por evento.
   </Card>
 </Columns>
@@ -46,3 +46,5 @@ description: "Instalación de Erixcel React, con Skills y Hooks propios."
 Consulta la [guía de estructura](/desarrollo/react/estructura), [variables de entorno](/desarrollo/react/env) y [package.json](/desarrollo/react/package-json). Solo se validan archivos de React + Vite; no se ejecutan validadores NestJS.
 
 Las Skills y los Hooks se publican en GitHub. Las actualizaciones del plugin instalado se gestionan aparte en Codex Desktop; la publicación no significa que los Hooks estén activados localmente.
+
+Consulta la [convención de stores](/desarrollo/react/src/stores) para gestionar instancias compartidas por alcance.

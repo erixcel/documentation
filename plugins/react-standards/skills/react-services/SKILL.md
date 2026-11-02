@@ -21,4 +21,6 @@ description: "Usar al crear o modificar servicios *.service.ts de frontend."
 
 ## Decisiones pendientes
 
-La carpeta/sufijo definitivo de contratos de tipos y estado compartido aún no se acordó; **no improvises** una solución ni elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+El alcance de estado compartido se define en stores; la ubicación de contratos de tipos reutilizables sigue pendiente. No elimines cachés o sesiones. El Hook reporta cambios pero no corrige archivos por sí solo.
+
+6. Accede a instancias existentes mediante funciones (`getApi`, `getAdminApi`, `getAdminSession`) importadas de stores. Evita nuevas instancias por llamada y ciclos con fábricas. Consulta `react-stores`.

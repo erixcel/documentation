@@ -13,7 +13,7 @@ src/pages/auth/hooks/use-auth.hook.ts
 src/components/complex/modal/hooks/modal.hook.ts
 ```
 
-Las funciones que invocan hooks React se llaman `useNombre`; las auxiliares pueden tener nombres distintos. Los hooks gestionan estado, efectos, refs y coordinación React; deben limpiar listeners, temporizadores, grabaciones y suscripciones y cumplir las Rules of Hooks. Las operaciones de datos se delegan a servicios.
+Las funciones que invocan hooks React se llaman `useNombre`; las auxiliares pueden tener nombres distintos. Los hooks gestionan estado, efectos, refs y coordinación React; deben limpiar listeners, temporizadores, grabaciones y suscripciones y cumplir las Rules of Hooks. Las operaciones de datos se delegan a servicios. Cuando se consume estado compartido, el hook se suscribe al store con un snapshot estable (`useSyncExternalStore` si corresponde). La instancia permanece en el store y nunca se recrea en cada renderizado. Consulta [stores](/desarrollo/react/src/stores).
 
 ## Solo funciones en el nivel superior
 
@@ -34,4 +34,4 @@ export const normalizeEmail = (email: string) =>
 
 **React Hook Validator** usa el AST de TypeScript para comprobar extensiones y declaraciones sin confundir comentarios con código; el lint de React Hooks complementa la comprobación semántica.
 
-La carpeta oficial de contratos y estado compartido **está pendiente de definir**. No pierdas tipado ni comportamiento al migrar código existente.
+Los estados e instancias compartidos se alojan en stores; la ubicación de contratos de tipos reutilizables sigue pendiente. No pierdas tipado ni comportamiento al migrar código existente.

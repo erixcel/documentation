@@ -41,7 +41,8 @@ SKILL_CARD_DETAILS = {
     "react-hooks": {"description": "Define hooks personalizados `useXxx` en `src/hooks/`."},
     "react-pages": {"description": "Agrupa las páginas del frontend por funcionalidad en `src/pages/`."},
     "react-routes": {"description": "Organiza las rutas y navegación desde `src/routes/`."},
-    "react-services": {"description": "Separa los servicios de negocio en `src/services/`."},
+    "react-services": {"description": "Separa las operaciones en servicios y reutiliza instancias de stores."},
+    "react-stores": {"description": "Conserva sesiones, clientes y cachés en `*.store.ts`, globales o por sección."},
     "react-env": {"description": "Documenta y valida las variables `.env` y `.env.example`."},
     "react-package": {"description": "Mantiene los scripts y dependencias de `package.json`."}
 }
@@ -151,6 +152,7 @@ REACT_HOOK_DESCRIPTIONS = {
     "validate-components.py": "Comprueba componentes `simple/` y `complex/` y sus convenciones.",
     "validate-hooks.py": "Exige `*.hook.ts`: solo imports y funciones (AST de TypeScript).",
     "validate-services.py": "Exige `*.service.ts`: solo funciones, sin JSX ni React Hooks.",
+    "validate-stores.py": "Valida `*.store.ts`: rutas, nombres y ausencia de JSX o React Hooks (AST).",
     "validate-env.py": "Comprueba `.env` y `.env.example` sin exponer secretos.",
 }
 

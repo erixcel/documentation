@@ -15,14 +15,18 @@ src/pages/
 │   │   └── use-auth.hook.ts
 │   ├── services/
 │   │   └── auth-session.service.ts
+│   ├── stores/
+│   │   └── auth-session.store.ts   # Opcional: estado propio de auth
 │   ├── index.ts
 │   └── auth.page.tsx
 └── not-found/
     └── not-found.page.tsx
 ```
 
-Cada página conserva sus componentes, hooks y servicios privados. Los archivos `*.hook.ts` y `*.service.ts` siguen las reglas del plugin incluso dentro de subcarpetas. Se permiten `index.ts` públicos de páginas (la prohibición de barrels aplica a componentes compartidos).
+Cada página conserva componentes, hooks, servicios y, **cuando haga falta**, stores privados. Varias subpáginas de una sección pueden usar un mismo store en `src/pages/<sección>/stores/`; no se eleva a `src/stores/` si las páginas principales no lo comparten. Los archivos `*.hook.ts`, `*.service.ts` y `*.store.ts` siguen las reglas del plugin incluso dentro de subcarpetas. Se permiten `index.ts` públicos de páginas (la prohibición de barrels aplica a componentes compartidos).
 
 La página no encontrada pertenece a `src/pages/not-found/`. No apliques a React la convención NestJS `*.module.ts` ni reintroduzcas SEO/prerenderizado.
 
 **Guía, no Hook obligatorio:** la organización de páginas es una convención recomendada. El validador automático de páginas y rutas fue retirado para respetar las distintas arquitecturas de los proyectos.
+
+Revisa la [guía de stores](/desarrollo/react/src/stores) para mantener clientes y sesiones con una identidad estable. No generes carpetas vacías.

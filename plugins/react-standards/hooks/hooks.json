@@ -17,12 +17,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-structure.py\"",
-            "timeout": 45,
-            "statusMessage": "Structure Validator - Erixcel React"
-          },
-          {
-            "type": "command",
             "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-main.py\"",
             "timeout": 45,
             "statusMessage": "Main Validator - Erixcel React"
@@ -56,18 +50,6 @@
             "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-services.py\"",
             "timeout": 45,
             "statusMessage": "Service Validator - Erixcel React"
-          },
-          {
-            "type": "command",
-            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-module-routes.py\"",
-            "timeout": 45,
-            "statusMessage": "Module & Route Validator - Erixcel React"
-          },
-          {
-            "type": "command",
-            "command": "python3 \"${PLUGIN_ROOT}/hooks/validate-package.py\"",
-            "timeout": 45,
-            "statusMessage": "Package Validator - Erixcel React"
           },
           {
             "type": "command",

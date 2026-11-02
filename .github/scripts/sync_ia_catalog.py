@@ -145,15 +145,12 @@ HOOK_DESCRIPTIONS = {
 
 REACT_HOOK_DESCRIPTIONS = {
     "detect-changes.py": "Registra el estado de `src/`, `package.json` y `.env` antes de editar.",
-    "validate-structure.py": "Comprueba estructura principal de `src/`.",
     "validate-main.py": "Revisa `main.tsx`, RouterProvider y carga de estilos.",
     "validate-styles.py": "Solo `index.css` con Tailwind y tokens `@theme`; sin CSS propio adicional.",
     "validate-api.py": "Exige únicamente `src/api/backend.api.ts` autogenerado.",
     "validate-components.py": "Comprueba componentes `simple/` y `complex/` y sus convenciones.",
     "validate-hooks.py": "Exige `*.hook.ts`: solo imports y funciones (AST de TypeScript).",
     "validate-services.py": "Exige `*.service.ts`: solo funciones, sin JSX ni React Hooks.",
-    "validate-module-routes.py": "Separa módulos por dominio y configuración de navegación.",
-    "validate-package.py": "Comprueba scripts y dependencias de `package.json`.",
     "validate-env.py": "Comprueba `.env` y `.env.example` sin exponer secretos.",
 }
 

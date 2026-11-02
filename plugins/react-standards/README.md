@@ -1,11 +1,24 @@
 # Erixcel React
 
-Plugin independiente de Erixcel NestJS. 11 Skills y 9 Hooks sobre React 19, TypeScript, React Router 7, Tailwind 4 y Vite 8.
+Plugin independiente de Erixcel NestJS. **11 Skills y 8 Hooks** para React 19, TypeScript, React Router 7, Tailwind CSS 4 y Vite 8.
 
-Fuente de verdad: [documentación React](https://docs.erixcel.com/desarrollo/react/estructura). Las Skills enlazan a las páginas MDX de este repositorio; no duplican reglas extensas.
+Fuente de verdad: [documentación React](https://docs.erixcel.com/desarrollo/react/estructura). Las Skills enlazan a las páginas MDX; las recomendaciones de arquitectura se adaptan al proyecto real.
 
-Estructura: `src/api`, `src/assets`, `src/components`, `src/hooks`, `src/modules`, `src/routes`, `src/services`, `src/main.tsx` e `src/index.css`; archivos raíz revisados: `package.json`, `.env` y `.env.example`.
+Estructura de referencia: `src/api`, `src/assets`, `src/components`, `src/hooks`, `src/modules`, `src/routes`, `src/services`, `src/main.tsx`, `src/index.css`. Archivos raíz: `package.json`, `.env`, `.env.example`.
 
-Hooks: un snapshot en UserPromptSubmit y ocho validaciones independientes en Stop. Se aplican solo a carpetas React + Vite reconocidas y nunca modifican archivos. Para probar manualmente: `python3 hooks/validate-react.py --check /ruta/al/frontend`.
+## Hooks activos en v0.2.1
 
-Los Hooks deben autorizarse y activarse en Codex Desktop → Settings → Hooks después de instalar el plugin desde el marketplace `erixcel/documentation`.
+- **UserPromptSubmit:** Detect Changes registra cambios antes de que Codex trabaje.
+- **Stop (7):** Main, Style, API, Component, React Hook, Service y Env Validator.
+
+**Retirados por flexibilidad entre proyectos:** Structure Validator, Module & Route Validator y Package Validator. Se eliminaron de `hooks.json` y de la distribución del plugin, por lo que no se ejecutan al terminar Codex.
+
+Las convenciones de carpetas de módulos, las recomendaciones para package.json y la estructura principal siguen documentadas como **guías**, no como validaciones automáticas obligatorias. Los validadores existentes no modifican archivos por sí solos.
+
+Para probar manualmente un Hook de los que siguen activos:
+
+```sh
+python3 hooks/validate-hooks.py --check /ruta/al/frontend
+```
+
+Autoriza/activa los Hooks en **Codex Desktop → Settings → Hooks**. Si el plugin ya estaba instalado, actualízalo a v0.2.1 y comprueba que los tres Hooks retirados hayan desaparecido.

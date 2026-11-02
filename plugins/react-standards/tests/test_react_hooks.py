@@ -71,10 +71,14 @@ class ReactPluginTests(unittest.TestCase):
         manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
         hooks = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
         self.assertEqual(manifest["interface"]["displayName"], "Erixcel React")
-        self.assertEqual(manifest["version"], "0.2.0")
+        self.assertEqual(manifest["version"], "0.2.1")
         self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 11)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
-        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 10)
+        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 7)
+        retired = ("validate-structure.py", "validate-module-routes.py", "validate-package.py")
+        commands = [h["command"] for h in hooks["Stop"][0]["hooks"]]
+        for name in retired:
+            self.assertFalse(any(name in command for command in commands), name)
 
     def test_only_responds_to_react_projects(self):
         backend = self.base / "backend"
@@ -268,8 +272,8 @@ class ReactPluginTests(unittest.TestCase):
 
     def test_unmodified_files_are_not_blocked(self):
         self.prepare()
-        self.assertEqual(self.check_stop("structure"), {})
-        self.assertEqual(self.check_stop("config"), {})
+        self.assertEqual(self.check_stop("main"), {})
+        self.assertEqual(self.check_stop("env"), {})
 
 
 if __name__ == "__main__":

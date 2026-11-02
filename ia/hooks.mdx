@@ -17,7 +17,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
   </Step>
 
   <Step title="Instalar un plugin con Hooks">
-    Instala o actualiza **Erixcel NestJS** desde **Erixcel Developer Tools**. El mismo plugin incluye ocho Skills y doce Hooks: uno detecta cambios y once revisan las convenciones de NestJS al terminar Codex.
+    Instala o actualiza **Erixcel NestJS** o **Erixcel React** desde **Erixcel Developer Tools**. Cada plugin contiene sus propias Skills y Hooks, y puedes instalarlos independientemente.
   </Step>
 
   <Step title="Revisar los Hooks">
@@ -34,7 +34,7 @@ Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de
 </Steps>
 
 
-## Hooks por evento (12)
+## Hooks por evento (21)
 
 ### Antes de comenzar
 
@@ -43,6 +43,9 @@ Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos al env
 <Columns cols={1}>
 <Card title="Detect Changes" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
 Registra el estado inicial de todos los archivos NestJS vigilados.
+</Card>
+<Card title="Detect Changes - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Registra los cambios de `frontend/src/`, `package.json` y archivos `.env`.
 </Card>
 </Columns>
 
@@ -84,6 +87,30 @@ Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.
 </Card>
 <Card title="TSConfig Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
 Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript.
+</Card>
+<Card title="Structure Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Comprueba las carpetas de `src/` y archivos de entrada.
+</Card>
+<Card title="Main Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Valida `src/main.tsx`: createRoot, RouterProvider y estilos.
+</Card>
+<Card title="Component Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Detecta llamadas HTTP dentro de componentes TSX.
+</Card>
+<Card title="React Hook Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Comprueba la convención `useXxx` de hooks personalizados.
+</Card>
+<Card title="Route Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Verifica que las rutas definan configuración React Router.
+</Card>
+<Card title="Module Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Exige agrupar las funcionalidades en carpetas de `src/modules/`.
+</Card>
+<Card title="API &amp; Service Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Revisa `src/api/` y `src/services/` y las variables Vite.
+</Card>
+<Card title="Env &amp; Package Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Revisa `package.json`, `.env` y `.env.example`.
 </Card>
 </Columns>
 

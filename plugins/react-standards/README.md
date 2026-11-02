@@ -36,3 +36,14 @@ Ejemplo: `src/pages/admin/pages/users/functions/format-date.function.ts` → `sr
 Los componentes usan `components/simple/` o `components/complex/` **en todos los ámbitos** (globales, páginas y subpáginas). Un componente complex conserva carpeta propia, vista `nombre.component.tsx` y subcarpetas de hooks y services cuando las exija la convención actual. Nunca dupliques archivos para compartirlos ni uses `index.ts` para reexportar recursos privados: mueve el archivo al ancestro común más cercano y ajusta los imports directos. Los `index.ts` públicos de página siguen permitidos, pero no como puente para exponer recursos privados.
 
 Las funciones React son **funciones ordinarias de TypeScript**, no clases ni decoradores NestJS; no uses `@Injectable` ni otras convenciones del backend. Las verificaciones estáticas solo pueden probar rutas, nombres y dependencias/imports resolubles; usos dinámicos o referencias indirectas requieren revisión manual.
+
+
+## Páginas y layouts: regla obligatoria
+
+Cada página principal o subpágina vive dentro de su propia carpeta y tiene **exactamente una vista** con el nombre de la carpeta y sufijo `*.page.tsx`: `src/pages/admin/admin.page.tsx`, `src/pages/auth/auth.page.tsx`, `src/pages/admin/pages/users/users.page.tsx`. Nunca `admin.tsx` ni `auth.tsx` como vistas de página. Las subpáginas se alojan exclusivamente en `pages/` de otra página.
+
+Cada página puede tener **solo las carpetas que realmente necesite**: `components/` (siempre `simple/` y `complex/`), `functions/` (`*.function.ts`), `hooks/` (`*.hook.ts`), `interface/` (`*.interface.ts`; también se admite `interfaces/`), `services/` (`*.service.ts`), `stores/` (`*.store.ts`), `pages/` y `layout/`. No crear carpetas vacías ni obligar todas las carpetas en páginas simples.
+
+`layout/` sirve para **dividir una sola página grande en secciones internas con lógica o representación sustancial**, no para crear rutas o subpáginas. Ejemplo: `src/pages/auth/layout/topbar/topbar.layout.tsx` y `src/pages/auth/layout/bottombar/bottombar.layout.tsx`. Si hay solo una vista sencilla, no hace falta layout. Cada sección tiene su propia carpeta, la vista `<sección>.layout.tsx` y sus propios recursos opcionales (functions, hooks, components, services, interfaces, stores). Queda **prohibido cualquier directorio `pages/` dentro de `layout/` a cualquier profundidad**. Las páginas hijas van en `src/pages/<padre>/pages/<hija>/`.
+
+La regla del ancestro común más cercano también rige los recursos dentro de layouts y páginas. Los validadores `Page`, `Layout`, `Function`, `Interface` están registrados como Hooks Stop adicionales; las comprobaciones no modifican ni migran archivos automáticamente.

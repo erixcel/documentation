@@ -48,7 +48,7 @@ def validate_seed(path):
     s, errors = read(path)
     if errors:
         return errors
-    from query_structure import tokens
+    from analyzers.query_structure import tokens
 
     ts = tokens(s)
     # Even nested type/interface declarations must live in dedicated types/DTOs.

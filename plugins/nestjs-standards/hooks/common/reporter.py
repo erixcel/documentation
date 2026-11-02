@@ -1,5 +1,7 @@
 """Erixcel NestJS modular static hook validators; read-only."""
 import json
+import os
+from common.constants import STATE_ROOT
 from datetime import datetime, timezone
 
 def log(event, root, kind, checked, issues):

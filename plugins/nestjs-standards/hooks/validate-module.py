@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent Module validation hook (Codex Stop)."""
-from extra_rules import validate_module
-from validator_common import run
+from validators.module import validate_module
+from common.runner import run
 
 if __name__ == "__main__":
     raise SystemExit(run(

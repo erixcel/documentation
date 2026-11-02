@@ -74,7 +74,7 @@ class ReactPluginTests(unittest.TestCase):
         self.assertEqual(manifest["version"], "0.3.0")
         self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 12)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
-        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 8)
+        self.assertEqual(len(hooks["Stop"][0]["hooks"]), 12)
         retired = ("validate-structure.py", "validate-module-routes.py", "validate-package.py")
         commands = [h["command"] for h in hooks["Stop"][0]["hooks"]]
         for name in retired:
@@ -295,6 +295,30 @@ class ReactPluginTests(unittest.TestCase):
             self.frontend, {"src/pages/admin/functions/date.ts",
                             "src/pages/admin/components/simple/action.tsx"})
         self.assertEqual(sum("[resource-suffix]" in issue for issue in result), 2)
+
+    def test_pages_have_named_view(self):
+        self.write("src/pages/admin/admin.page.tsx", "export function Admin(){return null;}")
+        self.write("src/pages/admin/pages/users/users.page.tsx", "export function Users(){return null;}")
+        self.assertEqual(validator.validate_page_files(self.frontend, {"src/pages/admin/admin.page.tsx", "src/pages/admin/pages/users/users.page.tsx"}), [])
+        self.write("src/pages/auth/auth.tsx", "export function Auth(){return null;}")
+        result = validator.validate_page_files(self.frontend, {"src/pages/auth/auth.tsx"})
+        self.assertTrue(any("[page-required]" in x for x in result))
+
+    def test_layout_sections_and_forbidden_nested_pages(self):
+        self.write("src/pages/admin/layout/topbar/topbar.layout.tsx", "export function Topbar(){return null;}")
+        good = validator.validate_layout_files(self.frontend, {"src/pages/admin/layout/topbar/topbar.layout.tsx"})
+        self.assertEqual(good, [])
+        self.write("src/pages/admin/layout/bottombar/bottombar.tsx", "export function Bottom(){return null;}")
+        self.write("src/pages/admin/layout/topbar/pages/inside/inside.page.tsx", "export function Inside(){return null;}")
+        bad = validator.validate_layout_files(self.frontend, {"src/pages/admin/layout/bottombar/bottombar.tsx"})
+        self.assertTrue(any("[layout-pages]" in x for x in bad))
+        self.assertTrue(any("[layout-name]" in x for x in bad))
+
+    def test_function_and_interface_suffixes(self):
+        self.write("src/pages/admin/functions/date.ts", "export const date = () => ''")
+        self.write("src/pages/admin/interface/user.ts", "export interface User {}")
+        self.assertTrue(any(".function.ts" in x for x in validator.validate_functions(self.frontend, {"src/pages/admin/functions/date.ts"})))
+        self.assertTrue(any(".interface.ts" in x for x in validator.validate_interfaces(self.frontend, {"src/pages/admin/interface/user.ts"})))
 
     def test_store_plugin_registered_and_nestjs_isolated(self):
         root = Path(__file__).resolve().parents[1]

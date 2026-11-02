@@ -38,6 +38,9 @@ SKILL_CARD_DETAILS = {
     "react-api": {"description": "Organiza clientes HTTP y contratos bajo `src/api/`."},
     "react-assets": {"description": "Gestiona imágenes y recursos estáticos de `src/assets/`."},
     "react-components": {"description": "Construye componentes reutilizables en `src/components/`."},
+    "react-functions": {"description": "Ubica funciones TypeScript compartidas con sufijo `.function.ts`."},
+    "react-interfaces": {"description": "Organiza contratos de frontend `.interface.ts` por ámbito."},
+    "react-layouts": {"description": "Separa vistas grandes en secciones `.layout.tsx`, sin páginas internas."},
     "react-hooks": {"description": "Define hooks personalizados `useXxx` en `src/hooks/`."},
     "react-pages": {"description": "Agrupa las páginas del frontend por funcionalidad en `src/pages/`."},
     "react-routes": {"description": "Organiza las rutas y navegación desde `src/routes/`."},
@@ -130,6 +133,10 @@ def hook_filename(command):
 
 HOOK_DESCRIPTIONS = {
     "detect-changes.py": "Registra el estado inicial de todos los archivos NestJS vigilados.",
+    "validate-functions.py": "Comprueba funciones React `.function.ts` sin clases ni decoradores NestJS.",
+    "validate-page-files.py": "Comprueba una vista `.page.tsx` por página y subpágina.",
+    "validate-interfaces.py": "Comprueba sufijos `.interface.ts` de contratos React.",
+    "validate-layouts.py": "Comprueba vistas `.layout.tsx` y prohíbe `pages/` dentro de layouts.",
     "validate-query.py": "Una clase por `.query.ts`; separa consultas simples y JOIN.",
     "validate-core.py": "Valida las funciones setup de `.core.ts` y su integración.",
     "validate-controller.py": "Valida `.controller.ts`: decoradores HTTP, Swagger y delegación al Service.",

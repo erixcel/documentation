@@ -1,11 +1,11 @@
 {
   "name": "react-standards",
-  "version": "0.3.0",
-  "description": "12 Skills y 9 Hooks React + Vite: API, Tailwind, componentes, hooks, servicios, stores por alcance y configuración.",
+  "version": "0.4.0",
+  "description": "15 Skills y 13 Hooks React + Vite: páginas, layouts, funciones, interfaces y recursos por alcance.",
   "skills": "./skills/",
   "interface": {
     "displayName": "Erixcel React",
-    "shortDescription": "12 Skills y 9 Hooks React + Vite",
+    "shortDescription": "15 Skills y 13 Hooks React + Vite",
     "developerName": "Erixcel",
     "category": "Developer Tools"
   }

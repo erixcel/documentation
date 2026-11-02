@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SPECS = {
     "nestjs": {"plugin": "nestjs-standards", "skills": 8, "hooks": 12, "opposite": "react-standards"},
-    "react": {"plugin": "react-standards", "skills": 12, "hooks": 9, "opposite": "nestjs-standards"},
+    "react": {"plugin": "react-standards", "skills": 15, "hooks": 13, "opposite": "nestjs-standards"},
 }
 
 

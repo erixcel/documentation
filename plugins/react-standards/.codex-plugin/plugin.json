@@ -1,6 +1,6 @@
 {
   "name": "react-standards",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "11 Skills y 8 Hooks React + Vite: estructura, Tailwind, API generada, componentes, hooks, servicios, módulos, rutas y configuración.",
   "skills": "./skills/",
   "interface": {

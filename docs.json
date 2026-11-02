@@ -165,7 +165,7 @@
                   "desarrollo/react/src/assets",
                   "desarrollo/react/src/components",
                   "desarrollo/react/src/hooks",
-                  "desarrollo/react/src/modules",
+                  "desarrollo/react/src/pages",
                   "desarrollo/react/src/routes",
                   "desarrollo/react/src/services"
                 ]

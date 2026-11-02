@@ -15,7 +15,7 @@ description: "Usar al configurar navegación y rutas React Router."
 
 1. Consulta el MDX de esta página antes de realizar modificaciones relevantes; si no puedes acceder, indícalo y no inventes reglas.
 2. Revisa los archivos y directorios afectados, incluso cambios de carpetas.
-3. **Routes solo configura navegación y admite JSX de rutas; páginas bajo modules/, no SEO/prerenderizado impuesto.**
+3. **Routes solo configura navegación y admite JSX de rutas; páginas bajo pages/, no SEO/prerenderizado impuesto.**
 4. Conserva el comportamiento y los imports; utiliza TypeScript seguro sin reemplazar tipos con `any`.
 5. Comprueba `npm run lint`, `npm run build` y las pruebas existentes cuando estén disponibles.
 

@@ -17,7 +17,7 @@ frontend/
 │   │   ├── simple/
 │   │   └── complex/
 │   ├── hooks/                      # *.hook.ts
-│   ├── modules/                    # Por dominio
+│   ├── pages/                      # Por funcionalidad
 │   ├── routes/                     # Solo configuración
 │   ├── services/                   # *.service.ts
 │   ├── index.css                   # Tailwind + @theme
@@ -37,14 +37,14 @@ frontend/
 | Hooks | Todos los hooks en `*.hook.ts`; solo imports y funciones a nivel superior |
 | Servicios | Todos los servicios en `*.service.ts`; solo imports y funciones a nivel superior |
 | Módulos | Funcionalidades por carpeta, incluyendo `not-found/` |
-| Rutas | Configuración en `src/routes/`; páginas en módulos |
+| Rutas | Configuración en `src/routes/`; páginas en `src/pages/` |
 | Entrada | `createRoot`, `RouterProvider` y `index.css` desde `main.tsx` |
 
 Los archivos técnicos de Vite, ESLint, TypeScript y despliegue en la raíz **siguen permitidos**. `package.json` y la estructura general se documentan como referencias flexibles; **ya no los bloquean los Hooks**. Las variables `.env` y `.env.example` mantienen su validador específico de seguridad.
 
 ## Hooks de validación
 
-`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **siete validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan validadores de estructura general, módulos/rutas ni `package.json`**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks/servicios usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
+`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **siete validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan validadores de estructura general, páginas/rutas ni `package.json`**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks/servicios usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
 
 ## Decisiones pendientes
 

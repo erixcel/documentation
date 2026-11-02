@@ -13,7 +13,7 @@ from pathlib import Path
 
 STATE = Path.home() / ".codex" / "erixcel-react-validator"
 SKIP = {".git", ".codex", ".vercel", "node_modules", "dist", "build", "coverage", ".next", ".turbo"}
-FOLDERS = ("api", "assets", "components", "hooks", "modules", "routes", "services")
+FOLDERS = ("api", "assets", "components", "hooks", "pages", "routes", "services")
 DESCRIPTIONS = {
     "structure": "desarrollo/react/estructura",
     "main": "desarrollo/react/src/main",
@@ -22,11 +22,11 @@ DESCRIPTIONS = {
     "components": "desarrollo/react/src/components",
     "hooks": "desarrollo/react/src/hooks",
     "services": "desarrollo/react/src/services",
-    "module-routes": "desarrollo/react/src/modules",
+    "page-routes": "desarrollo/react/src/pages",
     "package": "desarrollo/react/package-json",
     "env": "desarrollo/react/env",
     "routes": "desarrollo/react/src/routes",
-    "modules": "desarrollo/react/src/modules",
+    "pages": "desarrollo/react/src/pages",
     "api-services": "desarrollo/react/src/services",
     "config": "desarrollo/react/package-json",
 }
@@ -354,24 +354,24 @@ def validate_routes(root, changed):
             issues.append("src/routes/: falta definición de navegación React Router.")
     for path in base.rglob("*.tsx"):
         if path.name.endswith((".page.tsx", ".screen.tsx")):
-            issues.append(f"{path.relative_to(root)}: las páginas deben estar bajo src/modules/, no en routes/.")
+            issues.append(f"{path.relative_to(root)}: las páginas deben estar bajo src/pages/, no en routes/.")
     return issues
 
 
-def validate_modules(root, changed):
-    if not changed_in(changed, "modules"):
+def validate_pages(root, changed):
+    if not changed_in(changed, "pages"):
         return []
-    base = root / "src/modules"
+    base = root / "src/pages"
     if not base.is_dir():
-        return ["src/modules/: falta la carpeta modules."]
+        return ["src/pages/: falta la carpeta pages."]
     files = [entry.name for entry in base.iterdir() if entry.is_file()]
     if files:
-        return ["src/modules/: no pongas archivos sueltos en su raíz: " + ", ".join(sorted(files))]
+        return ["src/pages/: no pongas archivos sueltos en su raíz: " + ", ".join(sorted(files))]
     return []
 
 
-def validate_module_routes(root, changed):
-    return validate_modules(root, changed) + validate_routes(root, changed)
+def validate_page_routes(root, changed):
+    return validate_pages(root, changed) + validate_routes(root, changed)
 
 
 def validate_api_services(root, changed):
@@ -435,12 +435,12 @@ CHECKS = {
     "components": validate_components,
     "hooks": validate_hooks,
     "services": validate_services,
-    "module-routes": validate_module_routes,
+    "page-routes": validate_page_routes,
     "package": lambda root, changed: validate_config(root, changed) if "package.json" in changed else [],
     "env": lambda root, changed: validate_config(root, changed) if {".env", ".env.example"} & changed else [],
     # Backwards-compatible entry points for old manual commands.
     "routes": validate_routes,
-    "modules": validate_modules,
+    "pages": validate_pages,
     "api-services": validate_api_services,
     "config": validate_config,
 }

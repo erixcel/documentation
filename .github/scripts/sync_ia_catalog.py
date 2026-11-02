@@ -39,7 +39,7 @@ SKILL_CARD_DETAILS = {
     "react-assets": {"description": "Gestiona imágenes y recursos estáticos de `src/assets/`."},
     "react-components": {"description": "Construye componentes reutilizables en `src/components/`."},
     "react-hooks": {"description": "Define hooks personalizados `useXxx` en `src/hooks/`."},
-    "react-modules": {"description": "Agrupa funcionalidades por dominio en `src/modules/`."},
+    "react-pages": {"description": "Agrupa las páginas del frontend por funcionalidad en `src/pages/`."},
     "react-routes": {"description": "Organiza las rutas y navegación desde `src/routes/`."},
     "react-services": {"description": "Separa los servicios de negocio en `src/services/`."},
     "react-env": {"description": "Documenta y valida las variables `.env` y `.env.example`."},

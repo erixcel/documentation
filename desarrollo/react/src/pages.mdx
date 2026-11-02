@@ -1,0 +1,28 @@
+---
+title: "Pages"
+sidebarTitle: "pages"
+---
+
+# src/pages
+
+Cada funcionalidad tiene su propia carpeta. No coloques páginas sueltas directamente en `src/pages/`.
+
+```text
+src/pages/
+├── auth/
+│   ├── components/
+│   ├── hooks/
+│   │   └── use-auth.hook.ts
+│   ├── services/
+│   │   └── auth-session.service.ts
+│   ├── index.ts
+│   └── auth.page.tsx
+└── not-found/
+    └── not-found.page.tsx
+```
+
+Cada página conserva sus componentes, hooks y servicios privados. Los archivos `*.hook.ts` y `*.service.ts` siguen las reglas del plugin incluso dentro de subcarpetas. Se permiten `index.ts` públicos de páginas (la prohibición de barrels aplica a componentes compartidos).
+
+La página no encontrada pertenece a `src/pages/not-found/`. No apliques a React la convención NestJS `*.module.ts` ni reintroduzcas SEO/prerenderizado.
+
+**Guía, no Hook obligatorio:** la organización de páginas es una convención recomendada. El validador automático de páginas y rutas fue retirado para respetar las distintas arquitecturas de los proyectos.

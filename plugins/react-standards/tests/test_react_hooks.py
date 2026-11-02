@@ -71,7 +71,7 @@ class ReactPluginTests(unittest.TestCase):
         manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
         hooks = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
         self.assertEqual(manifest["interface"]["displayName"], "Erixcel React")
-        self.assertEqual(manifest["version"], "0.2.1")
+        self.assertEqual(manifest["version"], "0.2.2")
         self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 11)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
         self.assertEqual(len(hooks["Stop"][0]["hooks"]), 7)
@@ -127,10 +127,10 @@ class ReactPluginTests(unittest.TestCase):
         out = self.check_stop("routes")
         self.assertEqual(out.get("decision"), "block")
 
-    def test_modules_group_by_domain(self):
+    def test_pages_are_grouped_by_feature(self):
         self.prepare()
-        self.write("src/modules/home.tsx", "export function Home(){return null;}")
-        out = self.check_stop("modules")
+        self.write("src/pages/home.tsx", "export function Home(){return null;}")
+        out = self.check_stop("pages")
         self.assertIn("home.tsx", out.get("reason", ""))
 
     def test_services_use_vite_env(self):
@@ -206,7 +206,7 @@ class ReactPluginTests(unittest.TestCase):
 
     def test_hook_ast_rejects_type_interface_class_and_shared_cache(self):
         self.prepare()
-        self.write("src/modules/auth/hooks/use-user.hook.ts",
+        self.write("src/pages/auth/hooks/use-user.hook.ts",
                    "export type U = { id: number };\n"
                    "interface I { name: string }\n"
                    "class Store {}\n"
@@ -243,7 +243,7 @@ class ReactPluginTests(unittest.TestCase):
 
     def test_service_ast_allows_function_expressions_and_local_variables(self):
         self.prepare()
-        self.write("src/modules/auth/services/auth.service.ts",
+        self.write("src/pages/auth/services/auth.service.ts",
                    "import type { RequestInit } from 'node-fetch';\n"
                    "export const getUser = async <T>(key: string): Promise<T> => { "
                    "const data = { key }; return data as T; };\n")
@@ -260,7 +260,7 @@ class ReactPluginTests(unittest.TestCase):
     def test_module_route_page_placement(self):
         self.prepare()
         self.write("src/routes/not-found.page.tsx", "export const NotFound = () => null;")
-        out = self.check_stop("module-routes")
+        out = self.check_stop("page-routes")
         self.assertIn("not-found.page.tsx", out.get("reason", ""))
 
     def test_missing_typescript_reports_explicit_error(self):

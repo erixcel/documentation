@@ -9,13 +9,13 @@ La carpeta `src/routes/` contiene **configuración de navegación**, no implemen
 
 ```tsx src/routes/path.route.tsx
 import { createBrowserRouter } from 'react-router-dom';
-import { HomePage } from '../modules/home/home.page';
+import { HomePage } from '../pages/home/home.page';
 
 export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
 ]);
 ```
 
-El ejemplo es orientativo: utiliza los componentes y nombres reales de tu frontend. La página `not-found` se implementa en `src/modules/not-found/` y se referencia desde el router. Integra las rutas con `RouterProvider` desde `src/main.tsx`.
+El ejemplo es orientativo: utiliza los componentes y nombres reales de tu frontend. La página `not-found` se implementa en `src/pages/not-found/` y se referencia desde el router. Integra las rutas con `RouterProvider` desde `src/main.tsx`.
 
 **Guía, no Hook obligatorio:** esta distribución de rutas es una recomendación. No existe un validador automático de Module & Route en Erixcel React v0.2.1.

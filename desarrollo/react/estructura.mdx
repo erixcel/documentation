@@ -46,7 +46,7 @@ Los archivos técnicos de Vite, ESLint, TypeScript y despliegue en la raíz **si
 
 ## Hooks de validación
 
-`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **ocho validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan los validadores antiguos de estructura general, rutas ni `package.json`; el nuevo Page Validator verifica vistas de páginas**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks, servicios y stores usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
+`Detect Changes` en `UserPromptSubmit` almacena hashes y rutas, no contenidos ni secretos. Al concluir, los **doce validadores `Stop` activos** inspeccionan cambios de las áreas que supervisan. **No se ejecutan los validadores antiguos de estructura general, rutas ni `package.json`; el nuevo Page Validator verifica vistas de páginas**; estas reglas permanecen como orientaciones para la IA. En archivos de hooks, servicios y stores usan el **AST de TypeScript** para reconocer declaraciones y reportar archivo y línea sin confundir comentarios o strings. El Hook devuelve feedback para que Codex se autocorrija; **no modifica ni borra archivos**.
 
 ## Decisiones pendientes
 

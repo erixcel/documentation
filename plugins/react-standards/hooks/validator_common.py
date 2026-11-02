@@ -435,7 +435,7 @@ def validate_routes(root, changed):
 
 
 def validate_pages(root, changed):
-    if not changed_in(changed, "pages"):
+    if not any(n.startswith("src/pages/") for n in changed):
         return []
     base = root / "src/pages"
     if not base.is_dir():
@@ -640,7 +640,7 @@ def validate_page_files(root, changed):
     return issues
 
 def validate_layout_files(root, changed):
-    if not changed_in(changed, "layout"):
+    if not any(n.startswith("src/pages/") for n in changed):
         return []
     issues = []
     for folder in (root / "src/pages").rglob("layout"):
@@ -665,9 +665,9 @@ def validate_functions(root, changed):
     for name in files:
         code = text(root, name)
         # Conservative syntax scan; TypeScript AST rules are also applied to hooks/services.
-        if re.search(r"(?m)^\\s*(?:export\\s+)?(?:abstract\\s+)?class\\s+", code):
+        if re.search(r"(?m)^\s*(?:export\s+)?(?:abstract\s+)?class\s+", code):
             issues.append(f"{name}: [function-class] Usa funciones TypeScript, no clases NestJS.")
-        if re.search(r"(?m)^\\s*@\\w+|\\b@Injectable\\s*\\(", code):
+        if re.search(r"(?m)^\s*@\w+|\b@Injectable\s*\(", code):
             issues.append(f"{name}: [function-decorator] No uses decoradores NestJS en funciones React.")
     return issues + validate_resource_scopes(root, changed)
 
@@ -678,7 +678,7 @@ def validate_interfaces(root, changed):
         if not file.is_file() or file.suffix not in (".ts", ".tsx"):
             continue
         pieces = Path(name).parts
-        if "interface" in pieces or "interfaces" in pieces:
+        if ("interface" in pieces or "interfaces" in pieces) and name.startswith("src/"):
             if not name.endswith(".interface.ts"):
                 issues.append(f"{name}: [interface-name] Usa *.interface.ts.")
     return issues + validate_resource_scopes(root, changed)

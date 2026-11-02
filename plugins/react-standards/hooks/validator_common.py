@@ -24,6 +24,10 @@ DESCRIPTIONS = {
     "services": "desarrollo/react/src/services",
     "stores": "desarrollo/react/src/stores",
     "page-routes": "desarrollo/react/src/pages",
+    "page-files": "desarrollo/react/src/pages",
+    "layouts": "desarrollo/react/src/pages",
+    "functions": "desarrollo/react/src/pages",
+    "interfaces": "desarrollo/react/src/pages",
     "package": "desarrollo/react/package-json",
     "env": "desarrollo/react/env",
     "routes": "desarrollo/react/src/routes",
@@ -598,6 +602,87 @@ def validate_resource_scopes(root, changed):
                 issues.append(f"{importer}: [resource-barrel] Importa recursos privados directamente, sin index.ts.")
     return sorted(set(issues))
 
+
+# Page and layout architecture: optional resource folders, strict naming and boundaries.
+PAGE_RESOURCE_DIRS = {"components", "functions", "hooks", "interface", "interfaces",
+                      "pages", "services", "stores", "layout", "data"}
+def page_roots(root):
+    base = root / "src/pages"
+    if not base.is_dir():
+        return []
+    roots = []
+    for folder in base.rglob("*"):
+        if not folder.is_dir() or folder.is_symlink() or any(p in SKIP for p in folder.parts):
+            continue
+        relative = folder.relative_to(base).parts
+        if relative and (len(relative) == 1 or relative[-2] == "pages"):
+            roots.append(folder)
+    return roots
+
+def validate_page_files(root, changed):
+    if not changed_in(changed, "pages"):
+        return []
+    issues = []
+    for folder in page_roots(root):
+        rel = folder.relative_to(root).as_posix()
+        expected = folder / (folder.name + ".page.tsx")
+        if not expected.is_file():
+            issues.append(f"{rel}: [page-required] La página necesita {expected.name}.")
+        for entry in folder.iterdir():
+            if entry.is_file() and entry.suffix == ".tsx" and entry.name != expected.name:
+                issues.append(f"{rel}/{entry.name}: [page-name] Usa {expected.name} para la vista de esta página.")
+        # Subpages are only children of a page's pages/, never under layout/.
+        child = folder / "pages"
+        if child.is_dir():
+            for entry in child.iterdir():
+                if entry.is_file() and entry.suffix in (".ts", ".tsx"):
+                    issues.append(f"{rel}/pages/{entry.name}: [page-folder] Cada subpágina necesita su carpeta.")
+    return issues
+
+def validate_layout_files(root, changed):
+    if not changed_in(changed, "layout"):
+        return []
+    issues = []
+    for folder in (root / "src/pages").rglob("layout"):
+        if not folder.is_dir() or folder.is_symlink():
+            continue
+        rel = folder.relative_to(root).as_posix()
+        for item in folder.rglob("*"):
+            if item.is_dir() and item.name == "pages":
+                issues.append(f"{item.relative_to(root)}: [layout-pages] Un layout no puede contener pages/.")
+            if item.is_file() and item.suffix == ".tsx":
+                if not item.name.endswith(".layout.tsx"):
+                    issues.append(f"{item.relative_to(root)}: [layout-name] Usa *.layout.tsx.")
+        for section in folder.iterdir():
+            if section.is_dir() and section.name != "pages":
+                view = section / (section.name + ".layout.tsx")
+                if not view.is_file():
+                    issues.append(f"{section.relative_to(root)}: [layout-required] Falta {view.name}.")
+    return issues
+
+def validate_functions(root, changed):
+    issues, files = logic_files(root, changed, "functions", ".function.ts")
+    for name in files:
+        code = text(root, name)
+        # Conservative syntax scan; TypeScript AST rules are also applied to hooks/services.
+        if re.search(r"(?m)^\\s*(?:export\\s+)?(?:abstract\\s+)?class\\s+", code):
+            issues.append(f"{name}: [function-class] Usa funciones TypeScript, no clases NestJS.")
+        if re.search(r"(?m)^\\s*@\\w+|\\b@Injectable\\s*\\(", code):
+            issues.append(f"{name}: [function-decorator] No uses decoradores NestJS en funciones React.")
+    return issues + validate_resource_scopes(root, changed)
+
+def validate_interfaces(root, changed):
+    issues = []
+    for name in sorted(changed):
+        file = root / name
+        if not file.is_file() or file.suffix not in (".ts", ".tsx"):
+            continue
+        pieces = Path(name).parts
+        if "interface" in pieces or "interfaces" in pieces:
+            if not name.endswith(".interface.ts"):
+                issues.append(f"{name}: [interface-name] Usa *.interface.ts.")
+    return issues + validate_resource_scopes(root, changed)
+
 CHECKS = {
     "structure": validate_structure,
     "main": validate_main,
@@ -608,6 +693,10 @@ CHECKS = {
     "services": lambda root, changed: validate_services(root, changed) + validate_resource_scopes(root, changed),
     "stores": lambda root, changed: validate_stores(root, changed) + validate_resource_scopes(root, changed),
     "page-routes": validate_page_routes,
+    "page-files": validate_page_files,
+    "layouts": validate_layout_files,
+    "functions": validate_functions,
+    "interfaces": validate_interfaces,
     "package": lambda root, changed: validate_config(root, changed) if "package.json" in changed else [],
     "env": lambda root, changed: validate_config(root, changed) if {".env", ".env.example"} & changed else [],
     # Backwards-compatible entry points for old manual commands.

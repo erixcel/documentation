@@ -1,6 +1,7 @@
 """Erixcel NestJS modular static hook validators; read-only."""
 import hashlib
 import json
+import os
 from pathlib import Path
 from common.constants import STATE_ROOT
 from common.discovery import source_files

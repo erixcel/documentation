@@ -1,78 +1,48 @@
 ---
 title: "Erixcel React"
 sidebarTitle: "React"
-description: "Instalación, Skills, Hooks y estructura para React + Vite."
+description: "Instalación de Erixcel React, con Skills y Hooks propios."
 ---
 
-# Erixcel React
+**Erixcel React** incluye **10 Skills y 9 Hooks** para frontends React + Vite. Es independiente del otro plugin: no instala sus Skills ni sus Hooks.
 
-Plugin independiente de **Erixcel NestJS** que incluye **10 Skills y 9 Hooks** para proyectos React 19 + Vite 8 + TypeScript. La estructura del código se concentra en `frontend/src/`; en la raíz se revisan principalmente `package.json`, `.env` y `.env.example`.
-
-## Cómo instalarlo y activarlo
+## Cómo instalarlo
 
 <Steps>
-  <Step title="Agregar marketplace">
-    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega en **Source**:
+  <Step title="Agregar el marketplace">
+    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega la fuente:
 
-    ```text Marketplace Erixcel
+    ```text Marketplace de Erixcel
     erixcel/documentation
     ```
   </Step>
   <Step title="Instalar Erixcel React">
-    En **Erixcel Developer Tools**, instala el plugin **Erixcel React**. Es independiente de NestJS y puede activarse por separado.
+    Dentro de **Personal → Erixcel Developer Tools**, busca **Erixcel React** e instálalo. No es necesario instalar el otro plugin.
   </Step>
-  <Step title="Autorizar los Hooks">
-    Abre **Codex Desktop → Settings → Hooks**, revisa los comandos, autorízalos con **Trust** y activa los interruptores deseados.
+  <Step title="Comprobar las Skills">
+    En **Codex Desktop → Customize → Plugins → Erixcel React**, revisa sus 10 Skills. Se distribuyen solo con este plugin.
   </Step>
-  <Step title="Probar una validación">
-    Abre un proyecto React + Vite y solicita una modificación pequeña en `src/main.tsx`; al terminar, el evento **Stop** verificará las reglas pertinentes si **Detect Changes** está activo.
+  <Step title="Autorizar y activar los Hooks">
+    En **Codex Desktop → Settings → Hooks**, abre **Erixcel React**, inspecciona los comandos y pulsa **Trust** para autorizar los que confíes. Activa **Detect Changes** y los validadores que quieras usar.
+  </Step>
+  <Step title="Probar el plugin">
+    Abre un proyecto React + Vite y pide un cambio pequeño a `src/main.tsx`. Al finalizar el turno, los Hooks de Stop pueden enviar feedback para autocorregir incumplimientos.
   </Step>
 </Steps>
 
-## Estructura recomendada
-
-```text
-frontend/
-├── src/
-│   ├── api/
-│   ├── assets/
-│   ├── components/
-│   ├── hooks/
-│   ├── modules/
-│   ├── routes/
-│   ├── services/
-│   ├── index.css
-│   └── main.tsx
-├── .env
-├── .env.example
-└── package.json
-```
-
-Consulta la [guía completa de estructura](/desarrollo/react/estructura), [package.json](/desarrollo/react/package-json) y [variables de entorno](/desarrollo/react/env).
-
-## Skills disponibles (10)
+## Skills y Hooks de React
 
 <Columns cols={2}>
-<Card title="react-app" icon="book-open" href="/desarrollo/react/src/main">Convenciones y ejemplos para react-app.</Card>
-<Card title="react-api" icon="book-open" href="/desarrollo/react/src/api">Convenciones y ejemplos para react-api.</Card>
-<Card title="react-assets" icon="book-open" href="/desarrollo/react/src/assets">Convenciones y ejemplos para react-assets.</Card>
-<Card title="react-components" icon="book-open" href="/desarrollo/react/src/components">Convenciones y ejemplos para react-components.</Card>
-<Card title="react-hooks" icon="book-open" href="/desarrollo/react/src/hooks">Convenciones y ejemplos para react-hooks.</Card>
-<Card title="react-modules" icon="book-open" href="/desarrollo/react/src/modules">Convenciones y ejemplos para react-modules.</Card>
-<Card title="react-routes" icon="book-open" href="/desarrollo/react/src/routes">Convenciones y ejemplos para react-routes.</Card>
-<Card title="react-services" icon="book-open" href="/desarrollo/react/src/services">Convenciones y ejemplos para react-services.</Card>
-<Card title="react-env" icon="book-open" href="/desarrollo/react/env">Convenciones y ejemplos para react-env.</Card>
-<Card title="react-package" icon="book-open" href="/desarrollo/react/package-json">Convenciones y ejemplos para react-package.</Card>
+  <Card title="Skills (10)" icon="book-open" href="/ia/react/skills">
+    Ver únicamente las Skills del plugin Erixcel React.
+  </Card>
+  <Card title="Hooks (9)" icon="shield-check" href="/ia/react/hooks">
+    Ver únicamente los Hooks del plugin Erixcel React, separados por evento.
+  </Card>
 </Columns>
 
-## Hooks por evento (9)
+## Documentación y sincronización
 
-### Antes de comenzar
+Consulta la [guía de estructura](/desarrollo/react/estructura), [variables de entorno](/desarrollo/react/env) y [package.json](/desarrollo/react/package-json). Solo se validan archivos de React + Vite; no se ejecutan validadores NestJS.
 
-**UserPromptSubmit**: **Detect Changes** registra el estado de `src/` y de los archivos de configuración relevantes.
-
-### Al terminar
-
-**Stop**: ocho validadores independientes revisan estructura, main, componentes, hooks personalizados, rutas, módulos, API/servicios y package/env; solo reportan problemas si hubo cambios pertinentes. Las validaciones responden a Codex con feedback, pero no editan archivos directamente.
-
-La lista de Skills y Hooks publicados está también en el [catálogo de Skills](/ia/skills) y [catálogo de Hooks](/ia/hooks), ambos generados desde el marketplace.
+Las Skills y los Hooks se publican en GitHub. Las actualizaciones del plugin instalado se gestionan aparte en Codex Desktop; la publicación no significa que los Hooks estén activados localmente.

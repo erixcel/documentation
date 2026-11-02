@@ -24,9 +24,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate catalogs from registered plugins
         run: python3 .github/scripts/sync_ia_catalog.py
+      - name: Verify independent plugin catalogs and navigation
+        run: python3 .github/scripts/test_ia_catalog.py
       - name: Commit catalogs if changed
         run: |
-          git add ia/skills.mdx ia/hooks.mdx
+          git add ia/skills.mdx ia/hooks.mdx ia/nestjs/skills.mdx ia/nestjs/hooks.mdx ia/react/skills.mdx ia/react/hooks.mdx
           if git diff --cached --quiet; then
             echo 'Catalogs already up to date.'
             exit 0

@@ -1,0 +1,48 @@
+---
+title: "Erixcel NestJS"
+sidebarTitle: "NestJS"
+description: "Instalación de Erixcel NestJS, con Skills y Hooks propios."
+---
+
+**Erixcel NestJS** incluye **8 Skills y 12 Hooks** para backends NestJS. Es independiente del otro plugin: no instala sus Skills ni sus Hooks.
+
+## Cómo instalarlo
+
+<Steps>
+  <Step title="Agregar el marketplace">
+    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega la fuente:
+
+    ```text Marketplace de Erixcel
+    erixcel/documentation
+    ```
+  </Step>
+  <Step title="Instalar Erixcel NestJS">
+    Dentro de **Personal → Erixcel Developer Tools**, busca **Erixcel NestJS** e instálalo. No es necesario instalar el otro plugin.
+  </Step>
+  <Step title="Comprobar las Skills">
+    En **Codex Desktop → Customize → Plugins → Erixcel NestJS**, revisa sus 8 Skills. Se distribuyen solo con este plugin.
+  </Step>
+  <Step title="Autorizar y activar los Hooks">
+    En **Codex Desktop → Settings → Hooks**, abre **Erixcel NestJS**, inspecciona los comandos y pulsa **Trust** para autorizar los que confíes. Activa **Detect Changes** y los validadores que quieras usar.
+  </Step>
+  <Step title="Probar el plugin">
+    Abre un proyecto NestJS y pide un cambio pequeño a `src/queries/*.query.ts`. Al finalizar el turno, los Hooks de Stop pueden enviar feedback para autocorregir incumplimientos.
+  </Step>
+</Steps>
+
+## Skills y Hooks de NestJS
+
+<Columns cols={2}>
+  <Card title="Skills (8)" icon="book-open" href="/ia/nestjs/skills">
+    Ver únicamente las Skills del plugin Erixcel NestJS.
+  </Card>
+  <Card title="Hooks (12)" icon="shield-check" href="/ia/nestjs/hooks">
+    Ver únicamente los Hooks del plugin Erixcel NestJS, separados por evento.
+  </Card>
+</Columns>
+
+## Documentación y sincronización
+
+Las Skills toman sus convenciones de la documentación de [Desarrollo → NestJS](/desarrollo/nestjs/creacion-proyecto). No se ejecutan los validadores del plugin React.
+
+Las Skills y los Hooks se publican en GitHub. Las actualizaciones del plugin instalado se gestionan aparte en Codex Desktop; la publicación no significa que los Hooks estén activados localmente.

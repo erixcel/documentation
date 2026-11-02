@@ -202,11 +202,26 @@
         "tab": "IA",
         "groups": [
           {
-            "group": "Catálogo",
+            "group": "Plugins",
             "pages": [
-              "ia/skills",
-              "ia/hooks",
-              "ia/react"
+              {
+                "group": "NestJS",
+                "root": "ia/nestjs",
+                "directory": "card",
+                "pages": [
+                  "ia/nestjs/skills",
+                  "ia/nestjs/hooks"
+                ]
+              },
+              {
+                "group": "React",
+                "root": "ia/react",
+                "directory": "card",
+                "pages": [
+                  "ia/react/skills",
+                  "ia/react/hooks"
+                ]
+              }
             ]
           }
         ]

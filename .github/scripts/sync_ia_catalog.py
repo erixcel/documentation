@@ -182,7 +182,7 @@ def render_hook_groups(items):
         }.get(event, "Hooks registrados para este evento de Codex.")
         cards = render_cards([
             {
-                "title": item["title"].removesuffix(" - Erixcel"),
+                "title": item["title"].removesuffix(" - Erixcel React").removesuffix(" - Erixcel"),
                 "description": describe_hook(item),
                 "url": item["url"],
             } for item in entries
@@ -190,11 +190,25 @@ def render_hook_groups(items):
         parts.append(f'### {label}\n\n{intro}\n\n{cards}')
     return "\n\n".join(parts)
 
+PLUGIN_CATALOGS = {
+    "nestjs-standards": ("nestjs", "NestJS"),
+    "react-standards": ("react", "React"),
+}
+
+
 def generate():
-    skills = []
-    hooks = []
-    for plugin in load_plugins():
+    """Keep each plugin's Skill and Hook catalog independent."""
+    discovered = load_plugins()
+    summaries = []
+    for plugin in discovered:
+        key = plugin["root"].name
+        if key not in PLUGIN_CATALOGS:
+            continue
+        slug, label = PLUGIN_CATALOGS[key]
         root = plugin["root"]
+        skills = []
+        hooks = []
+
         for path in sorted((root / "skills").rglob("SKILL.md")):
             data = skill_metadata(path)
             presentation = SKILL_CARD_DETAILS.get(data["name"], {})
@@ -203,110 +217,89 @@ def generate():
                 "description": presentation.get("description") or data["description"],
                 "url": f'{REPO_URL}/{path.relative_to(ROOT).as_posix()}',
             })
-        file = root / "hooks/hooks.json"
-        if file.exists():
-            config = json.loads(file.read_text(encoding="utf-8"))
+
+        config_path = root / "hooks/hooks.json"
+        if config_path.exists():
+            config = json.loads(config_path.read_text(encoding="utf-8"))
             for event, registrations in (config.get("hooks") or {}).items():
                 for block in registrations:
                     for hook in block.get("hooks", []):
-                        title = hook.get("statusMessage") or f'{event} · {hook.get("type", "hook")}'
                         hooks.append({
-                            "title": title,
+                            "title": hook.get("statusMessage") or f'{event} · {hook.get("type", "hook")}',
                             "plugin": plugin["name"],
                             "event": event,
                             "command": hook.get("command") or "",
-                            "description": f'{plugin["name"]} (v{plugin["version"]})',
-                            "url": f'{REPO_URL}/{file.relative_to(ROOT).as_posix()}',
+                            "url": f'{REPO_URL}/{config_path.relative_to(ROOT).as_posix()}',
                         })
-    skill_page = f'''---
-title: "Skills"
+
+        intro = (
+            f"Este catálogo contiene **únicamente las Skills del plugin Erixcel {label}**. "
+            f"Se genera a partir de sus archivos SKILL.md en GitHub; no incluye Skills de otros plugins."
+        )
+        skill_page = f'''---
+title: "Skills de {label}"
 sidebarTitle: "Skills"
 ---
 
-Las **Skills de Erixcel** son instrucciones reutilizables para agentes de programación. Este catálogo se genera a partir de los archivos `SKILL.md` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
+{intro}
 
-## Cómo instalarlas
-
-<Steps>
-  <Step title="Agregar el marketplace">
-    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega lo siguiente en **Source**:
-
-    ```text Marketplace de Erixcel
-    erixcel/documentation
-    ```
-  </Step>
-
-  <Step title="Instalar el plugin">
-    En **Erixcel Developer Tools**, instala **Erixcel NestJS** o **Erixcel React** según el proyecto. Son plugins separados y cada uno contiene sus propias Skills y Hooks.
-  </Step>
-
-  <Step title="Comprobar las Skills">
-    En Codex, abre **Skills** o los detalles del plugin instalado y revisa las Skills de NestJS o React.
-  </Step>
-
-  <Step title="Utilizarlas">
-    Abre tu proyecto y solicita, por ejemplo: «Usa `nestjs-core` para revisar `cors.core.ts`» o «Usa `react-app` para revisar `src/main.tsx`».
-  </Step>
-</Steps>
-
+Antes de usarlas, consulta la [guía de instalación de Erixcel {label}](/ia/{slug}).
+Instala solo el plugin que corresponda a tu proyecto desde [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
 
 ## Skills disponibles ({len(skills)})
 
 {render_cards(skills, "book-open", horizontal=True)}
 
-## Actualizaciones
+## Sincronización
 
-Las instrucciones de cada Skill siguen teniendo su fuente original en GitHub. Si cambia un `SKILL.md`, este catálogo se regenera automáticamente en el repositorio; actualizar la instalación local del plugin sigue siendo un proceso independiente.
+El catálogo representa los archivos publicados en GitHub. Actualizar el plugin instalado en Codex Desktop es un paso independiente.
 '''
-    hook_page = f'''---
-title: "Hooks"
+        hook_page = f'''---
+title: "Hooks de {label}"
 sidebarTitle: "Hooks"
 ---
 
-Los **Hooks de Erixcel** ejecutan tareas durante eventos del ciclo de trabajo de Codex. Este catálogo se obtiene de los archivos `hooks/hooks.json` de los plugins registrados en [Erixcel Developer Tools]({REPO_URL}/.agents/plugins/marketplace.json).
-
-## Cómo instalarlos y activarlos
-
-<Steps>
-  <Step title="Agregar el marketplace">
-    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega lo siguiente en **Source**, si todavía no agregaste el repositorio:
-
-    ```text Marketplace de Erixcel
-    erixcel/documentation
-    ```
-  </Step>
-
-  <Step title="Instalar un plugin con Hooks">
-    Instala o actualiza **Erixcel NestJS** o **Erixcel React** desde **Erixcel Developer Tools**. Cada plugin contiene sus propias Skills y Hooks, y puedes instalarlos independientemente.
-  </Step>
-
-  <Step title="Revisar los Hooks">
-    Abre **Codex Desktop → Settings → Hooks** y verifica los Hooks detectados desde tus plugins o proyectos.
-  </Step>
-
-  <Step title="Autorizar y activar">
-    Inspecciona el comando que ejecutará cada Hook, presiona **Trust** solo si confías en él y activa su interruptor.
-  </Step>
-
-  <Step title="Probar la ejecución">
-    Realiza una interacción que desencadene el evento configurado (por ejemplo, **Stop**) y comprueba el resultado o el registro del Hook.
-  </Step>
-</Steps>
-
+Los siguientes Hooks pertenecen **exclusivamente a Erixcel {label}**.
+No se mezclan con los validadores del otro plugin. Para instalarlos y activarlos, sigue la [guía de Erixcel {label}](/ia/{slug}).
 
 ## Hooks por evento ({len(hooks)})
 
 {render_hook_groups(hooks)}
 
+## Activación
+
+Abre **Codex Desktop → Settings → Hooks**. Revisa los comandos de Erixcel {label}, pulsa **Trust** solo si confías en ellos y activa sus interruptores.
+Los Hooks publicados en GitHub no reflejan si están activados en tu equipo.
+
 ## Sincronización
 
-Los Hooks pueden agruparse en plugins y distribuirse desde GitHub. El catálogo se sincroniza automáticamente con su configuración versionada, **no** con el estado de ejecución local.
+Este listado se genera desde el archivo de Hooks del plugin en GitHub; no desde los Hooks instalados localmente.
 '''
-    for name, content in [("skills", skill_page), ("hooks", hook_page)]:
-        output = ROOT / "ia" / f"{name}.mdx"
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(content, encoding="utf-8")
-    print(f"Generated: {len(skills)} skills and {len(hooks)} hooks")
+        dest = ROOT / "ia" / slug
+        dest.mkdir(parents=True, exist_ok=True)
+        (dest / "skills.mdx").write_text(skill_page, encoding="utf-8")
+        (dest / "hooks.mdx").write_text(hook_page, encoding="utf-8")
+        summaries.append((label, slug, len(skills), len(hooks)))
+
+    # Keep former /ia/skills and /ia/hooks links useful without combining lists.
+    for category in ("skills", "hooks"):
+        title = "Skills" if category == "skills" else "Hooks"
+        links = "\n".join(
+            f'<Card title="Erixcel {label}" icon="{"book-open" if category == "skills" else "shield-check"}" '
+            f'href="/ia/{slug}/{category}" horizontal>'
+            f'Ver solo los {title} de {label}.</Card>'
+            for label, slug, _, _ in summaries
+        )
+        content = (
+            f'---\ntitle: "{title}"\nsidebarTitle: "{title}"\n---\n\n'
+            f'# {title} por plugin\n\n'
+            f'Selecciona un plugin para consultar sus {title} sin mezclar tecnologías.\n\n'
+            f'<Columns cols={1}>\n{links}\n</Columns>\n'
+        )
+        (ROOT / "ia" / f"{category}.mdx").write_text(content, encoding="utf-8")
+
+    for label, slug, nskills, nhooks in summaries:
+        print(f"Generated Erixcel {label}: {nskills} Skills and {nhooks} Hooks")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,53 @@
+---
+title: "Hooks de React"
+sidebarTitle: "Hooks"
+---
+
+Estos Hooks pertenecen **solo a Erixcel React**; no incorporan validadores del otro plugin. Sigue la [guía de instalación de Erixcel React](/ia/react) para activarlos.
+
+## Hooks por evento (9)
+
+### Antes de comenzar
+
+Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos relevantes.
+
+<Columns cols={1}>
+<Card title="Detect Changes - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Registra los cambios de `frontend/src/`, `package.json` y archivos `.env`.
+</Card>
+</Columns>
+
+### Al terminar
+
+Evento **`Stop`**: comprueba los cambios y devuelve feedback de errores para que Codex pueda autocorregirse.
+
+<Columns cols={1}>
+<Card title="Structure Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Comprueba las carpetas de `src/` y archivos de entrada.
+</Card>
+<Card title="Main Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Valida `src/main.tsx`: createRoot, RouterProvider y estilos.
+</Card>
+<Card title="Component Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Detecta llamadas HTTP dentro de componentes TSX.
+</Card>
+<Card title="React Hook Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Comprueba la convención `useXxx` de hooks personalizados.
+</Card>
+<Card title="Route Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Verifica que las rutas definan configuración React Router.
+</Card>
+<Card title="Module Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Exige agrupar las funcionalidades en carpetas de `src/modules/`.
+</Card>
+<Card title="API &amp; Service Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Revisa `src/api/` y `src/services/` y las variables Vite.
+</Card>
+<Card title="Env &amp; Package Validator - Erixcel React" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/hooks/hooks.json" horizontal>
+Revisa `package.json`, `.env` y `.env.example`.
+</Card>
+</Columns>
+
+## Autorizar y activar
+
+Abre **Codex Desktop → Settings → Hooks**, revisa los comandos, pulsa **Trust** y activa los Hooks de **Erixcel React** que vayas a utilizar.

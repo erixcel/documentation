@@ -1,95 +1,12 @@
 ---
 title: "Skills"
-sidebarTitle: "Skills"
 ---
 
-Las **Skills de Erixcel** son instrucciones reutilizables para agentes de programación. Este catálogo se genera a partir de los archivos `SKILL.md` de los plugins registrados en [Erixcel Developer Tools](https://github.com/erixcel/documentation/blob/main/.agents/plugins/marketplace.json).
+# Skills por plugin
 
-## Cómo instalarlas
-
-<Steps>
-  <Step title="Agregar el marketplace">
-    Abre **Codex Desktop → Settings → Plugins → Add → Add a marketplace** y pega lo siguiente en **Source**:
-
-    ```text Marketplace de Erixcel
-    erixcel/documentation
-    ```
-  </Step>
-
-  <Step title="Instalar el plugin">
-    En **Erixcel Developer Tools**, instala **Erixcel NestJS** o **Erixcel React** según el proyecto. Son plugins separados y cada uno contiene sus propias Skills y Hooks.
-  </Step>
-
-  <Step title="Comprobar las Skills">
-    En Codex, abre **Skills** o los detalles del plugin instalado y revisa las Skills de NestJS o React.
-  </Step>
-
-  <Step title="Utilizarlas">
-    Abre tu proyecto y solicita, por ejemplo: «Usa `nestjs-core` para revisar `cors.core.ts`» o «Usa `react-app` para revisar `src/main.tsx`».
-  </Step>
-</Steps>
-
-
-## Skills disponibles (18)
+Selecciona un plugin para ver un catálogo independiente.
 
 <Columns cols={1}>
-<Card title="nestjs-core" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-core/SKILL.md" horizontal>
-Configura archivos `.core.ts` y su integración con `main.ts`.
-</Card>
-<Card title="nestjs-db" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-db/SKILL.md" horizontal>
-Organiza PostgreSQL, Drizzle y las operaciones de base de datos.
-</Card>
-<Card title="nestjs-functions" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-functions/SKILL.md" horizontal>
-Define utilidades reutilizables en archivos `.function.ts`.
-</Card>
-<Card title="nestjs-global-dto" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-global-dto/SKILL.md" horizontal>
-Define los DTO compartidos por diferentes módulos.
-</Card>
-<Card title="nestjs-module-dto" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-module-dto/SKILL.md" horizontal>
-Define los DTO de entrada, filtros y salida de cada módulo.
-</Card>
-<Card title="nestjs-modules" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-modules/SKILL.md" horizontal>
-Organiza controllers, services y módulos de NestJS.
-</Card>
-<Card title="nestjs-scripts" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-scripts/SKILL.md" horizontal>
-Organiza scripts y generadores de automatización.
-</Card>
-<Card title="nestjs-tsconfig" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/skills/nestjs-tsconfig/SKILL.md" horizontal>
-Configura `tsconfig.json` y los alias de TypeScript.
-</Card>
-<Card title="react-api" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-api/SKILL.md" horizontal>
-Organiza clientes HTTP y contratos bajo `src/api/`.
-</Card>
-<Card title="react-app" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-app/SKILL.md" horizontal>
-Inicializa React en `src/main.tsx` y conecta RouterProvider.
-</Card>
-<Card title="react-assets" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-assets/SKILL.md" horizontal>
-Gestiona imágenes y recursos estáticos de `src/assets/`.
-</Card>
-<Card title="react-components" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-components/SKILL.md" horizontal>
-Construye componentes reutilizables en `src/components/`.
-</Card>
-<Card title="react-env" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-env/SKILL.md" horizontal>
-Documenta y valida las variables `.env` y `.env.example`.
-</Card>
-<Card title="react-hooks" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-hooks/SKILL.md" horizontal>
-Define hooks personalizados `useXxx` en `src/hooks/`.
-</Card>
-<Card title="react-modules" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-modules/SKILL.md" horizontal>
-Agrupa funcionalidades por dominio en `src/modules/`.
-</Card>
-<Card title="react-package" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-package/SKILL.md" horizontal>
-Mantiene los scripts y dependencias de `package.json`.
-</Card>
-<Card title="react-routes" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-routes/SKILL.md" horizontal>
-Organiza las rutas y navegación desde `src/routes/`.
-</Card>
-<Card title="react-services" icon="book-open" href="https://github.com/erixcel/documentation/blob/main/plugins/react-standards/skills/react-services/SKILL.md" horizontal>
-Separa los servicios de negocio en `src/services/`.
-</Card>
+<Card title="Erixcel NestJS" icon="book-open" href="/ia/nestjs/skills" horizontal>Ver solo los skills de NestJS.</Card>
+<Card title="Erixcel React" icon="book-open" href="/ia/react/skills" horizontal>Ver solo los skills de React.</Card>
 </Columns>
-
-
-## Actualizaciones
-
-Las instrucciones de cada Skill siguen teniendo su fuente original en GitHub. Si cambia un `SKILL.md`, este catálogo se regenera automáticamente en el repositorio; actualizar la instalación local del plugin sigue siendo un proceso independiente.

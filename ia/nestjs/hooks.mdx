@@ -1,0 +1,62 @@
+---
+title: "Hooks de NestJS"
+sidebarTitle: "Hooks"
+---
+
+Estos Hooks pertenecen **solo a Erixcel NestJS**; no incorporan validadores del otro plugin. Sigue la [guía de instalación de Erixcel NestJS](/ia/nestjs) para activarlos.
+
+## Hooks por evento (12)
+
+### Antes de comenzar
+
+Evento **`UserPromptSubmit`**: registra el estado inicial de los archivos relevantes.
+
+<Columns cols={1}>
+<Card title="Detect Changes" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Registra el estado inicial de todos los archivos NestJS vigilados.
+</Card>
+</Columns>
+
+### Al terminar
+
+Evento **`Stop`**: comprueba los cambios y devuelve feedback de errores para que Codex pueda autocorregirse.
+
+<Columns cols={1}>
+<Card title="Query Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Una clase por `.query.ts`; separa consultas simples y JOIN.
+</Card>
+<Card title="Core Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida las funciones setup de `.core.ts` y su integración.
+</Card>
+<Card title="Controller Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.controller.ts`: decoradores HTTP, Swagger y delegación al Service.
+</Card>
+<Card title="Service Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.service.ts`: servicios Injectable y consultas mediante Queries.
+</Card>
+<Card title="Module Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.module.ts`: archivos hermanos y submódulos agrupados en `modules/`; solo `app.module.ts` exceptuado.
+</Card>
+<Card title="DTO Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.dto.ts`: contratos, trazabilidad y separación de capas.
+</Card>
+<Card title="Function Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.function.ts`: una clase sin types/interfaces sueltos; métodos static con `@TraceNode`.
+</Card>
+<Card title="Table Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.
+</Card>
+<Card title="Seed Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `src/seeds/`: solo `*.seed.ts` sin subcarpetas, una función por archivo y datos integrados.
+</Card>
+<Card title="Script Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.
+</Card>
+<Card title="TSConfig Validator" icon="shield-check" href="https://github.com/erixcel/documentation/blob/main/plugins/nestjs-standards/hooks/hooks.json" horizontal>
+Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript.
+</Card>
+</Columns>
+
+## Autorizar y activar
+
+Abre **Codex Desktop → Settings → Hooks**, revisa los comandos, pulsa **Trust** y activa los Hooks de **Erixcel NestJS** que vayas a utilizar.

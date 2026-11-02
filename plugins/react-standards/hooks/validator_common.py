@@ -515,7 +515,7 @@ def resource_scope(name):
         return None
     if parts[1] != "pages":
         return Path("src")
-    if len(parts) < 5:
+    if len(parts) < 3:
         return None
     # Page boundaries are explicit: src/pages/admin/pages/users.
     scope = ["src", "pages", parts[2]]
@@ -533,7 +533,11 @@ def resource_kind(name):
         if folder in parts and parts[-2] == folder:
             return folder, suffix
     if "components" in parts and parts[-1].endswith((".ts", ".tsx")):
-        return "components", ".component.tsx"
+        idx = parts.index("components")
+        if len(parts) > idx + 2 and parts[idx+1] in ("simple", "complex"):
+            if parts[idx+1] == "simple" or (parts[-2] == parts[idx+2] and parts[-1].endswith(".tsx")):
+                return "components", ".component.tsx"
+        return None
     return None
 
 def resolve_relative_import(root, source, target):

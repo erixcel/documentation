@@ -71,6 +71,7 @@ class ReactPluginTests(unittest.TestCase):
         manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
         hooks = json.loads((root / "hooks/hooks.json").read_text())["hooks"]
         self.assertEqual(manifest["interface"]["displayName"], "Erixcel React")
+        self.assertEqual(manifest["version"], "0.2.0")
         self.assertEqual(len(list((root / "skills").glob("*/SKILL.md"))), 11)
         self.assertEqual(len(hooks["UserPromptSubmit"][0]["hooks"]), 1)
         self.assertEqual(len(hooks["Stop"][0]["hooks"]), 10)

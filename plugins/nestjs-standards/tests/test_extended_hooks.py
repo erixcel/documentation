@@ -529,7 +529,7 @@ export const user = pgTable('user', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 });
 """
-        bad = good.replace("  deletedAt: timestamp('deleted_at'),\n", "")
+        bad = good.replace("  deletedAt: timestamp('deleted_at', { withTimezone: true }),\n", "")
         self.check_case("table", "src/db/tables/user.table.ts",
                         good, bad, "deletedAt")
 

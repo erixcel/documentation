@@ -144,7 +144,7 @@ HOOK_DESCRIPTIONS = {
     "validate-module.py": "Valida `.module.ts`: archivos hermanos y submódulos agrupados en `modules/`; solo `app.module.ts` exceptuado.",
     "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
     "validate-function.py": "Valida `.function.ts`: una clase sin types/interfaces sueltos; métodos static con `@TraceNode`.",
-    "validate-table.py": "Valida `.table.ts`: tablas Drizzle y tres campos de auditoría.",
+    "validate-table.py": "Valida `.table.ts`: solo pgEnum, pgTable exportado y timestamps directos; sin types ni helpers.",
     "validate-seed.py": "Valida `src/seeds/`: solo `*.seed.ts` sin subcarpetas, una función por archivo y datos integrados.",
     "validate-script.py": "Valida `scripts/*.ts`: nombres, secretos y rutas locales fijas.",
     "validate-tsconfig.py": "Valida `tsconfig.json`: JSONC, módulo NodeNext y alias de TypeScript."

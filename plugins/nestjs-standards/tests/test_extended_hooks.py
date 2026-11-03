@@ -524,16 +524,91 @@ export class StringFunction {
         good = """import { pgTable, timestamp, serial } from 'drizzle-orm/pg-core';
 export const user = pgTable('user', {
   id: serial('id').primaryKey(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+"""
+        bad = good.replace("  deletedAt: timestamp('deleted_at', { withTimezone: true }),\n", "")
+        self.check_case("table", "src/db/tables/user.table.ts",
+                        good, bad, "deletedAt")
+
+    def test_table_allows_only_pg_enum_and_exported_pg_table(self):
+        good = """import { pgTable, pgEnum, timestamp, serial } from 'drizzle-orm/pg-core';
+const roleEnum = pgEnum('role', ['admin', 'user'] as const);
+export const statusEnum = pgEnum('status', ['active', 'inactive']);
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  role: roleEnum('role'),
+  status: statusEnum('status'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+"""
+        self.put("src/db/tables/users.table.ts", good)
+        self.turn += 1
+        self.assertEqual(self.call("detect-changes.py", "UserPromptSubmit"), {})
+        self.put("src/db/tables/users.table.ts", good + "\n// ensure comments are allowed\n")
+        self.assertEqual(self.call("validate-table.py", "Stop"), {})
+
+    def test_table_rejects_timestamp_helper_and_other_consts(self):
+        good = """import { pgTable, timestamp, serial } from 'drizzle-orm/pg-core';
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   deletedAt: timestamp('deleted_at'),
 });
-export type User = typeof user.$inferSelect;
-export type UserDTO = typeof user.$inferInsert;
 """
-        bad = good.replace("  deletedAt: timestamp('deleted_at'),\n", "")
-        self.check_case("table", "src/db/tables/user.table.ts",
-                        good, bad, "deletedAt")
+        bad = (
+            "const timestamp = (name: string) => pgTimestamp(name, { withTimezone: true });\n"
+            "const config = { withTimezone: true };\n" + good
+        )
+        self.check_case("table", "src/db/tables/users.table.ts", good, bad,
+                        "[table-declaration]")
+
+    def test_table_rejects_exported_types_and_interfaces(self):
+        good = """import { pgTable, timestamp } from 'drizzle-orm/pg-core';
+export const users = pgTable('users', {
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+"""
+        bad = good + (
+            "export type User = typeof users.$inferSelect;\n"
+            "export interface IUser { id: string }\n"
+        )
+        self.check_case("table", "src/db/tables/users.table.ts", good, bad,
+                        "[table-type]")
+
+    def test_table_rejects_extra_export_and_unexported_table(self):
+        good = """import { pgTable, timestamp } from 'drizzle-orm/pg-core';
+export const users = pgTable('users', {
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+"""
+        bad = good.replace("export const users = pgTable", "const users = pgTable")
+        self.check_case("table", "src/db/tables/users.table.ts", good, bad,
+                        "Exporta exactamente una")
+
+    def test_table_rejects_local_const_in_callback(self):
+        good = """import { pgTable, timestamp, index } from 'drizzle-orm/pg-core';
+export const users = pgTable('users', {
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
+}, (t) => [index('users_created_idx').on(t.createdAt)]);
+"""
+        bad = good.replace(
+            "(t) => [index('users_created_idx').on(t.createdAt)]",
+            "(t) => { const extra = 1; return [index('users_created_idx').on(t.createdAt)]; }"
+        )
+        self.check_case("table", "src/db/tables/users.table.ts", good, bad,
+                        "[table-declaration]")
 
     def test_seed(self):
         good = """import { database } from '@db/connection.db';

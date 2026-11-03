@@ -3,87 +3,85 @@ title: "tables"
 sidebarTitle: "tables"
 ---
 
-Contiene las definiciones de las tablas PostgreSQL mediante **Drizzle ORM**. Usa **un archivo por tabla** con el nombre de la tabla y el sufijo `.table.ts`.
+# Tables de Drizzle ORM
 
-## Campos obligatorios en absolutamente todas las tablas
+En `src/db/tables/`, cada archivo `[nombre].table.ts` define **exactamente una tabla PostgreSQL** mediante `pgTable(...)` y, opcionalmente, sus enums `pgEnum(...)`.
 
-**Regla indispensable y sin excepciones:** cada tabla definida en `src/db/tables` debe incluir **exactamente estos tres campos de auditoría**, siempre con sus nombres de propiedad y de columna **en inglés**, incluso en tablas intermedias o de relaciones.
+## Declaraciones permitidas en un archivo `.table.ts`
 
-```typescript nombre-tabla.table.ts
-createdAt: timestamp('created_at').defaultNow().notNull(),
-updatedAt: timestamp('updated_at').defaultNow().notNull(),
-deletedAt: timestamp('deleted_at'),
+Solo se permiten:
+
+- **Imports** necesarios para definir el esquema.
+- **Una tabla exportada:** `export const users = pgTable(...)`.
+- **Enums Drizzle:** `const userRoleEnum = pgEnum(...)` o `export const userRoleEnum = pgEnum(...)`, según si otros archivos necesitan importarlos.
+
+Quedan prohibidos otros `const`, `let` y `var`, así como declaraciones `type`, `interface`, `class`, `function`, `enum` de TypeScript y reexportaciones. Esto también impide crear un helper como `const timestamp = (...)` o `const pgTimestamp = (...)` para las columnas de auditoría. **No conviertas un helper en una clase ni añadas decoradores.**
+
+Los tipos inferidos de Drizzle (`typeof users.$inferSelect`, `typeof users.$inferInsert`) siguen estando disponibles, pero deben utilizarse **fuera del `.table.ts`**, por ejemplo en los contratos/DTO o consumidores que realmente los necesitan. No declares `export type User = ...` ni `export interface User ...` dentro de la tabla.
+
+## Tres campos de auditoría obligatorios
+
+**Sin excepciones:** todas las tablas, incluidas las intermedias, declaran estas propiedades y columnas en inglés.
+
+```typescript
+createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+deletedAt: timestamp('deleted_at', { withTimezone: true }),
 ```
 
-| Campo | Función |
+La opción `{ withTimezone: true }` es válida y puede incluirse directamente como segundo argumento; también es válido `timestamp('created_at')` sin opciones. **El validador acepta ambos formatos directos**, no aliases ni funciones auxiliares. Si empleas zonas horarias, sé consistente entre columnas.
+
+| Campo | Significado |
 | --- | --- |
-| `createdAt` / `created_at` | Fecha y hora en que se crea el registro. |
-| `updatedAt` / `updated_at` | Fecha y hora de su última actualización. |
-| `deletedAt` / `deleted_at` | Marca de eliminación lógica (_soft delete_); permanece `null` mientras el registro está activo. |
+| `createdAt` / `created_at` | Fecha y hora de creación |
+| `updatedAt` / `updated_at` | Fecha y hora de última actualización |
+| `deletedAt` / `deleted_at` | Borrado lógico, anulable |
 
-No los traduzcas a `creadoEn`, `actualizadoEn` o `eliminadoEn`, ni omitas ninguno al crear una tabla nueva.
+`defaultNow()` únicamente inicializa `updatedAt`: la aplicación debe actualizarlo en modificaciones o configurar el mecanismo que lo haga.
 
-**Importante:** `defaultNow()` establece el valor inicial de `updatedAt`, pero **no lo actualiza automáticamente** cuando cambia el registro. La lógica de actualización debe asignar `updatedAt: new Date()` (o configurarse explícitamente para hacerlo).
-
-## Ejemplo de estructura
-
-```text src/db/tables
-tables/
-├── user.table.ts
-├── category.table.ts
-└── product.table.ts
-```
-
-## Ejemplo completo
+## Ejemplo válido completo
 
 ```typescript user.table.ts
-import { pgTable, serial, text, varchar, timestamp, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  pgEnum,
+  serial,
+  text,
+  varchar,
+  timestamp,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
-const userRoleEnum = pgEnum('user_role', ['admin', 'employee', 'viewer']);
+// Permitido: enum Drizzle, exportado solo si se consume en otros archivos.
+export const userRoleEnum = pgEnum('user_role', ['admin', 'employee', 'viewer']);
 
+// Permitido: una tabla exportada.
 export const user = pgTable(
   'user',
   {
     id: serial('id').primaryKey(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    deletedAt: timestamp('deleted_at'),
     email: varchar('email', { length: 255 }).notNull(),
     password: text('password').notNull(),
-    firstName: varchar('first_name', { length: 100 }).notNull(),
-    lastName: varchar('last_name', { length: 100 }).notNull(),
-    fullName: varchar('full_name', { length: 200 }).notNull(),
     role: userRoleEnum('role').default('viewer').notNull(),
-    isActive: varchar('is_active', { length: 10 }).default('true').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
-    // Search indexes
-    index('user_full_name_idx').using('gin', t.fullName.op('gin_trgm_ops')),
-    index('user_email_idx').on(t.email),
     index('user_created_at_idx').on(t.createdAt),
-
-    // Unique partial indexes (Soft Delete)
     uniqueIndex('user_email_unique_active_idx')
       .on(t.email)
       .where(sql`${t.deletedAt} IS NULL`),
   ],
 );
-
-export type User = typeof user.$inferSelect;
-export type UserDTO = typeof user.$inferInsert;
 ```
 
-## Convenciones de nombres y exportaciones
+Los DTO pueden obtener valores del enum a través de `user.role.enumValues`, sin duplicar la lista de valores. Si el enum solo se usa en esta tabla, puede permanecer sin `export`. Un enum compartido por varias tablas requiere una decisión explícita de ubicación compartida, sin duplicarlo.
 
-| Elemento | Convención | Ejemplo |
-| --- | --- | --- |
-| Archivo | Nombre de tabla + `.table.ts` | `user.table.ts` |
-| Tabla Drizzle | Exportar la definición para poder utilizarla desde queries y conexiones | `export const user` |
-| Enum interno | Nombre de tabla + columna + `Enum`; declararlo en el mismo archivo **sin exportarlo** | `const userRoleEnum` |
-| Tipo SELECT | Nombre de entidad | `export type User` |
-| Tipo INSERT | Nombre de entidad + `DTO` | `export type UserDTO` |
+**Nota:** el índice GIN con `gin_trgm_ops`, si se utiliza, requiere activar la extensión PostgreSQL `pg_trgm`.
 
-Los enums exclusivos de una tabla **se definen dentro de su archivo y no se exportan**. Sí se exportan la tabla y sus dos tipos inferidos por Drizzle: `$inferSelect` para lectura y `$inferInsert` para inserción. Los DTO deben obtener los valores del enum desde la columna exportada: `user.role.enumValues` (para Swagger, `@IsEnum` y el tipo TypeScript), sin crear otro enum ni duplicar sus valores. Si un enum necesitara compartirse entre varias tablas, habría que diseñar una definición común.
+## Validación
 
-**Nota:** el índice GIN con `gin_trgm_ops` requiere habilitar la extensión `pg_trgm` en PostgreSQL.
+El **Table Validator** comprueba las únicas declaraciones permitidas, la tabla principal exportada, el formato directo de los tres timestamps y sus modificadores obligatorios. Su análisis estático ignora comentarios y literales para identificar declaraciones; no ejecuta el esquema ni realiza migraciones. Las pruebas verifican casos válidos y prohibidos.

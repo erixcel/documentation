@@ -26,6 +26,10 @@ Aplica al trabajar con `src/db/**, src/queries/** y src/seeds/**` en un backend 
 5. Valida los archivos cambiados con las comprobaciones disponibles en el proyecto. Explica qué reglas se aplicaron y qué no se pudo verificar.
 6. Si GitHub no está accesible, intenta leer el mismo archivo en un checkout local actualizado de `erixcel/documentation` y aclara si su versión puede estar desactualizada. Si no puedes leer ninguna fuente confiable, **no inventes normas**: informa el impedimento y solicita el documento.
 
+## Regla de archivos `*.table.ts`
+
+La fuente de verdad es [tables](https://docs.erixcel.com/desarrollo/nestjs/src/db/tables) y su [MDX](https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/nestjs/src/db/tables.mdx). En cada `*.table.ts` únicamente se admiten imports, `const ... = pgEnum(...)` (export opcional) y **una** tabla `export const ... = pgTable(...)`. No declares otros `const`/`let`/`var`, `type`, `interface`, clases, funciones ni decoradores; en particular, no añadas `const timestamp` o `const pgTimestamp`. Usa directamente `timestamp('created_at', { withTimezone: true }).defaultNow().notNull()` o su forma sin opciones, con las otras dos columnas de auditoría. Usa tipos Drizzle inferidos **fuera del `.table.ts`**. Aplica `Table Validator`, verifica imports y preserva el esquema real sin realizar migraciones involuntarias.
+
 ## Puntos de atención
 
 **Seeds:** cuando crees, muevas o edites algo bajo `src/seeds/**`, consulta [la guía de Seeds](https://docs.erixcel.com/desarrollo/nestjs/src/seeds-guia) y su [MDX fuente](https://raw.githubusercontent.com/erixcel/documentation/main/desarrollo/nestjs/src/seeds-guia.mdx). La carpeta será plana, con **solo `*.seed.ts`**, sin `data/`, JSON ni subcarpetas. Cada seed permite únicamente imports y una función `seedNombre(...)` exportada; no permite declaraciones `type`/`interface` ni variables o funciones independientes. Integra los registros dentro de esa función, sin exigir TraceFlow. Verifica los datos y las claves foráneas antes de eliminar o mover archivos.

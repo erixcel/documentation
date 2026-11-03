@@ -28,19 +28,20 @@ src/
 
 ## Reglas para las tablas
 
-1. **Un archivo por tabla:** usa `[nombre].table.ts` dentro de `src/db/tables`. Define el esquema con Drizzle ORM y exporta la tabla y los tipos necesarios.
+1. **Un archivo por tabla:** usa `[nombre].table.ts` dentro de `src/db/tables`. Define el esquema con Drizzle ORM; exporta la tabla y, si se necesitan desde otros archivos, los enums `pgEnum`. **No declares `type` o `interface` ni helpers `const` en `*.table.ts`.** Los contratos inferidos se usan fuera de las tablas.
 2. **Tres campos indispensables en absolutamente todas las tablas**, incluso las tablas intermedias y de relaciones. Los nombres deben estar **en inglés**, tanto en TypeScript como en PostgreSQL:
 
    ```typescript
-   createdAt: timestamp('created_at').defaultNow().notNull(),
-   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-   deletedAt: timestamp('deleted_at'),
+   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+   deletedAt: timestamp('deleted_at', { withTimezone: true }),
    ```
 
-3. **Borrado lógico:** `deletedAt` indica cuándo se eliminó un registro. Excluye registros eliminados de las consultas normales con `isNull(tabla.deletedAt)` cuando corresponda.
-4. **Actualización:** `defaultNow()` solo inicializa `updatedAt`; al actualizar un registro, asigna explícitamente la nueva fecha o configura el mecanismo que lo haga.
-5. **Integridad y rendimiento:** declara relaciones, índices y restricciones según las necesidades reales; cuando la unicidad dependa del borrado lógico, evalúa índices únicos parciales.
-6. **Una sola fuente para enums:** deriva los valores utilizados por los DTO de los enums definidos en las tablas Drizzle; evita duplicar manualmente las listas de valores.
+3. **Timestamps directos:** invoca `timestamp('campo')` o `timestamp('campo', { withTimezone: true })` directamente en las columnas. No declares aliases como `const timestamp = ...` ni `const pgTimestamp = ...`; los únicos `const` permitidos son `pgEnum(...)` y el `export const ... = pgTable(...)` de la tabla.
+4. **Borrado lógico:** `deletedAt` indica cuándo se eliminó un registro. Excluye registros eliminados de las consultas normales con `isNull(tabla.deletedAt)` cuando corresponda.
+5. **Actualización:** `defaultNow()` solo inicializa `updatedAt`; al actualizar un registro, asigna explícitamente la nueva fecha o configura el mecanismo que lo haga.
+6. **Integridad y rendimiento:** declara relaciones, índices y restricciones según las necesidades reales; cuando la unicidad dependa del borrado lógico, evalúa índices únicos parciales.
+7. **Una sola fuente para enums:** deriva los valores utilizados por los DTO de los enums definidos en las tablas Drizzle; evita duplicar manualmente las listas de valores.
 
 Consulta [`tables`](/desarrollo/nestjs/src/db/tables) para ejemplos completos.
 

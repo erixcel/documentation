@@ -48,13 +48,13 @@ Acceso a datos de **una sola tabla**. Este archivo permite leer, crear, actualiz
 import { Injectable } from '@nestjs/common';
 import { count, eq, isNull, desc } from 'drizzle-orm';
 import { database } from '@db/connection.db';
-import { productos, type ProductoDTO } from '@db/tables/producto.table';
+import { productos } from '@db/tables/producto.table';
 
 @Injectable()
 export class ProductoQuery {
   async findAllPaginated(page: number = 1, limit: number = 10) {
     const offset = (page - 1) * limit;
-    const where = isNull(productos.eliminadoEn);
+    const where = isNull(productos.deletedAt);
 
     const [{ total }] = await database
       .select({ total: count() })
@@ -81,7 +81,7 @@ export class ProductoQuery {
     return producto;
   }
 
-  async create(data: ProductoDTO) {
+  async create(data: typeof productos.$inferInsert) {
     const [producto] = await database
       .insert(productos)
       .values(data)
@@ -90,7 +90,7 @@ export class ProductoQuery {
     return producto;
   }
 
-  async update(id: number, data: Partial<ProductoDTO>) {
+  async update(id: number, data: Partial<typeof productos.$inferInsert>) {
     const [producto] = await database
       .update(productos)
       .set(data)
@@ -104,7 +104,7 @@ export class ProductoQuery {
     // Eliminación lógica en la misma tabla.
     const [producto] = await database
       .update(productos)
-      .set({ eliminadoEn: new Date() })
+      .set({ deletedAt: new Date() })
       .where(eq(productos.id, id))
       .returning();
 
@@ -157,3 +157,6 @@ export class ProductoJoinQuery {
 ```
 
 **Regla:** este archivo contiene solamente consultas `SELECT` con relaciones. Los campos `categoriaId` y `nombre` son ilustrativos; adáptalos a tus tablas.
+
+
+**Nota sobre tipos:** por la convención actual de Erixcel, `*.table.ts` exporta tablas `pgTable` y opcionalmente enums `pgEnum`, **no** declaraciones `type` ni `interface`. Los tipos Drizzle se referencian desde los consumidores con `typeof tabla.$inferSelect` o `typeof tabla.$inferInsert`, o mediante contratos definidos fuera del archivo de tabla.

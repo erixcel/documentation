@@ -28,6 +28,7 @@ SKILL_CARD_DETAILS = {
     "nestjs-modules": {
         "description": "Organiza controllers, services y módulos de NestJS."
     },
+    "nestjs-queries": {"description": "Organiza consultas de una tabla y JOINs de solo lectura en `src/queries/`."},
     "nestjs-scripts": {
         "description": "Organiza scripts y generadores de automatización."
     },

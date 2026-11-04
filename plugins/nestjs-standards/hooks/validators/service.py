@@ -23,6 +23,33 @@ def has_exported_service_class(source):
     return False
 
 
+def validate_local_contracts(source):
+    """Reject type/interface/enum declarations even if nested in service methods.
+
+    Preserve type annotations, generic usages, 'type' object keys, and import type.
+    """
+    items = tokens(source)
+    errors = []
+    for i, (word, line) in enumerate(items):
+        if word not in ("type", "interface", "enum"):
+            continue
+        after_name = items[i + 2][0] if i + 2 < len(items) else ""
+        name = items[i + 1][0] if i + 1 < len(items) else ""
+        if not re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*", name):
+            continue
+        is_declaration = (
+            word == "type" and after_name in ("=", "<")
+            or word == "interface" and after_name in ("{", "<", "extends")
+            or word == "enum" and after_name == "{"
+        )
+        if is_declaration:
+            errors.append(
+                f"Línea {line}: [service-no-types] declaración {word} {name} "
+                "no permitida en *.service.ts; mueve los contratos fuera del Service."
+            )
+    return errors
+
+
 def validate_service(path):
     source, errors = read(path)
     if errors:
@@ -30,6 +57,7 @@ def validate_service(path):
 
     errors.extend(named_class(source, path, ".service.ts", "Service", "Injectable"))
     errors.extend(validate_one_class(source, file_type="service"))
+    errors.extend(validate_local_contracts(source))
     if not has_exported_service_class(source):
         errors.append(
             "[service-single-class] Exporta exactamente una clase "

@@ -211,6 +211,35 @@ export class UserController {
 }
 ```
 
+## Regla obligatoria: exclusivamente una clase en `*.service.ts`
+
+Cada `<nombre>.service.ts` contiene **solo imports (también `import type`), decoradores de clase y exactamente una clase `export class <Nombre>Service` anotada con `@Injectable()`**. `export default class` con nombre explícito también es admisible. No declares ningún otro elemento independiente a nivel del módulo: `type`, `interface`, `enum`, `namespace`, `const`, `let`, `var`, funciones o clases auxiliares, ni `export type`, `export {...}` u otros reexports. **No se admiten definiciones `type` o `interface` dentro del propio archivo Service**, aunque sean solo para consumo local.
+
+Dentro de la clase sí se permiten constructores, propiedades de instancia o estáticas, getters, métodos públicos/privados, funciones flecha como propiedades, variables locales `const`/`let` dentro de métodos, parámetros genéricos, anotaciones de tipos y lógica de negocio. Las anotaciones `Promise<MiTipo>` o `typeof` no equivalen a declaraciones `type`.
+
+Cuando un servicio tiene contratos como `MercadoPagoTokenResponse` o `AccessTokenResult`, **extrae las declaraciones** a los DTO/contratos apropiados según su alcance, o reutiliza tipos ya existentes; actualiza los imports y consumidores. Las utilidades independientes no van como `const` fuera de la clase: pon la lógica realmente propia del servicio en métodos privados o utiliza las convenciones de `functions/` para utilidades independientes. No elimines tipos ni alteres comportamiento para satisfacer el Hook.
+
+```typescript user.service.ts
+import { Injectable } from '@nestjs/common';
+import type { UserTokenResponse } from './dto/user-token.dto';
+import { UserQuery } from '@queries/user/user.query';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly userQuery: UserQuery) {}
+
+  private readonly tokenExpirationSeconds = 3600;
+
+  async getToken(): Promise<UserTokenResponse> {
+    const user = await this.userQuery.findOne(1);
+    // Aquí va la lógica real del servicio.
+    return { token: String(user?.id ?? '') };
+  }
+}
+```
+
+El **Service Validator** detecta declaraciones a nivel de archivo mediante el analizador léxico que ignora comentarios y textos entre comillas, y conserva las validaciones existentes sobre `@Injectable()`, Queries, Drizzle y decoradores HTTP. No ejecuta TypeScript ni reemplaza `tsc` o las pruebas.
+
 ### user.service.ts
 
 Aquí sí se coloca la **lógica de negocio**: verificar existencia, preparar datos, procesar errores y llamar al query de su tabla. `@Trace({ name: 'user', type: 'service' })` identifica cada operación del servicio.

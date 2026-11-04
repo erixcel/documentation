@@ -269,6 +269,26 @@ export class UserService {}
             "[service-single-class]",
         )
 
+    def test_service_disallows_type_alias_even_inside_method(self):
+        good = """import { Injectable } from '@nestjs/common';
+import type { SessionResponse } from './dto/session.dto';
+@Injectable()
+export class UserService {
+  async getSession(): Promise<SessionResponse> {
+    const record = { type: 'service', value: 1 };
+    return record as SessionResponse;
+  }
+}
+"""
+        bad = good.replace(
+            "    const record =",
+            "    type LocalResponse = { value: number };\n    const record =",
+        )
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-no-types]",
+        )
+
     def test_module(self):
         good = """import { Module } from '@nestjs/common';
 @Module({ controllers: [UserController], providers: [UserService] })

@@ -141,7 +141,7 @@ HOOK_DESCRIPTIONS = {
     "validate-query.py": "Una clase por `.query.ts`; separa consultas simples y JOIN.",
     "validate-core.py": "Valida las funciones setup de `.core.ts` y su integración.",
     "validate-controller.py": "Valida `.controller.ts`: decoradores HTTP, Swagger y delegación al Service.",
-    "validate-service.py": "Valida `.service.ts`: servicios Injectable y consultas mediante Queries.",
+    "validate-service.py": "Valida `.service.ts`: una clase Service exportada sin tipos o helpers a nivel superior; acceso a datos mediante Queries.",
     "validate-module.py": "Valida `.module.ts`: archivos hermanos y submódulos agrupados en `modules/`; solo `app.module.ts` exceptuado.",
     "validate-dto.py": "Valida `.dto.ts`: contratos, trazabilidad y separación de capas.",
     "validate-function.py": "Valida `.function.ts`: una clase sin types/interfaces sueltos; métodos static con `@TraceNode`.",

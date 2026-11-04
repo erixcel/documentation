@@ -87,8 +87,11 @@ def tokens(source):
     return result
 
 
-def validate_one_class(source):
-    """Only imports, class decorators and exactly one class at the top level."""
+def validate_one_class(source, *, file_type="query"):
+    """Only imports, class decorators and one class at module scope.
+
+    file_type changes diagnostics without weakening the Query validator.
+    """
     all_tokens = tokens(source)
     i = 0
     classes = 0
@@ -176,12 +179,30 @@ def validate_one_class(source):
                 break
             i = j
             continue
-        errors.append(
-            f"Línea {line}: declaración '{word}' fuera de la clase. "
-            "Un .query.ts solo puede contener imports, decoradores y una única clase. "
-            "Mueve constantes y funciones al interior de la clase y ajusta sus referencias "
-            "(por ejemplo, this.fields / this.visible), sin cambiar el comportamiento."
-        )
+        if file_type == "service":
+            kind = word
+            if word == "export" and i + 1 < n:
+                kind = all_tokens[i + 1][0]
+            category = (
+                "service-no-types" if kind in ("type", "interface") else
+                "service-no-constants" if kind in ("const", "let", "var") else
+                "service-no-functions" if kind == "function" else
+                "service-no-extra-declarations"
+            )
+            errors.append(
+                f"Línea {line}: [{category}] declaración '{word}' fuera de la clase. "
+                "Un .service.ts solo admite imports, decoradores y una única "
+                "clase Service exportada. Extrae tipos/contratos y funciones "
+                "auxiliares a archivos adecuados; conserva la lógica dentro "
+                "de los métodos del Service y actualiza los imports."
+            )
+        else:
+            errors.append(
+                f"Línea {line}: declaración '{word}' fuera de la clase. "
+                "Un .query.ts solo puede contener imports, decoradores y una única clase. "
+                "Mueve constantes y funciones al interior de la clase y ajusta sus referencias "
+                "(por ejemplo, this.fields / this.visible), sin cambiar el comportamiento."
+            )
         # Continue through further top-level statements to report every violation.
         i += 1
         nesting = 0
@@ -204,8 +225,10 @@ def validate_one_class(source):
             elif value in ("}", ")", "]"):
                 nesting -= 1
             i += 1
-    if classes != 1 and not errors:
+    if classes != 1 and (not errors or file_type == "service"):
+        label = "[service-single-class] " if file_type == "service" else ""
         errors.append(
-            f"El archivo .query.ts debe declarar exactamente una clase (encontradas {classes})."
+            f"{label}El archivo .{file_type}.ts debe declarar exactamente "
+            f"una clase (encontradas {classes})."
         )
     return errors

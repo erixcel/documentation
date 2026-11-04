@@ -185,6 +185,110 @@ export class UserService {
         self.check_case("service", "src/modules/user/user.service.ts",
                         good, bad, "Queries")
 
+    def test_service_allows_import_types_class_properties_and_local_constants(self):
+        good = """import { Injectable } from '@nestjs/common';
+import type { SessionResponse } from './dto/session.dto';
+// type Fake = { foo: boolean }; const OUTSIDE = 12;
+@Injectable()
+export class UserService {
+  private readonly expiration = 3600;
+  private readonly mapper = (value: string) => ({ value });
+  constructor(private readonly userQuery: UserQuery) {}
+  async getSession(): Promise<SessionResponse> {
+    const words = 'interface Foo {} const x = 1';
+    const payload = { expires: this.expiration, words };
+    return this.mapper(payload.words) as SessionResponse;
+  }
+}
+"""
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good,
+            "const OUTSIDE = 1;\n" + good,
+            "[service-no-constants]",
+        )
+
+    def test_service_rejects_type_aliases_and_interfaces(self):
+        good = """import { Injectable } from '@nestjs/common';
+@Injectable()
+export class UserService {
+  async getSession(): Promise<unknown> { return {}; }
+}
+"""
+        bad = (
+            "type MercadoPagoTokenResponse = { access_token: string };\n"
+            "interface AccessTokenResult { accessToken: string }\n"
+            + good
+            + "export type UserResponse = { id: string };\n"
+        )
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-no-types]",
+        )
+
+    def test_service_rejects_top_level_helpers_variables_and_functions(self):
+        good = """import { Injectable } from '@nestjs/common';
+@Injectable()
+export class UserService {
+  private readonly ttl = 3600;
+  private helper() { const ttl = 20; return ttl; }
+}
+"""
+        bad = (
+            "const timestamp = (name: string) => name;\n"
+            "let sharedState = 2;\n"
+            "function parseResponse() { return true; }\n" + good
+        )
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-no-constants]",
+        )
+
+    def test_service_rejects_other_exports_and_classes(self):
+        good = """import { Injectable } from '@nestjs/common';
+@Injectable()
+export class UserService {}
+"""
+        bad = (
+            good
+            + "export { OtherService } from './other.service';\n"
+            + "class ExtraService {}\n"
+        )
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-no-extra-declarations]",
+        )
+
+    def test_service_requires_exported_class(self):
+        good = """import { Injectable } from '@nestjs/common';
+@Injectable()
+export class UserService {}
+"""
+        bad = good.replace("export class UserService", "class UserService")
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-single-class]",
+        )
+
+    def test_service_disallows_type_alias_even_inside_method(self):
+        good = """import { Injectable } from '@nestjs/common';
+import type { SessionResponse } from './dto/session.dto';
+@Injectable()
+export class UserService {
+  async getSession(): Promise<SessionResponse> {
+    const record = { type: 'service', value: 1 };
+    return record as SessionResponse;
+  }
+}
+"""
+        bad = good.replace(
+            "    const record =",
+            "    type LocalResponse = { value: number };\n    const record =",
+        )
+        self.check_case(
+            "service", "src/modules/user/user.service.ts", good, bad,
+            "[service-no-types]",
+        )
+
     def test_module(self):
         good = """import { Module } from '@nestjs/common';
 @Module({ controllers: [UserController], providers: [UserService] })

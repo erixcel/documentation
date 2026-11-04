@@ -26,6 +26,10 @@ Aplica al trabajar con `src/modules/** (controllers, services, modules)` en un b
 5. Valida los archivos cambiados con las comprobaciones disponibles en el proyecto. Explica qué reglas se aplicaron y qué no se pudo verificar.
 6. Si GitHub no está accesible, intenta leer el mismo archivo en un checkout local actualizado de `erixcel/documentation` y aclara si su versión puede estar desactualizada. Si no puedes leer ninguna fuente confiable, **no inventes normas**: informa el impedimento y solicita el documento.
 
+## Regla para `*.service.ts`
+
+Al trabajar con cualquier Service, **solo imports, decoradores y exactamente una clase `export class NombreService` con `@Injectable()`**. Prohibido declarar `type`, `interface`, `const`, `let`, `var`, `enum`, funciones o clases auxiliares a nivel del archivo o reexports. Se permiten variables locales en métodos, propiedades, tipos usados en firmas, genéricos e `import type`. Extrae los contratos a DTO/archivos adecuados según consumidores; coloca utilidades propias del servicio en métodos privados o reutiliza `functions/` cuando corresponda. No borres ni deformes contratos existentes: mueve sus definiciones y actualiza imports. Consulta la [regla completa de Services](https://docs.erixcel.com/desarrollo/nestjs/src/modules-guia) y ejecuta Service Validator.
+
 ## Puntos de atención
 
 **Organización de submódulos:** cuando un módulo tiene hijos que también cuentan con `<nombre>.module.ts`, agrúpalos en `modules/<nombre>/<nombre>.module.ts` dentro del módulo padre. No se permiten carpetas de submódulos sueltas junto al `.module.ts` padre. Puedes mantener carpetas `dto/`, `functions/` o `guards/` directamente si no contienen submódulos. Esta convención aplica de forma recursiva; al mover carpetas, preserva imports, providers, exports y rutas.

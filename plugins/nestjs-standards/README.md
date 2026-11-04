@@ -1,13 +1,13 @@
 # Erixcel NestJS
 
-Plugin de Codex Desktop que agrupa **8 Skills** y **12 Hooks de validación** en una sola instalación.
+Plugin de Codex Desktop que agrupa **9 Skills** y **12 Hooks de validación** en una sola instalación.
 
 ## Contenido
 
 ```text
 plugins/nestjs-standards/
 ├── .codex-plugin/plugin.json
-├── skills/                       # 8 Skills
+├── skills/                       # 9 Skills
 ├── hooks/
 │   ├── hooks.json
 │   ├── detect-changes.py          # UserPromptSubmit
@@ -32,6 +32,8 @@ plugins/nestjs-standards/
 ```
 
 Las Skills consultan las páginas de [documentación de Erixcel](https://docs.erixcel.com/desarrollo/nestjs/creacion-proyecto) como fuente de verdad.
+
+La Skill específica **`nestjs-queries`** complementa `nestjs-db`, consulta la guía `queries-guia.mdx` y reutiliza el **Query Validator** existente; no incorpora un Hook adicional.
 
 ## Hooks
 

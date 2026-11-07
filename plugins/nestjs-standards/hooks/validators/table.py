@@ -1,14 +1,33 @@
-"""Read-only Drizzle table validator for Erixcel NestJS.
-
-Only imports, pgEnum declarations and one exported pgTable declaration are
-allowed at module scope. Types and interfaces belong to separate contracts.
-"""
+"""Reglas independientes de tablas Drizzle *.table.ts para Erixcel NestJS."""
 import re
 from analyzers.query_structure import tokens
 from validators._helpers import read
 
 
-def validate_table_declarations(source):
+def validate_table(path):
+    source, errors = read(path)
+    if errors:
+        return errors
+
+    # Regla 1: Solo pgEnum y una declaración exportada pgTable, sin types/helpers.
+    errors.extend(_validate_table_declarations(source))
+
+    # Regla 2: Debe existir exactamente una llamada principal a pgTable.
+    errors.extend(_validate_table_single_pgtable(source))
+
+    # Regla 3: createdAt debe existir con defaultNow y notNull.
+    errors.extend(_validate_table_audit_field(source, "createdAt", "created_at", required=True))
+
+    # Regla 4: updatedAt debe existir con defaultNow y notNull.
+    errors.extend(_validate_table_audit_field(source, "updatedAt", "updated_at", required=True))
+
+    # Regla 5: deletedAt debe existir como columna de auditoría anulable.
+    errors.extend(_validate_table_audit_field(source, "deletedAt", "deleted_at", required=False))
+
+    return errors
+
+
+def _validate_table_declarations(source):
     """Validate declarations with lexical tokens, ignoring comments and strings.
 
     Track grouping so that words inside Drizzle definitions do not count as
@@ -93,43 +112,32 @@ def validate_table_declarations(source):
     return errors
 
 
-def validate_table(path):
-    source, errors = read(path)
-    if errors:
-        return errors
-
-    errors.extend(validate_table_declarations(source))
+def _validate_table_single_pgtable(source):
     parsed = tokens(source)
     count = sum(
         word == "pgTable" and i + 1 < len(parsed) and parsed[i + 1][0] == "("
         for i, (word, _) in enumerate(parsed)
     )
     if count != 1:
-        errors.append(
-            f"Un archivo .table.ts define exactamente una tabla pgTable (encontradas {count})."
-        )
+        return [f"Un archivo .table.ts define exactamente una tabla pgTable (encontradas {count})."]
+    return []
 
-    fields = {
-        "createdAt": ("created_at", True),
-        "updatedAt": ("updated_at", True),
-        "deletedAt": ("deleted_at", False),
-    }
-    for field, (column, required) in fields.items():
-        # Drizzle accepts both timestamp('name') and the direct options form
-        # timestamp('name', { withTimezone: true }), without helper aliases.
-        pattern = (
-            r"\b" + field + r"\s*:\s*timestamp\s*\(\s*['\"]"
-            + column + r"['\"]\s*(?:,\s*\{[^{}]*\}\s*)?\)"
-        )
-        match = re.search(pattern, source)
-        if not match:
-            errors.append(
-                f"Falta {field}: usa timestamp('{column}') directamente "
-                "y opcionalmente { withTimezone: true }."
-            )
-        elif required and not re.match(
-            r"\s*\.defaultNow\s*\(\s*\)\s*\.notNull\s*\(\s*\)",
-            source[match.end():],
-        ):
-            errors.append(f"{field} requiere .defaultNow().notNull().")
-    return errors
+
+def _validate_table_audit_field(source, field, column, required):
+    # Se admiten timestamp('name') y timestamp('name', { withTimezone: true }).
+    pattern = (
+        r"\b" + field + r"\s*:\s*timestamp\s*\(\s*['\"]"
+        + column + r"['\"]\s*(?:,\s*\{[^{}]*\}\s*)?\)"
+    )
+    match = re.search(pattern, source)
+    if not match:
+        return [
+            f"Falta {field}: usa timestamp('{column}') directamente "
+            "y opcionalmente { withTimezone: true }."
+        ]
+    if required and not re.match(
+        r"\s*\.defaultNow\s*\(\s*\)\s*\.notNull\s*\(\s*\)",
+        source[match.end():],
+    ):
+        return [f"{field} requiere .defaultNow().notNull()."]
+    return []

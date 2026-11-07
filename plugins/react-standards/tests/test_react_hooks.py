@@ -6,7 +6,19 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hooks"))
-import validator_common as validator
+import ast
+
+import common.snapshot as snapshot_module
+import analyzers.ast as ast_module
+from common.constants import FOLDERS
+from common.discovery import project_for
+from common.snapshot import store
+from common.runner import stop
+from analyzers.imports import validate_resource_scopes
+from validators.pages import validate_page_files
+from validators.layouts import validate_layout_files
+from validators.functions import validate_functions
+from validators.interfaces import validate_interfaces
 
 
 class ReactPluginTests(unittest.TestCase):
@@ -18,7 +30,7 @@ class ReactPluginTests(unittest.TestCase):
         self.frontend.mkdir()
         src = self.frontend / "src"
         src.mkdir()
-        for name in validator.FOLDERS:
+        for name in FOLDERS:
             (src / name).mkdir()
         (src / "main.tsx").write_text(
             "import './index.css';\n"
@@ -49,7 +61,7 @@ class ReactPluginTests(unittest.TestCase):
         }
         state = self.base / "state"
         state.mkdir()
-        self.patch = patch.object(validator, "STATE", state)
+        self.patch = patch.object(snapshot_module, "STATE", state)
         self.patch.start()
         self.addCleanup(self.patch.stop)
 
@@ -59,12 +71,42 @@ class ReactPluginTests(unittest.TestCase):
         p.write_text(data, encoding="utf-8")
 
     def prepare(self):
-        p = validator.project_for(self.payload)
+        p = project_for(self.payload)
         self.assertEqual(p, self.frontend)
-        validator.store(self.payload, p)
+        store(self.payload, p)
 
     def check_stop(self, kind):
-        return validator.stop({**self.payload, "hook_event_name": "Stop"}, kind)
+        return stop({**self.payload, "hook_event_name": "Stop"}, kind)
+
+    def test_root_scripts_exactly_match_registered_hooks(self):
+        hooks_dir = Path(__file__).resolve().parents[1] / "hooks"
+        config = json.loads((hooks_dir / "hooks.json").read_text(encoding="utf-8"))
+        script_names = []
+        for groups in config["hooks"].values():
+            for group in groups:
+                for hook in group["hooks"]:
+                    command = hook["command"]
+                    self.assertIn("/hooks/", command)
+                    filename = command.rsplit("/hooks/", 1)[-1].split('"', 1)[0]
+                    self.assertTrue(filename.endswith(".py"), command)
+                    script_names.append(filename)
+        self.assertEqual(len(script_names), 13)
+        self.assertEqual(len(set(script_names)), 13)
+        actual = {path.name for path in hooks_dir.glob("*.py")}
+        self.assertEqual(actual, set(script_names))
+        self.assertEqual(
+            {p.name for p in hooks_dir.iterdir() if p.is_file()},
+            actual | {"hooks.json"},
+        )
+        for filename in sorted(actual):
+            with self.subTest(filename=filename):
+                source = (hooks_dir / filename).read_text(encoding="utf-8")
+                root = ast.parse(source)
+                for node in ast.walk(root):
+                    if isinstance(node, ast.ImportFrom):
+                        self.assertNotEqual(node.module, "validator_common")
+                    if isinstance(node, ast.Import):
+                        self.assertTrue(all(n.name != "validator_common" for n in node.names))
 
     def test_installed_config_and_skills(self):
         root = Path(__file__).resolve().parents[1]
@@ -84,7 +126,7 @@ class ReactPluginTests(unittest.TestCase):
         backend = self.base / "backend"
         backend.mkdir()
         (backend / "package.json").write_text('{"dependencies":{"@nestjs/core":"*"}}')
-        self.assertEqual(validator.stop({**self.payload, "cwd": str(backend), "hook_event_name": "Stop"}, "main"), {})
+        self.assertEqual(stop({**self.payload, "cwd": str(backend), "hook_event_name": "Stop"}, "main"), {})
 
     def test_snapshot_and_valid_main(self):
         self.prepare()
@@ -98,7 +140,7 @@ class ReactPluginTests(unittest.TestCase):
         self.assertEqual(result["decision"], "block")
         self.assertIn("RouterProvider", result["reason"])
         self.assertIn("index.css", result["reason"])
-        repeat = validator.stop({**self.payload, "hook_event_name": "Stop", "stop_hook_active": True}, "main")
+        repeat = stop({**self.payload, "hook_event_name": "Stop", "stop_hook_active": True}, "main")
         self.assertIn("systemMessage", repeat)
         self.assertNotIn("decision", repeat)
 
@@ -266,7 +308,7 @@ class ReactPluginTests(unittest.TestCase):
     def test_missing_typescript_reports_explicit_error(self):
         self.prepare()
         self.write("src/hooks/use-any.hook.ts", "export function useAny(){return true;}")
-        with patch.object(validator.subprocess, "run", side_effect=FileNotFoundError()):
+        with patch.object(ast_module.subprocess, "run", side_effect=FileNotFoundError()):
             out = self.check_stop("hooks")
         self.assertIn("TypeScript", out.get("reason", ""))
 
@@ -276,7 +318,7 @@ class ReactPluginTests(unittest.TestCase):
                    "export function formatDate() { return ''; }")
         self.write("src/pages/admin/pages/bettors/bettors.page.tsx",
                    "import { formatDate } from '../users/functions/format-date.function';")
-        result = validator.validate_resource_scopes(
+        result = validate_resource_scopes(
             self.frontend, {"src/pages/admin/pages/bettors/bettors.page.tsx"})
         self.assertTrue(any("[resource-scope]" in issue for issue in result))
 
@@ -285,13 +327,13 @@ class ReactPluginTests(unittest.TestCase):
                    "export function formatDate() { return ''; }")
         self.write("src/pages/admin/pages/users/users.page.tsx",
                    "import { formatDate } from '../../functions/format-date.function';")
-        self.assertEqual(validator.validate_resource_scopes(
+        self.assertEqual(validate_resource_scopes(
             self.frontend, {"src/pages/admin/pages/users/users.page.tsx"}), [])
 
     def test_resource_suffix_and_component_nesting(self):
         self.write("src/pages/admin/functions/date.ts", "export function date() { return ''; }")
         self.write("src/pages/admin/components/simple/action.tsx", "export function Action() { return null; }")
-        result = validator.validate_resource_scopes(
+        result = validate_resource_scopes(
             self.frontend, {"src/pages/admin/functions/date.ts",
                             "src/pages/admin/components/simple/action.tsx"})
         self.assertEqual(sum("[resource-suffix]" in issue for issue in result), 2)
@@ -299,26 +341,26 @@ class ReactPluginTests(unittest.TestCase):
     def test_pages_have_named_view(self):
         self.write("src/pages/admin/admin.page.tsx", "export function Admin(){return null;}")
         self.write("src/pages/admin/pages/users/users.page.tsx", "export function Users(){return null;}")
-        self.assertEqual(validator.validate_page_files(self.frontend, {"src/pages/admin/admin.page.tsx", "src/pages/admin/pages/users/users.page.tsx"}), [])
+        self.assertEqual(validate_page_files(self.frontend, {"src/pages/admin/admin.page.tsx", "src/pages/admin/pages/users/users.page.tsx"}), [])
         self.write("src/pages/auth/auth.tsx", "export function Auth(){return null;}")
-        result = validator.validate_page_files(self.frontend, {"src/pages/auth/auth.tsx"})
+        result = validate_page_files(self.frontend, {"src/pages/auth/auth.tsx"})
         self.assertTrue(any("[page-required]" in x for x in result))
 
     def test_layout_sections_and_forbidden_nested_pages(self):
         self.write("src/pages/admin/layout/topbar/topbar.layout.tsx", "export function Topbar(){return null;}")
-        good = validator.validate_layout_files(self.frontend, {"src/pages/admin/layout/topbar/topbar.layout.tsx"})
+        good = validate_layout_files(self.frontend, {"src/pages/admin/layout/topbar/topbar.layout.tsx"})
         self.assertEqual(good, [])
         self.write("src/pages/admin/layout/bottombar/bottombar.tsx", "export function Bottom(){return null;}")
         self.write("src/pages/admin/layout/topbar/pages/inside/inside.page.tsx", "export function Inside(){return null;}")
-        bad = validator.validate_layout_files(self.frontend, {"src/pages/admin/layout/bottombar/bottombar.tsx"})
+        bad = validate_layout_files(self.frontend, {"src/pages/admin/layout/bottombar/bottombar.tsx"})
         self.assertTrue(any("[layout-pages]" in x for x in bad))
         self.assertTrue(any("[layout-name]" in x for x in bad))
 
     def test_function_and_interface_suffixes(self):
         self.write("src/pages/admin/functions/date.ts", "export const date = () => ''")
         self.write("src/pages/admin/interface/user.ts", "export interface User {}")
-        self.assertTrue(any(".function.ts" in x for x in validator.validate_functions(self.frontend, {"src/pages/admin/functions/date.ts"})))
-        self.assertTrue(any(".interface.ts" in x for x in validator.validate_interfaces(self.frontend, {"src/pages/admin/interface/user.ts"})))
+        self.assertTrue(any(".function.ts" in x for x in validate_functions(self.frontend, {"src/pages/admin/functions/date.ts"})))
+        self.assertTrue(any(".interface.ts" in x for x in validate_interfaces(self.frontend, {"src/pages/admin/interface/user.ts"})))
 
     def test_store_plugin_registered_and_nestjs_isolated(self):
         root = Path(__file__).resolve().parents[1]
@@ -443,7 +485,7 @@ class ReactPluginTests(unittest.TestCase):
         backend = self.base / "backend"
         backend.mkdir()
         (backend / "package.json").write_text('{"dependencies":{"@nestjs/core":"*"}}')
-        self.assertEqual(validator.stop({**self.payload, "cwd": str(backend),
+        self.assertEqual(stop({**self.payload, "cwd": str(backend),
                                         "hook_event_name": "Stop"}, "stores"), {})
 
     def test_unmodified_files_are_not_blocked(self):

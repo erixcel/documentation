@@ -2,7 +2,8 @@
 """Track frontend/src and config before Codex starts editing."""
 import json
 import sys
-from validator_common import project_for, store
+from common.discovery import project_for
+from common.snapshot import store
 
 def main():
     try:

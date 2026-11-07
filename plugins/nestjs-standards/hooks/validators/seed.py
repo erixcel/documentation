@@ -1,38 +1,45 @@
-"""Erixcel NestJS modular static hook validators; read-only."""
-import json
+"""Reglas independientes para Seeds de Erixcel NestJS."""
 import re
-from pathlib import Path
-from validators._helpers import read, named_class, class_names, class_methods, pascal, IDENT
+from analyzers.query_structure import tokens
+from validators._helpers import read
+
+
+def validate_seed(path):
+    source, errors = read(path)
+    if errors:
+        return errors
+    ts = tokens(source)
+
+    # Regla 1: No declarar aliases type ni interfaces dentro del Seed.
+    errors.extend(_validate_seed_contracts(ts))
+
+    # Regla 2: Solo imports y exactamente una función exportada seedNombre(...).
+    errors.extend(_validate_seed_scope(ts))
+
+    # Regla 3: Un Seed debe importar exactamente una tabla base.
+    errors.extend(_validate_seed_single_table(source))
+
+    # Regla 4: Un Seed debe insertar datos iniciales mediante Drizzle.
+    errors.extend(_validate_seed_insert(source))
+
+    return errors
+
 
 def validate_seed_directory(folder):
-    """Only *.seed.ts files directly in src/seeds; no other files or folders."""
+    """Comprueba que la carpeta src/seeds sea plana y solo contenga *.seed.ts."""
     if not folder.is_dir():
         return []
-    invalid_files = sorted(
-        entry.name for entry in folder.iterdir()
-        if not entry.is_dir() and not (
-            entry.is_file() and not entry.is_symlink()
-            and entry.name.endswith(".seed.ts")
-        )
-    )
-    invalid_dirs = sorted(entry.name + "/" for entry in folder.iterdir() if entry.is_dir())
-    problems = []
-    if invalid_files:
-        problems.append(
-            "Archivos no permitidos directamente en " + str(folder)
-            + ": " + ", ".join(invalid_files)
-            + ". Solo archivos *.seed.ts. Guarda los datos iniciales dentro "
-              "de la función seed correspondiente."
-        )
-    if invalid_dirs:
-        problems.append(
-            "Subcarpetas prohibidas dentro de " + str(folder)
-            + ": " + ", ".join(invalid_dirs)
-            + ". src/seeds/ debe ser plano: solo *.seed.ts. Migra los JSON "
-              "de data/ a arrays/objetos locales dentro del seed que los usa, "
-              "verifica referencias y elimina la carpeta solo cuando sea seguro."
-        )
-    return problems
+
+    errors = []
+
+    # Regla 5: src/seeds no admite archivos distintos de *.seed.ts.
+    errors.extend(_validate_seed_directory_files(folder))
+
+    # Regla 6: src/seeds no permite subcarpetas.
+    errors.extend(_validate_seed_directory_subfolders(folder))
+
+    return errors
+
 
 def seed_root_relative(name):
     """Return the relative src/seeds directory for a tracked path, or None."""
@@ -43,15 +50,9 @@ def seed_root_relative(name):
     prefix = full.split(marker, 1)[0].lstrip("/")
     return (prefix + "/src/seeds").lstrip("/")
 
-def validate_seed(path):
-    """Enforce a single seed function, one table and no module-level extras."""
-    s, errors = read(path)
-    if errors:
-        return errors
-    from analyzers.query_structure import tokens
 
-    ts = tokens(s)
-    # Even nested type/interface declarations must live in dedicated types/DTOs.
+def _validate_seed_contracts(ts):
+    errors = []
     for idx, (word, line) in enumerate(ts):
         if word == "type" and idx + 2 < len(ts) and ts[idx + 2][0] == "=":
             errors.append(
@@ -63,29 +64,14 @@ def validate_seed(path):
                 f"Línea {line}: no declares interfaces dentro de .seed.ts; "
                 "usa contratos importados."
             )
+    return errors
+
+
+def _validate_seed_scope(ts):
+    errors = []
     n = len(ts)
     i = 0
     exported_functions = []
-
-    def skip_import(index):
-        j = index + 1
-        nesting = 0
-        seen_module = False
-        while j < n:
-            word, line = ts[j]
-            if word in ("{", "(", "["):
-                nesting += 1
-            elif word in ("}", ")", "]"):
-                nesting -= 1
-            elif word == "STRING" and nesting == 0:
-                seen_module = True
-            if word == ";" and nesting == 0:
-                return j + 1
-            if seen_module and nesting == 0 and j + 1 < n:
-                if ts[j + 1][1] > line and ts[j + 1][0] not in ("with", "assert"):
-                    return j + 1
-            j += 1
-        return j
 
     while i < n:
         word, line = ts[i]
@@ -93,7 +79,7 @@ def validate_seed(path):
             i += 1
             continue
         if word == "import":
-            i = skip_import(i)
+            i = _skip_seed_import(ts, i)
             continue
         j = i
         if word == "export":
@@ -180,11 +166,71 @@ def validate_seed(path):
             "seedNombre(...) (encontradas: "
             + str(len(exported_functions)) + ")."
         )
-    imports = sorted(set(re.findall(r"\bfrom\s*['\"]([^'\"]+\.table)['\"]", s)))
-    if len(imports) != 1:
-        errors.append(
-            f"Cada seed debe importar una sola tabla base (encontradas {len(imports)})."
-        )
-    if not re.search(r"\.\s*insert\s*\(", s):
-        errors.append("Un seed debe insertar registros iniciales con Drizzle.")
     return errors
+
+
+def _skip_seed_import(ts, index):
+    n = len(ts)
+    j = index + 1
+    nesting = 0
+    seen_module = False
+    while j < n:
+        word, line = ts[j]
+        if word in ("{", "(", "["):
+            nesting += 1
+        elif word in ("}", ")", "]"):
+            nesting -= 1
+        elif word == "STRING" and nesting == 0:
+            seen_module = True
+        if word == ";" and nesting == 0:
+            return j + 1
+        if seen_module and nesting == 0 and j + 1 < n:
+            if ts[j + 1][1] > line and ts[j + 1][0] not in ("with", "assert"):
+                return j + 1
+        j += 1
+    return j
+
+
+
+def _validate_seed_single_table(source):
+    imports = sorted(set(re.findall(r"\bfrom\s*['\"]([^'\"]+\.table)['\"]", source)))
+    if len(imports) != 1:
+        return [f"Cada seed debe importar una sola tabla base (encontradas {len(imports)})."]
+    return []
+
+
+def _validate_seed_insert(source):
+    if not re.search(r"\.\s*insert\s*\(", source):
+        return ["Un seed debe insertar registros iniciales con Drizzle."]
+    return []
+
+
+def _validate_seed_directory_files(folder):
+    invalid_files = sorted(
+        entry.name for entry in folder.iterdir()
+        if not entry.is_dir() and not (
+            entry.is_file() and not entry.is_symlink()
+            and entry.name.endswith(".seed.ts")
+        )
+    )
+    if invalid_files:
+        return [
+            "Archivos no permitidos directamente en " + str(folder)
+            + ": " + ", ".join(invalid_files)
+            + ". Solo archivos *.seed.ts. Guarda los datos iniciales dentro "
+              "de la función seed correspondiente."
+        ]
+    return []
+
+
+def _validate_seed_directory_subfolders(folder):
+    invalid_dirs = sorted(entry.name + "/" for entry in folder.iterdir() if entry.is_dir())
+    if invalid_dirs:
+        return [
+            "Subcarpetas prohibidas dentro de " + str(folder)
+            + ": " + ", ".join(invalid_dirs)
+            + ". src/seeds/ debe ser plano: solo *.seed.ts. Migra los JSON "
+              "de data/ a arrays/objetos locales dentro del seed que los usa, "
+              "verifica referencias y elimina la carpeta solo cuando sea seguro."
+        ]
+    return []

@@ -16,13 +16,13 @@ def validate_table(path):
     errors.extend(_validate_table_single_pgtable(source))
 
     # Regla 3: createdAt debe existir con defaultNow y notNull.
-    errors.extend(_validate_table_audit_field(source, "createdAt", "created_at", required=True))
+    errors.extend(_validate_table_created_at(source))
 
     # Regla 4: updatedAt debe existir con defaultNow y notNull.
-    errors.extend(_validate_table_audit_field(source, "updatedAt", "updated_at", required=True))
+    errors.extend(_validate_table_updated_at(source))
 
     # Regla 5: deletedAt debe existir como columna de auditoría anulable.
-    errors.extend(_validate_table_audit_field(source, "deletedAt", "deleted_at", required=False))
+    errors.extend(_validate_table_deleted_at(source))
 
     return errors
 
@@ -121,6 +121,18 @@ def _validate_table_single_pgtable(source):
     if count != 1:
         return [f"Un archivo .table.ts define exactamente una tabla pgTable (encontradas {count})."]
     return []
+
+
+def _validate_table_created_at(source):
+    return _validate_table_audit_field(source, "createdAt", "created_at", required=True)
+
+
+def _validate_table_updated_at(source):
+    return _validate_table_audit_field(source, "updatedAt", "updated_at", required=True)
+
+
+def _validate_table_deleted_at(source):
+    return _validate_table_audit_field(source, "deletedAt", "deleted_at", required=False)
 
 
 def _validate_table_audit_field(source, field, column, required):

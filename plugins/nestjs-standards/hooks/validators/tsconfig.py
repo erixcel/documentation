@@ -1,33 +1,65 @@
-"""Erixcel NestJS modular static hook validators; read-only."""
+"""Validaciones de tsconfig/JSONC de Erixcel NestJS por reglas."""
 import json
 import re
-from pathlib import Path
-from analyzers.query_structure import tokens
-from validators._helpers import read, class_names, pascal, named_class, class_methods, controller_dto_files, IDENT
+from validators._helpers import read
+
 
 def validate_tsconfig(path):
-    s, errors = read(path)
+    source, errors = read(path)
     if errors:
         return errors
-    # JSONC: remove comments without discarding URL-looking text in strings.
-    s = re.sub(r"""("(?:\\.|[^"\\])*")|//[^\n]*|/\*[\s\S]*?\*/""", lambda m: m.group(1) or "", s)
-    s = re.sub(r",\s*(?=[}\]])", "", s)
+
+    # Regla 1: tsconfig.json debe ser JSON o JSONC válido.
+    data, parse_errors = _validate_tsconfig_jsonc(source)
+    if parse_errors:
+        return parse_errors
+
+    # Regla 2: compilerOptions debe existir y ser un objeto.
+    options, options_errors = _validate_tsconfig_compiler_options(data)
+    if options_errors:
+        return options_errors
+
+    # Regla 3: module y moduleResolution deben ser nodenext.
+    errors.extend(_validate_tsconfig_module_resolution(options))
+
+    # Regla 4: Los alias en paths deben ser listas de rutas.
+    errors.extend(_validate_tsconfig_paths(options))
+
+    return errors
+
+
+def _validate_tsconfig_jsonc(source):
+    # JSONC: eliminar comentarios sin descartar texto como URLs en strings.
+    source = re.sub(r'''("(?:\\.|[^"\\])*")|//[^\n]*|/\*[\s\S]*?\*/''', lambda match: match.group(1) or "", source)
+    source = re.sub(r",\s*(?=[}\]])", "", source)
     try:
-        data = json.loads(s)
+        return json.loads(source), []
     except (ValueError, TypeError) as exc:
-        return [f"tsconfig.json no es JSON/JSONC válido: {exc}"]
-    opts = data.get("compilerOptions") if isinstance(data, dict) else None
-    if not isinstance(opts, dict):
-        return ["tsconfig.json requiere compilerOptions como objeto."]
+        return None, [f"tsconfig.json no es JSON/JSONC válido: {exc}"]
+
+
+def _validate_tsconfig_compiler_options(data):
+    options = data.get("compilerOptions") if isinstance(data, dict) else None
+    if not isinstance(options, dict):
+        return None, ["tsconfig.json requiere compilerOptions como objeto."]
+    return options, []
+
+
+def _validate_tsconfig_module_resolution(options):
+    errors = []
     for key in ("module", "moduleResolution"):
-        value = opts.get(key)
+        value = options.get(key)
         if isinstance(value, str) and value.lower() != "nodenext":
             errors.append(f"En esta convención NestJS, compilerOptions.{key} debe ser nodenext.")
-    paths = opts.get("paths")
+    return errors
+
+
+def _validate_tsconfig_paths(options):
+    paths = options.get("paths")
     if paths is not None:
         if not isinstance(paths, dict) or not all(
-            isinstance(v, list) and v and all(isinstance(x, str) for x in v)
-            for v in paths.values()
+            isinstance(value, list) and value and all(isinstance(item, str) for item in value)
+            for value in paths.values()
         ):
-            errors.append("compilerOptions.paths debe mapear alias a listas de rutas.")
-    return errors
+            return ["compilerOptions.paths debe mapear alias a listas de rutas."]
+    return []

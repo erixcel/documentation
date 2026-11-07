@@ -49,6 +49,14 @@ Cada página puede tener **solo las carpetas que realmente necesite**: `componen
 La regla del ancestro común más cercano también rige los recursos dentro de layouts y páginas. Los validadores `Page`, `Layout`, `Function`, `Interface` están registrados como Hooks Stop adicionales; las comprobaciones no modifican ni migran archivos automáticamente.
 
 
+## Reglas individuales por validador
+
+Cada archivo de `hooks/validators/` que implementa reglas activas o de compatibilidad sigue el patrón aplicado en Erixcel NestJS: **función principal al principio**, comentarios consecutivos `# Regla 1: ...`, `# Regla 2: ...` y funciones privadas `_validate_...` definidas debajo de la principal. La función principal delega, reúne diagnósticos y mantiene la firma existente `(root, changed)`; las funciones auxiliares permiten revisar y modificar una regla sin reescribir todo el módulo. Donde una validación depende de un archivo o directorio previo, la lectura o comprobación de existencia puede devolver errores antes de aplicar las siguientes reglas.
+
+La refactorización cubre **14 módulos**: `api.py`, `components.py`, `config.py`, `functions.py`, `hooks.py`, `interfaces.py`, `layouts.py`, `main.py`, `pages.py`, `routes.py`, `services.py`, `stores.py`, `structure.py` y `styles.py`. `registry.py` únicamente registra los validadores y permanece como tabla de enrutamiento (no contiene reglas individuales). Los analizadores y los servicios comunes también conservan sus responsabilidades originales. Las entradas manuales heredadas `validate_pages`, `validate_page_routes`, `validate_api_services`, `env_keys` e `is_store_path` siguen disponibles.
+
+Este cambio es **interno de los validadores Python**, no impone nuevas convenciones de React ni añade Hooks. La prueba `test_validator_rule_structure.py` comprueba el formato de los catorce módulos, sus helpers y la preservación de puntos de entrada.
+
 ## Arquitectura modular de los Hooks
 
 Los ejecutables `validate-*.py` siguen registrados individualmente en `hooks.json`; son wrappers sin reglas embebidas. `common/` contiene `discovery.py`, `snapshot.py`, `runner.py`, `reporter.py` y constantes. `validators/` contiene un módulo por recurso (`pages.py`, `layouts.py`, `functions.py`, `interfaces.py`, `hooks.py`, `components.py`, `services.py`, `stores.py`, etc.). `analyzers/` incluye `imports.py`, `ast.py` y `typescript-ast.mjs` para análisis estático de imports y del AST TypeScript. Se retiró `validator_common.py`, así como las entradas antiguas de la raíz `validate-api-services.py`, `validate-config.py`, `validate-routes.py` y `validate-ast.mjs`. Los **13 scripts Python** de la raíz (1 `UserPromptSubmit` y 12 `Stop`) corresponden exactamente a los **13 Hooks** de `hooks.json`; ese JSON es únicamente configuración, no un Hook adicional. Los imports internos utilizan directamente `common/`, `validators/` y `analyzers/`, y el analizador TypeScript vive en `analyzers/typescript-ast.mjs`.

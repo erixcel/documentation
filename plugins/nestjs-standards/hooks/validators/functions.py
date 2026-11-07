@@ -2,7 +2,7 @@
 import json
 import re
 from pathlib import Path
-from analyzers.query_structure import tokens
+from analyzers.query_structure import tokens, validate_one_class
 from validators._helpers import read, class_names, pascal, named_class, class_methods, controller_dto_files, IDENT
 
 def validate_function(path):
@@ -10,7 +10,6 @@ def validate_function(path):
     if errors:
         return errors
     errors += named_class(s, path, ".function.ts", "Function")
-    from query_structure import validate_one_class
     errors += [
         issue.replace(".query.ts", ".function.ts")
         for issue in validate_one_class(s)

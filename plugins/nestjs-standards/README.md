@@ -82,6 +82,12 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 Documentación: [Skills](https://docs.erixcel.com/ia/skills) · [Hooks](https://docs.erixcel.com/ia/hooks).
 
 
+## Organización interna de las reglas
+
+Los archivos de `hooks/validators/` siguen el mismo patrón de `dto.py`: la función pública `validate_<recurso>(path)` aparece al principio y **orquesta** funciones privadas independientes `_validate_...`, con comentarios `# Regla 1: ...`, `# Regla 2: ...`, etc., inmediatamente antes de cada llamada. Cada helper está definido **debajo de la función principal** y devuelve sus errores para que el orquestador los reúna sin interrumpir las demás verificaciones; solo un error de lectura o formato que impide continuar corta la validación. `seed.py` también conserva `validate_seed_directory` para validar la carpeta, y `core.py` y `table.py` conservan utilidades auxiliares necesarias para sus reglas.
+
+Esto es una **convención interna de los validadores Python**, no una nueva restricción para los archivos TypeScript de la aplicación. No cambia la cantidad de Hooks (12), sus puntos de entrada, sus mensajes ni sus comprobaciones. Cada regla puede ampliarse o probarse de forma aislada. La prueba `test_validator_rule_structure.py` comprueba el formato en los 11 módulos de validación, incluido DTO.
+
 ## Arquitectura modular de los Hooks
 
 Cada `validate-*.py` mantiene su punto de entrada y su configuración en `hooks.json`, pero delega su regla a `validators/`: `controller.py`, `service.py`, `module.py`, `dto.py`, `functions.py`, `query.py`, `core.py`, `seed.py`, `table.py`, `script.py`, `tsconfig.py` y `_helpers.py` para funciones de análisis compartidas. `common/` contiene `discovery.py`, `snapshot.py`, `runner.py`, `reporter.py` y constantes. `analyzers/query_structure.py` mantiene la tokenización de consultas. Se retiraron las fachadas heredadas de la raíz (`validator_common.py`, `extra_rules.py`, `core_validator.py` y `query_structure.py`): ahora todos los imports internos apuntan a los módulos de `common/`, `validators/` y `analyzers/`. En la raíz de `hooks/` hay **exactamente 12 scripts Python** (1 `UserPromptSubmit` y 11 `Stop`) y el archivo de configuración **`hooks.json`**, que no es un Hook.

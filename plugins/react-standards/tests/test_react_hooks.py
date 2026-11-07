@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hooks"))
 import ast
-import re
 
 import common.snapshot as snapshot_module
 import analyzers.ast as ast_module
@@ -86,9 +85,11 @@ class ReactPluginTests(unittest.TestCase):
         for groups in config["hooks"].values():
             for group in groups:
                 for hook in group["hooks"]:
-                    match = re.search(r"/hooks/([\\w-]+\\.py)", hook["command"])
-                    self.assertIsNotNone(match, hook["command"])
-                    script_names.append(match.group(1))
+                    command = hook["command"]
+                    self.assertIn("/hooks/", command)
+                    filename = command.rsplit("/hooks/", 1)[-1].split('"', 1)[0]
+                    self.assertTrue(filename.endswith(".py"), command)
+                    script_names.append(filename)
         self.assertEqual(len(script_names), 13)
         self.assertEqual(len(set(script_names)), 13)
         actual = {path.name for path in hooks_dir.glob("*.py")}
